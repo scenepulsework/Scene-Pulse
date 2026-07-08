@@ -18,7 +18,12 @@ const commentSchema = z.object({
 
 export function VenueComments({ venueId }: { venueId: number }) {
   const queryClient = useQueryClient();
-  const { data: comments, isLoading } = useListVenueComments(venueId);
+  const { data: comments, isLoading } = useListVenueComments(venueId, {
+    query: {
+      queryKey: getListVenueCommentsQueryKey(venueId),
+      refetchInterval: 10_000,
+    },
+  });
   const createComment = useCreateVenueComment();
   
   const form = useForm<z.infer<typeof commentSchema>>({

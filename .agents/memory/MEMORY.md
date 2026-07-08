@@ -1,1 +1,1 @@
-- [Mobile map embeds without API key](mobile-map-embeds.md) — Google Maps `output=embed` search URL works with no API key/billing for simple map previews.
+- [Maps without API key](mobile-map-embeds.md) — Google `output=embed` iframe for single-pin previews; Leaflet + CARTO tiles for multi-pin interactive maps (use `basemaps.cartocdn.com`, the `{s}.` variant fails DNS).

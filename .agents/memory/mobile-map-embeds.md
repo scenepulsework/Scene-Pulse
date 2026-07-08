@@ -1,10 +1,16 @@
 ---
-name: Mobile map embeds without API key
-description: How to add a lightweight embedded map (e.g. mobile-first "live map" view) without a Google Maps API key or billing setup.
+name: Map embeds and interactive maps without API key
+description: How to add embedded or fully interactive maps (single-pin previews vs. multi-pin clickable maps) without a Google Maps API key or billing setup.
 ---
 
-`https://www.google.com/maps?q=<lat>,<lng>&z=<zoom>&output=embed` renders a full interactive Google Maps iframe (pin, zoom/pan, "Open in Google Maps" link) with no API key, no billing, and no integration setup.
+**Single-pin preview:** `https://www.google.com/maps?q=<lat>,<lng>&z=<zoom>&output=embed` renders a full interactive Google Maps iframe (pin, zoom/pan, "Open in Google Maps" link) with no API key, no billing, and no integration setup. Not suitable for custom pins/markers beyond the single query point.
 
-**Why:** Users often want a "real map" view (especially mobile-first) but don't want to set up the Maps JavaScript API/Embed API key just for a simple location preview. This URL format is the same one used for the "share location" search embed and works unauthenticated.
+**Multi-pin interactive map (no key needed either):** Leaflet + react-leaflet with free CARTO dark tiles gives a fully interactive map with custom `divIcon` pins, click handlers, fitBounds/flyTo — no API key or billing. react-leaflet v5 requires React 19.
 
-**How to apply:** Use this pattern when a spec calls for an embedded map as a primary/secondary view (e.g. mobile map vs. desktop custom pin visualization) and a full JS mapping SDK (Mapbox GL, Google Maps JS API) is overkill. Compute the query point (single venue lat/lng, or an average/centroid across a venue list) and interpolate into the URL as `<iframe src=... />`. Not suitable for custom pins/markers beyond the single query point — for multi-pin interactive maps, still need Mapbox GL JS or Google Maps JS API with a real key.
+- Tile URL that works in this environment: `https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png` (also `light_all`).
+- **Gotcha:** the subdomain variant `{s}.basemap.cartocdn.com` fails DNS (ERR_NAME_NOT_RESOLVED) here — use the plain `basemaps.cartocdn.com` host with no `{s}` placeholder. Verify tile hosts with curl before wiring them in.
+- Leaflet's panes create their own stacking context; wrap the map container with `z-0` so overlays/navbars above it aren't covered.
+
+**Why:** Users often want a "real map" view but don't want Maps JS API keys/billing for previews, and even multi-pin interactive use cases don't need a paid SDK.
+
+**How to apply:** Use the Google embed iframe for a simple single-location preview; use Leaflet + OSM/CARTO tiles when you need multiple clickable pins, custom markers, or synced detail panels.

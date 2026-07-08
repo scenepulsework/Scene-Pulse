@@ -210,3 +210,19 @@
     z-index: -1;
   }
 }
+/* Leaflet live map pins */
+.scene-pin { background: transparent; border: none; }
+.scene-pin-wrap { position: relative; display: block; }
+.scene-pin-ping {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  opacity: 0.25;
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+.scene-pin-dot {
+  position: relative;
+  display: block;
+  border-radius: 50%;
+}
+.leaflet-container { font-family: inherit; }
