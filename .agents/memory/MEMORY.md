@@ -1,0 +1,1 @@
+- [Mobile map embeds without API key](mobile-map-embeds.md) — Google Maps `output=embed` search URL works with no API key/billing for simple map previews.

@@ -3,13 +3,23 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ScenePulse API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: venues
+    description: Venue conditions and directory
+  - name: comments
+    description: Real-time venue comments
+  - name: reports
+    description: Live crowd/wait/vibe report submissions
+  - name: markets
+    description: Market metadata and coverage
+  - name: stats
+    description: Dashboard and hero aggregates
 paths:
   /healthz:
     get:
@@ -24,6 +34,256 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /venues:
+    get:
+      operationId: listVenues
+      tags: [venues]
+      summary: List venues
+      description: List venues with optional filtering, search, and sorting
+      parameters:
+        - name: market
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          description: Sort order for results
+          schema:
+            type: string
+            enum: [crowdScore, waitTime, rating, name, updated]
+        - name: intent
+          in: query
+          description: Quick-pick user intent tag to filter by
+          schema:
+            type: string
+            enum: [dateNight, noWait, retailDrops, liveMusic, patioEnergy, lateNightFood]
+      responses:
+        "200":
+          description: List of venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Venue"
+
+  /venues/{id}:
+    get:
+      operationId: getVenue
+      tags: [venues]
+      summary: Get a venue
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Venue detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venue"
+        "404":
+          description: Not found
+
+  /markets:
+    get:
+      operationId: listMarkets
+      tags: [markets]
+      summary: List markets covered
+      description: Distinct markets with venue counts
+      responses:
+        "200":
+          description: List of markets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Market"
+
+  /stats/hero:
+    get:
+      operationId: getHeroStats
+      tags: [stats]
+      summary: Hero dashboard stats
+      description: Top-line aggregates for the hero dashboard
+      responses:
+        "200":
+          description: Hero stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeroStats"
+
+  /stats/hot-zones:
+    get:
+      operationId: getHotZones
+      tags: [stats]
+      summary: Hot zone highlights
+      description: Hottest pin, fastest move, and most open venue for the Scene Map
+      parameters:
+        - name: market
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Hot zone highlights
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HotZones"
+
+  /market-gaps:
+    get:
+      operationId: listMarketGaps
+      tags: [markets]
+      summary: Hospitality market gaps
+      description: Industry gap notes ScenePulse addresses
+      responses:
+        "200":
+          description: List of market gaps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketGap"
+
+  /venues/{venueId}/comments:
+    get:
+      operationId: listVenueComments
+      tags: [comments]
+      summary: List comments for a venue
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      operationId: createVenueComment
+      tags: [comments]
+      summary: Post a comment on a venue's live scene
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "404":
+          description: Venue not found
+
+  /venues/{venueId}/reports:
+    get:
+      operationId: listVenueReports
+      tags: [reports]
+      summary: List recent live reports for a venue
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of live reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LiveReport"
+    post:
+      operationId: createVenueReport
+      tags: [reports]
+      summary: Submit a live crowd/wait/vibe report for a venue
+      description: Updates the venue's live condition snapshot in addition to logging the report
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LiveReportInput"
+      responses:
+        "201":
+          description: Created live report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveReport"
+        "404":
+          description: Venue not found
+
+  /venues/{venueId}/watchlist:
+    post:
+      operationId: addToWatchlist
+      tags: [venues]
+      summary: Add a venue to the watchlist
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Updated venue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venue"
+        "404":
+          description: Venue not found
+    delete:
+      operationId: removeFromWatchlist
+      tags: [venues]
+      summary: Remove a venue from the watchlist
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Updated venue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venue"
+        "404":
+          description: Venue not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +294,179 @@ components:
       required:
         - status
 
+    Venue:
+      type: object
+      required:
+        - id
+        - name
+        - category
+        - city
+        - market
+        - region
+        - country
+        - latitude
+        - longitude
+        - address
+        - rating
+        - crowdScore
+        - crowdLevel
+        - waitTimeMinutes
+        - headcount
+        - lineTrend
+        - seatingOdds
+        - noiseLevel
+        - coverCost
+        - bestTimeWindow
+        - bestFor
+        - operatorGapNote
+        - peakPressureWindow
+        - reservationSignal
+        - staffingSignal
+        - dataSignalsTracked
+        - arrivalTips
+        - isWatchlisted
+        - updatedAt
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category:
+          type: string
+          enum: [bar, restaurant, retail, cafe, experience]
+        city: { type: string }
+        market: { type: string }
+        region: { type: string }
+        country: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+        address: { type: string }
+        rating: { type: number }
+        crowdScore:
+          type: integer
+          description: 0-100 crowd pressure score
+        crowdLevel:
+          type: string
+          enum: [open, lively, packed]
+        waitTimeMinutes: { type: integer }
+        headcount: { type: integer }
+        lineTrend:
+          type: string
+          enum: [rising, falling, steady]
+        seatingOdds: { type: string }
+        noiseLevel:
+          type: string
+          enum: [quiet, moderate, loud]
+        coverCost: { type: string }
+        bestTimeWindow: { type: string }
+        bestFor:
+          type: array
+          items: { type: string }
+        operatorGapNote: { type: string }
+        peakPressureWindow: { type: string }
+        reservationSignal: { type: string }
+        staffingSignal: { type: string }
+        dataSignalsTracked:
+          type: array
+          items: { type: string }
+        arrivalTips:
+          type: array
+          items: { type: string }
+        sourceLabel: { type: ["string", "null"] }
+        sourceUrl: { type: ["string", "null"] }
+        mapsUrl: { type: string }
+        isWatchlisted: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+
+    Market:
+      type: object
+      required: [market, city, region, country, venueCount]
+      properties:
+        market: { type: string }
+        city: { type: string }
+        region: { type: string }
+        country: { type: string }
+        venueCount: { type: integer }
+
+    HeroStats:
+      type: object
+      required:
+        - totalVenues
+        - marketsCovered
+        - liveReportsToday
+        - averageCrowdScore
+        - packedNow
+        - openNow
+      properties:
+        totalVenues: { type: integer }
+        marketsCovered: { type: integer }
+        liveReportsToday: { type: integer }
+        averageCrowdScore: { type: number }
+        packedNow: { type: integer }
+        openNow: { type: integer }
+
+    HotZones:
+      type: object
+      required: [hottestPin, fastestMove, mostOpen]
+      properties:
+        hottestPin:
+          $ref: "#/components/schemas/Venue"
+        fastestMove:
+          $ref: "#/components/schemas/Venue"
+        mostOpen:
+          $ref: "#/components/schemas/Venue"
+
+    MarketGap:
+      type: object
+      required: [id, title, description]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+
+    Comment:
+      type: object
+      required: [id, venueId, authorName, message, createdAt]
+      properties:
+        id: { type: integer }
+        venueId: { type: integer }
+        authorName: { type: string }
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CommentInput:
+      type: object
+      required: [authorName, message]
+      properties:
+        authorName: { type: string, minLength: 1 }
+        message: { type: string, minLength: 1 }
+
+    LiveReport:
+      type: object
+      required:
+        - id
+        - venueId
+        - reporterName
+        - crowdLevel
+        - waitTimeMinutes
+        - vibeNote
+        - createdAt
+      properties:
+        id: { type: integer }
+        venueId: { type: integer }
+        reporterName: { type: string }
+        crowdLevel:
+          type: string
+          enum: [open, lively, packed]
+        waitTimeMinutes: { type: integer }
+        vibeNote: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    LiveReportInput:
+      type: object
+      required: [reporterName, crowdLevel, waitTimeMinutes, vibeNote]
+      properties:
+        reporterName: { type: string, minLength: 1 }
+        crowdLevel:
+          type: string
+          enum: [open, lively, packed]
+        waitTimeMinutes: { type: integer, minimum: 0 }
+        vibeNote: { type: string, minLength: 1 }

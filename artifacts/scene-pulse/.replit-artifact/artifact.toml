@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ScenePulse"
+version = "1.0.0"
+id = "artifacts/scene-pulse"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18971
+
+[services.development]
+run = "pnpm --filter @workspace/scene-pulse run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/scene-pulse", "run", "build" ]
+publicDir = "artifacts/scene-pulse/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18971"
+BASE_PATH = "/"

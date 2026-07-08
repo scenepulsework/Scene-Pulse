@@ -1,0 +1,187 @@
+import { useGetHeroStats, useListMarkets, useGetHotZones, useListMarketGaps } from "@workspace/api-client-react";
+import { Activity, Users, MapPin, Map, Zap, CheckCircle2, ChevronRight, Radar, MessageSquareText, Compass, Mail } from "lucide-react";
+import { Link } from "wouter";
+
+export function HeroSection() {
+  const { data: stats } = useGetHeroStats();
+
+  return (
+    <div className="py-12 md:py-20 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background pointer-events-none" />
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-3xl mb-12">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 uppercase leading-none">
+            <span className="block text-foreground">Read the room.</span>
+            <span className="block bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Before you leave.</span>
+          </h1>
+          <p className="text-xl text-muted-foreground font-mono leading-relaxed">
+            Live crowd scores, wait times, and vibe checks for the city's best spots. Don't waste your night guessing.
+          </p>
+        </div>
+
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <StatCard label="Venues Tracked" value={stats.totalVenues} icon={<MapPin className="w-4 h-4 text-primary" />} />
+            <StatCard label="Markets" value={stats.marketsCovered} icon={<Map className="w-4 h-4 text-secondary" />} />
+            <StatCard label="Live Reports" value={stats.liveReportsToday} icon={<Zap className="w-4 h-4 text-accent" />} />
+            <StatCard label="Avg Score" value={`${stats.averageCrowdScore}%`} icon={<Activity className="w-4 h-4 text-primary" />} />
+            <StatCard label="Packed Now" value={stats.packedNow} icon={<Users className="w-4 h-4 text-destructive" />} />
+            <StatCard label="Open Now" value={stats.openNow} icon={<CheckCircle2 className="w-4 h-4 text-green-500" />} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) {
+  return (
+    <div className="bg-card border border-border/50 rounded-lg p-4 flex flex-col items-start gap-2 hover:border-primary/50 transition-colors">
+      <div className="flex items-center gap-2 text-muted-foreground text-xs font-mono uppercase tracking-wider">
+        {icon}
+        {label}
+      </div>
+      <div className="text-2xl font-black">{value}</div>
+    </div>
+  );
+}
+
+export function HotZonesSection() {
+  const { data: hotZones } = useGetHotZones();
+
+  if (!hotZones) return null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <HotZoneCard title="Hottest Pin" venue={hotZones.hottestPin} color="border-destructive" icon={<Users className="w-4 h-4 text-destructive" />} />
+      <HotZoneCard title="Fastest Move" venue={hotZones.fastestMove} color="border-primary" icon={<Activity className="w-4 h-4 text-primary" />} />
+      <HotZoneCard title="Most Open" venue={hotZones.mostOpen} color="border-green-500" icon={<CheckCircle2 className="w-4 h-4 text-green-500" />} />
+    </div>
+  );
+}
+
+function HotZoneCard({ title, venue, color, icon }: { title: string, venue: any, color: string, icon: React.ReactNode }) {
+  if (!venue) return null;
+  return (
+    <Link href={`/venue/${venue.id}`} className={`block bg-card border-l-4 ${color} border-y border-r border-y-border/50 border-r-border/50 p-4 hover:bg-muted/50 transition-colors group`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+          {icon}
+          {title}
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </div>
+      <div className="font-bold text-lg truncate">{venue.name}</div>
+      <div className="text-sm text-muted-foreground">{venue.city} • {venue.category}</div>
+    </Link>
+  );
+}
+
+export function ServicesSection() {
+  const services = [
+    {
+      icon: <Radar className="w-6 h-6 text-primary" />,
+      title: "Live Crowd Radar",
+      description: "Crowd score, headcount, wait time, and line trend refreshed by community reports, not stale check-ins.",
+    },
+    {
+      icon: <MessageSquareText className="w-6 h-6 text-secondary" />,
+      title: "Real-Time Vibe Reports",
+      description: "Guests submit crowd, wait, and vibe checks in seconds so the next person walking up knows exactly what to expect.",
+    },
+    {
+      icon: <Compass className="w-6 h-6 text-accent" />,
+      title: "Best-Time Guidance",
+      description: "Every venue carries a best arrival window, peak pressure window, and arrival tips so you time it right.",
+    },
+  ];
+
+  return (
+    <section id="services" className="py-16 border-t border-border/40">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-black uppercase tracking-tighter mb-8">Services</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {services.map((s) => (
+            <div key={s.title} className="bg-card border border-border/50 rounded-lg p-6">
+              <div className="mb-4">{s.icon}</div>
+              <h3 className="font-bold text-lg mb-2">{s.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{s.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function ContactSection() {
+  return (
+    <section id="contact" className="py-16 border-t border-border/40 bg-muted/20">
+      <div className="container mx-auto px-4 max-w-2xl text-center">
+        <Mail className="w-8 h-8 text-primary mx-auto mb-4" />
+        <h2 className="text-3xl font-black uppercase tracking-tighter mb-4">Contact</h2>
+        <p className="text-muted-foreground mb-6">
+          Running a venue and want to get on the map, or spot a data signal that's off? Reach the ScenePulse team.
+        </p>
+        <a
+          href="mailto:hello@scenepulse.app"
+          data-testid="link-contact-email"
+          className="inline-flex items-center gap-2 font-mono text-sm font-bold text-primary hover:underline"
+        >
+          hello@scenepulse.app
+        </a>
+      </div>
+    </section>
+  );
+}
+
+export function MarketsSection() {
+  const { data: markets } = useListMarkets();
+
+  if (!markets) return null;
+
+  return (
+    <section id="markets" className="py-16 border-t border-border/40">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-black uppercase tracking-tighter mb-8 flex items-center gap-3">
+          <Map className="w-8 h-8 text-secondary" />
+          Active Markets
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {markets.map(m => (
+            <div key={m.market} className="bg-card border border-border/50 p-4 rounded-lg flex flex-col hover:border-secondary/50 transition-colors">
+              <span className="font-bold truncate">{m.city}</span>
+              <span className="text-xs text-muted-foreground font-mono mt-1">{m.venueCount} Venues</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function OperatorsSection() {
+  const { data: gaps } = useListMarketGaps();
+
+  if (!gaps) return null;
+
+  return (
+    <section id="operators" className="py-16 bg-muted/30 border-t border-border/40">
+      <div className="container mx-auto px-4">
+        <div className="max-w-2xl mb-12">
+          <h2 className="text-3xl font-black uppercase tracking-tighter mb-4 text-primary">For Operators</h2>
+          <p className="text-lg text-muted-foreground">Why we built ScenePulse. The hospitality industry is flying blind when it comes to live consumer intent.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {gaps.map(gap => (
+            <div key={gap.id} className="bg-card border border-border p-6 rounded-lg relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
+              <h3 className="font-bold text-lg mb-2 relative z-10">{gap.title}</h3>
+              <p className="text-sm text-muted-foreground relative z-10 leading-relaxed">{gap.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

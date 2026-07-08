@@ -1,14 +1,16 @@
-# [Project name]
+# ScenePulse
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A Surfline-style "live conditions" dashboard for local venues (bars, restaurants, retail, cafes, experiences) across North American markets — crowd scores, wait times, and vibe checks so people know before they go.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/scene-pulse run dev` — run the ScenePulse web frontend
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `pnpm --filter @workspace/scripts run seed:scene-pulse` — seed/reseed venues across markets
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
@@ -19,18 +21,31 @@ _Replace the heading above with the project's name, and this line with one sente
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- Frontend: React + Vite (`artifacts/scene-pulse`), dark neon theme, wouter routing, TanStack Query
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- DB schema: `lib/db/src/schema/` (`venuesTable`, `commentsTable`, `liveReportsTable`)
+- API routes: `artifacts/api-server/src/routes/` (`venues.ts`, `comments.ts`, `reports.ts`, `markets.ts`, `marketGaps.ts`, `stats.ts`)
+- Venue presenter (computes `mapsUrl` dynamically): `artifacts/api-server/src/lib/venuePresenter.ts`
+- Seed script: `scripts/src/seedScenePulse.ts`
+- Frontend pages: `artifacts/scene-pulse/src/pages/` (`home.tsx`, `venue.tsx`)
+- Frontend components: `artifacts/scene-pulse/src/components/` (`scene-map.tsx`, `home-sections.tsx`, `layout.tsx`, `venue-card.tsx`, `venue-filters.tsx`, `venue-reports.tsx`, `venue-comments.tsx`)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- `mapsUrl` is computed server-side per request (not stored in DB) from venue name + address via `toMapsUrl()`.
+- Intent filtering (dateNight, noWait, retailDrops, liveMusic, patioEnergy, lateNightFood) happens in JS after the DB fetch (small ~78-row dataset), matching against `bestFor` tags or category/waitTime directly in `venues.ts`.
+- Submitting a live report updates the venue's `crowdLevel`/`crowdScore`/`waitTimeMinutes` server-side (`reports.ts`).
+- Desktop "Pulse Layer" map is an abstract radar/pin-grid visualization (no external mapping SDK) with clickable pins synced to a detail panel. Mobile uses a real embedded Google Maps iframe (`output=embed`, no API key) as the primary map experience, with the pin grid hidden on mobile — see `.agents/memory/mobile-map-embeds.md`.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Home dashboard: hero stats, hot zones (hottest/fastest-moving/most-open), quick-pick intent filters, category filters, search/sort, market filter, Feed vs. Pulse Layer map toggle (desktop), mobile Google Maps embed + vertical venue list.
+- Venue detail page: crowd score, wait time, headcount, line trend, seating odds, noise level, cover cost, best arrival window/timing strategy, live reports feed, comments ("The Wire"), watchlist bookmark, "Open Maps" link.
+- Markets section (13 North American markets) and "For Operators" hospitality market-gap section.
+- Mobile sidebar menu with anchor links: Services, About, Map, Markets, For Operators, Contact.
+- Seeded with 78 venues across 13 markets, including real named venues with source attribution (sourceLabel/sourceUrl).
 
 ## User preferences
 
@@ -38,7 +53,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Run `pnpm --filter @workspace/scene-pulse run typecheck` (not `build`) to verify the frontend from the shell — `build` needs workflow-provided `PORT`/`BASE_PATH`.
+- After adding new generated-hook usages (Orval), double check mutate-payload shapes — e.g. `useCreateVenueComment()`/`useCreateVenueReport()` take no args; `venueId` goes inside the mutate payload, not the hook call.
 
 ## Pointers
 
