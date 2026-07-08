@@ -86,7 +86,7 @@ export function LiveMap({
 
   return (
     <div className="flex flex-col lg:flex-row gap-4" data-testid="live-map">
-      <div className="relative flex-1 h-[380px] lg:h-[580px] rounded-2xl overflow-hidden border border-border/50 bg-card z-0">
+      <div className="relative w-full shrink-0 lg:flex-1 h-[380px] lg:h-[580px] rounded-2xl overflow-hidden border border-border/50 bg-card z-0">
         {venues.length > 0 ? (
           <MapContainer
             center={[venues[0].latitude, venues[0].longitude]}
