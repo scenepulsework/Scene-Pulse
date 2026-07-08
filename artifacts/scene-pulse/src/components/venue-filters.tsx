@@ -1,8 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ListVenuesIntent, ListVenuesSort, VenueCategory } from "@workspace/api-client-react";
-import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map } from "lucide-react";
+import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap } from "lucide-react";
 
 type VenueFiltersProps = {
   filters: {
@@ -16,47 +17,70 @@ type VenueFiltersProps = {
   markets: { market: string; city: string }[];
 };
 
-export function VenueFilters({ filters, setFilters, markets }: VenueFiltersProps) {
-  
+const INTENTS = [
+  { value: ListVenuesIntent.dateNight, label: "Date night", description: "Lower noise, better seating, good energy", badge: "best vibe", icon: <Heart className="w-4 h-4" /> },
+  { value: ListVenuesIntent.noWait, label: "No wait", description: "Shortest friction first", badge: "low friction", icon: <Clock className="w-4 h-4" /> },
+  { value: ListVenuesIntent.retailDrops, label: "Retail drops", description: "Shops with product or promo signals", badge: "best vibe", icon: <ShoppingBag className="w-4 h-4" /> },
+  { value: ListVenuesIntent.liveMusic, label: "Live music", description: "Showrooms, sets, and crowd pressure", badge: "best vibe", icon: <Music className="w-4 h-4" /> },
+  { value: ListVenuesIntent.patioEnergy, label: "Patio energy", description: "Outdoor seating with a lively crowd", badge: "best vibe", icon: <Flame className="w-4 h-4" /> },
+  { value: ListVenuesIntent.lateNightFood, label: "Late night", description: "Kitchens still firing after hours", badge: "low friction", icon: <Moon className="w-4 h-4" /> },
+];
+
+export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps, "filters" | "setFilters">) {
   const updateFilter = (key: string, value: any) => {
     setFilters((prev: any) => ({ ...prev, [key]: value === 'all' ? undefined : value }));
   };
 
-  const intents = [
-    { value: ListVenuesIntent.dateNight, label: "Date Night", icon: <Heart className="w-3 h-3" /> },
-    { value: ListVenuesIntent.noWait, label: "No Wait", icon: <Clock className="w-3 h-3" /> },
-    { value: ListVenuesIntent.retailDrops, label: "Retail Drops", icon: <ShoppingBag className="w-3 h-3" /> },
-    { value: ListVenuesIntent.liveMusic, label: "Live Music", icon: <Music className="w-3 h-3" /> },
-    { value: ListVenuesIntent.patioEnergy, label: "Patio Energy", icon: <Flame className="w-3 h-3" /> },
-    { value: ListVenuesIntent.lateNightFood, label: "Late Night", icon: <Moon className="w-3 h-3" /> },
-  ];
+  return (
+    <div className="bg-card border border-border/50 rounded-2xl p-5 flex flex-col gap-4 h-full">
+      <div>
+        <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-warm mb-1">
+          <Zap className="w-3.5 h-3.5" /> Quick Picks
+        </div>
+        <h3 className="font-black text-lg leading-tight mb-1">Tell ScenePulse what kind of night you want</h3>
+        <p className="text-sm text-muted-foreground">These shortcuts instantly filter venues so discovery feels like a concierge, not a static directory.</p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          data-testid="quickpick-all-vibes"
+          onClick={() => updateFilter("intent", undefined)}
+          className={`text-left rounded-xl px-4 py-3 border transition-colors ${!filters.intent ? "border-primary bg-primary/10" : "border-border/50 bg-muted/20 hover:bg-muted/40"}`}
+        >
+          <div className="font-bold">All vibes</div>
+          <div className="text-sm text-muted-foreground">Clear quick pick filter and see everything</div>
+        </button>
+        {INTENTS.map((intent) => {
+          const active = filters.intent === intent.value;
+          return (
+            <button
+              key={intent.value}
+              type="button"
+              data-testid={`quickpick-${intent.value}`}
+              onClick={() => updateFilter("intent", active ? undefined : intent.value)}
+              className={`text-left rounded-xl px-4 py-3 border transition-colors flex items-center justify-between gap-3 ${active ? "border-primary bg-primary/10" : "border-border/50 bg-muted/20 hover:bg-muted/40"}`}
+            >
+              <div className="min-w-0">
+                <div className="font-bold flex items-center gap-2">{intent.icon} {intent.label}</div>
+                <div className="text-sm text-muted-foreground">{intent.description}</div>
+              </div>
+              <Badge variant="secondary" className="shrink-0 rounded-full font-mono text-[10px] uppercase">{intent.badge}</Badge>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function VenueFilters({ filters, setFilters, markets }: VenueFiltersProps) {
+
+  const updateFilter = (key: string, value: any) => {
+    setFilters((prev: any) => ({ ...prev, [key]: value === 'all' ? undefined : value }));
+  };
 
   return (
     <div className="space-y-4">
-      {/* Quick Picks - Horizontal scroll */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x">
-        <Button 
-          variant={!filters.intent ? "default" : "outline"}
-          size="sm"
-          className="snap-start rounded-full whitespace-nowrap"
-          onClick={() => updateFilter("intent", undefined)}
-        >
-          All Vibes
-        </Button>
-        {intents.map(intent => (
-          <Button
-            key={intent.value}
-            variant={filters.intent === intent.value ? "default" : "outline"}
-            size="sm"
-            className={`snap-start rounded-full whitespace-nowrap gap-2 ${filters.intent === intent.value ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90 border-secondary' : ''}`}
-            onClick={() => updateFilter("intent", filters.intent === intent.value ? undefined : intent.value)}
-          >
-            {intent.icon}
-            {intent.label}
-          </Button>
-        ))}
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Search */}
         <div className="relative col-span-1 md:col-span-2">

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useListVenues, useListMarkets, ListVenuesIntent, ListVenuesSort, Venue } from "@workspace/api-client-react";
-import { HeroSection, HotZonesSection, MarketsSection, OperatorsSection, ServicesSection, ContactSection } from "@/components/home-sections";
-import { VenueFilters } from "@/components/venue-filters";
+import { HeroSection, MarketsSection, OperatorsSection, ServicesSection, ContactSection, SceneMapOverviewCard } from "@/components/home-sections";
+import { VenueFilters, QuickPicksPanel } from "@/components/venue-filters";
 import { VenueCard } from "@/components/venue-card";
 import { SceneMap } from "@/components/scene-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,8 +52,11 @@ export default function Home() {
             <Activity className="w-6 h-6 text-primary" />
             <h2 className="text-2xl font-black uppercase tracking-tighter">Live Pulse</h2>
           </div>
-          
-          <HotZonesSection />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <SceneMapOverviewCard />
+            <QuickPicksPanel filters={filters} setFilters={setFilters} />
+          </div>
 
           <MobileMapEmbed venues={venues || []} />
 

@@ -1,34 +1,114 @@
-import { useGetHeroStats, useListMarkets, useGetHotZones, useListMarketGaps } from "@workspace/api-client-react";
-import { Activity, Users, MapPin, Map, Zap, CheckCircle2, ChevronRight, Radar, MessageSquareText, Compass, Mail } from "lucide-react";
+import { useState } from "react";
+import { useGetHeroStats, useListMarkets, useGetHotZones, useListMarketGaps, useListVenues } from "@workspace/api-client-react";
+import { Activity, Users, MapPin, Map, Zap, CheckCircle2, ChevronRight, Radar, MessageSquareText, Compass, Mail, RadioTower, Navigation, RefreshCw, Flame, Star } from "lucide-react";
 import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
-  const { data: stats } = useGetHeroStats();
+  const { data: stats, refetch: refetchStats } = useGetHeroStats();
+  const { data: hotZones, refetch: refetchHotZones } = useGetHotZones();
+  const { data: allVenues, refetch: refetchVenues } = useListVenues({});
+  const [locationNote, setLocationNote] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refetchStats(), refetchHotZones(), refetchVenues()]);
+    setRefreshing(false);
+  };
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationNote("Location isn't available in this browser.");
+      return;
+    }
+    setLocationNote("Locating…");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (!allVenues?.length) {
+          setLocationNote("No venue data loaded yet.");
+          return;
+        }
+        const { latitude, longitude } = pos.coords;
+        let nearest = allVenues[0];
+        let bestDist = Infinity;
+        for (const v of allVenues) {
+          const d = Math.hypot(v.latitude - latitude, v.longitude - longitude);
+          if (d < bestDist) {
+            bestDist = d;
+            nearest = v;
+          }
+        }
+        setLocationNote(`Closest market: ${nearest.city}`);
+      },
+      () => setLocationNote("Couldn't get your location — check browser permissions."),
+    );
+  };
 
   return (
     <div className="py-12 md:py-20 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-warm/20 via-background to-background pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent pointer-events-none" />
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-3xl mb-12">
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 uppercase leading-none">
-            <span className="block text-foreground">Read the room.</span>
-            <span className="block bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Before you leave.</span>
-          </h1>
-          <p className="text-xl text-muted-foreground font-mono leading-relaxed">
-            Live crowd scores, wait times, and vibe checks for the city's best spots. Don't waste your night guessing.
-          </p>
-        </div>
-
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatCard label="Venues Tracked" value={stats.totalVenues} icon={<MapPin className="w-4 h-4 text-primary" />} />
-            <StatCard label="Markets" value={stats.marketsCovered} icon={<Map className="w-4 h-4 text-secondary" />} />
-            <StatCard label="Live Reports" value={stats.liveReportsToday} icon={<Zap className="w-4 h-4 text-accent" />} />
-            <StatCard label="Avg Score" value={`${stats.averageCrowdScore}%`} icon={<Activity className="w-4 h-4 text-primary" />} />
-            <StatCard label="Packed Now" value={stats.packedNow} icon={<Users className="w-4 h-4 text-destructive" />} />
-            <StatCard label="Open Now" value={stats.openNow} icon={<CheckCircle2 className="w-4 h-4 text-green-500" />} />
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 items-start">
+          <div>
+            <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full border border-warm/30 bg-warm/10 text-warm text-xs font-mono uppercase tracking-wider">
+              <RadioTower className="w-3.5 h-3.5 animate-pulse" />
+              Live sync on
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 uppercase leading-none">
+              <span className="block text-foreground">Read the room.</span>
+              <span className="block bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Before you leave.</span>
+            </h1>
+            <p className="text-xl text-muted-foreground font-mono leading-relaxed mb-8">
+              Live crowd scores, wait times, and vibe checks for the city's best spots. Don't waste your night guessing.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                data-testid="button-use-location"
+                onClick={handleUseLocation}
+                className="rounded-full bg-warm text-warm-foreground hover:opacity-90 gap-2"
+              >
+                <Navigation className="w-4 h-4" /> Use my location
+              </Button>
+              <Button
+                data-testid="button-refresh-conditions"
+                variant="outline"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="rounded-full gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} /> Refresh conditions
+              </Button>
+            </div>
+            {locationNote && (
+              <div className="mt-3 text-sm text-muted-foreground font-mono flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5" /> {locationNote}
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="grid grid-cols-2 gap-4">
+            {stats && (
+              <>
+                <StatCard label="Venues Tracked" value={stats.totalVenues} icon={<MapPin className="w-4 h-4 text-primary" />} />
+                <StatCard label="Markets" value={stats.marketsCovered} icon={<Map className="w-4 h-4 text-secondary" />} />
+              </>
+            )}
+            {hotZones?.hottestPin && (
+              <HighlightCard title="Hottest scene" venue={hotZones.hottestPin} icon={<Flame className="w-4 h-4 text-destructive" />} />
+            )}
+            {hotZones?.mostOpen && (
+              <HighlightCard title="Best easy walk-in" venue={hotZones.mostOpen} icon={<Star className="w-4 h-4 text-green-500" />} />
+            )}
+            {stats && (
+              <>
+                <StatCard label="Packed Now" value={stats.packedNow} icon={<Users className="w-4 h-4 text-destructive" />} />
+                <StatCard label="Open Now" value={stats.openNow} icon={<CheckCircle2 className="w-4 h-4 text-green-500" />} />
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -36,13 +116,28 @@ export function HeroSection() {
 
 function StatCard({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) {
   return (
-    <div className="bg-card border border-border/50 rounded-lg p-4 flex flex-col items-start gap-2 hover:border-primary/50 transition-colors">
+    <div className="bg-card border border-border/50 rounded-2xl p-4 flex flex-col items-start gap-2 hover:border-primary/50 transition-colors">
       <div className="flex items-center gap-2 text-muted-foreground text-xs font-mono uppercase tracking-wider">
         {icon}
         {label}
       </div>
       <div className="text-2xl font-black">{value}</div>
     </div>
+  );
+}
+
+function HighlightCard({ title, venue, icon }: { title: string, venue: any, icon: React.ReactNode }) {
+  return (
+    <Link
+      href={`/venue/${venue.id}`}
+      className="bg-card border border-border/50 rounded-2xl p-4 flex flex-col items-start gap-2 hover:border-warm/50 transition-colors"
+    >
+      <div className="flex items-center gap-2 text-muted-foreground text-xs font-mono uppercase tracking-wider">
+        {icon}
+        {title}
+      </div>
+      <div className="text-base font-bold leading-tight truncate w-full">{venue.name}</div>
+    </Link>
   );
 }
 
@@ -63,7 +158,7 @@ export function HotZonesSection() {
 function HotZoneCard({ title, venue, color, icon }: { title: string, venue: any, color: string, icon: React.ReactNode }) {
   if (!venue) return null;
   return (
-    <Link href={`/venue/${venue.id}`} className={`block bg-card border-l-4 ${color} border-y border-r border-y-border/50 border-r-border/50 p-4 hover:bg-muted/50 transition-colors group`}>
+    <Link href={`/venue/${venue.id}`} className={`block bg-card border-l-4 ${color} border-y border-r border-y-border/50 border-r-border/50 p-4 hover:bg-muted/50 transition-colors group rounded-r-2xl`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted-foreground">
           {icon}
@@ -74,6 +169,68 @@ function HotZoneCard({ title, venue, color, icon }: { title: string, venue: any,
       <div className="font-bold text-lg truncate">{venue.name}</div>
       <div className="text-sm text-muted-foreground">{venue.city} • {venue.category}</div>
     </Link>
+  );
+}
+
+export function SceneMapOverviewCard() {
+  const { data: hotZones } = useGetHotZones();
+
+  if (!hotZones) return null;
+
+  const best = hotZones.fastestMove ?? hotZones.hottestPin ?? hotZones.mostOpen;
+  const rows = [
+    { title: "Best Move", venue: hotZones.fastestMove, icon: <Activity className="w-4 h-4 text-primary" />, detail: (v: any) => `${v.city} • ${v.waitTimeMinutes}m wait` },
+    { title: "Hottest Pin", venue: hotZones.hottestPin, icon: <Flame className="w-4 h-4 text-destructive" />, detail: (v: any) => `${v.crowdScore}% crowd • ${v.waitTimeMinutes}m wait` },
+    { title: "Most Open", venue: hotZones.mostOpen, icon: <CheckCircle2 className="w-4 h-4 text-green-500" />, detail: (v: any) => `${v.city} • ${v.crowdScore}% crowd` },
+  ].filter((r) => r.venue);
+
+  return (
+    <div className="bg-card border border-border/50 rounded-2xl p-5 flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-secondary mb-1">
+            <MapPin className="w-3.5 h-3.5" /> Scene Map
+          </div>
+          <h3 className="font-black text-lg leading-tight">See the night before you commit</h3>
+        </div>
+      </div>
+
+      {best && (
+        <div className="rounded-xl overflow-hidden border border-border/50">
+          <div className="px-3 py-2 flex items-center justify-between bg-muted/40 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+            <span>Real map view</span>
+            <Link href={`/venue/${best.id}`} className="text-primary hover:underline font-bold">View details</Link>
+          </div>
+          <div className="h-[180px]">
+            <iframe
+              title={`Map for ${best.name}`}
+              src={`https://www.google.com/maps?q=${best.latitude},${best.longitude}(${encodeURIComponent(best.name)})&z=14&output=embed`}
+              className="w-full h-full"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              data-testid="scene-map-overview-embed"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col divide-y divide-border/40">
+        {rows.map((r) => (
+          <Link key={r.title} href={`/venue/${r.venue.id}`} className="flex items-center justify-between gap-3 py-3 group hover:opacity-80 transition-opacity">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="shrink-0">{r.icon}</div>
+              <div className="min-w-0">
+                <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{r.title}</div>
+                <div className="font-bold truncate">{r.venue.name}</div>
+                <div className="text-xs text-muted-foreground">{r.detail(r.venue)}</div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
 

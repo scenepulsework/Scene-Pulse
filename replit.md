@@ -37,7 +37,9 @@ A Surfline-style "live conditions" dashboard for local venues (bars, restaurants
 - `mapsUrl` is computed server-side per request (not stored in DB) from venue name + address via `toMapsUrl()`.
 - Intent filtering (dateNight, noWait, retailDrops, liveMusic, patioEnergy, lateNightFood) happens in JS after the DB fetch (small ~78-row dataset), matching against `bestFor` tags or category/waitTime directly in `venues.ts`.
 - Submitting a live report updates the venue's `crowdLevel`/`crowdScore`/`waitTimeMinutes` server-side (`reports.ts`).
-- Desktop "Pulse Layer" map is an abstract radar/pin-grid visualization (no external mapping SDK) with clickable pins synced to a detail panel. Mobile uses a real embedded Google Maps iframe (`output=embed`, no API key) as the primary map experience, with the pin grid hidden on mobile — see `.agents/memory/mobile-map-embeds.md`.
+- Desktop "Pulse Layer" tab (Feed vs. Pulse Layer toggle) is an abstract radar/pin-grid visualization (no external mapping SDK) with clickable pins synced to a detail panel. Mobile uses a real embedded Google Maps iframe (`output=embed`, no API key) as the primary map experience, with the pin grid hidden on mobile — see `.agents/memory/mobile-map-embeds.md`.
+- A static "Scene Map" overview card (real Google Maps embed of the current top pick + Best Move/Hottest Pin/Most Open stacked rows) plus a "Quick Picks" card (intent shortcuts with descriptive rows/badges) sit side-by-side above the Feed/Pulse Layer tabs on the home page — always visible regardless of which tab is active.
+- Hero has a warm accent color (`--warm`, orange) reserved for primary CTAs ("Use my location", live-sync pill) layered on top of the app's core cyan/pink neon theme, plus functional geolocation (nearest-market lookup via Haversine distance over all venues) and a manual "Refresh conditions" refetch button.
 
 ## Product
 
