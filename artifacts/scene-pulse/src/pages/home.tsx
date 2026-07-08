@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useListVenues, useListMarkets, getListVenuesQueryKey, ListVenuesIntent, ListVenuesSort } from "@workspace/api-client-react";
 import { HeroSection, MarketsSection, OperatorsSection, ServicesSection, ContactSection } from "@/components/home-sections";
-import { VenueFilters, QuickPicksPanel } from "@/components/venue-filters";
+import { VenueFilters, QuickPicksPanel, ActiveFilterChips } from "@/components/venue-filters";
 import { VenueCard } from "@/components/venue-card";
 import { LiveMap } from "@/components/live-map";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Activity, ChevronDown } from "lucide-react";
+
+const PAGE_SIZE = 12;
 
 export default function Home() {
   const [filters, setFilters] = useState<{
@@ -15,6 +18,11 @@ export default function Home() {
     sort?: ListVenuesSort;
     intent?: ListVenuesIntent;
   }>({});
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filters.market, filters.category, filters.search, filters.intent, filters.sort]);
 
   const { data: markets = [] } = useListMarkets();
   const { data: venues, isLoading } = useListVenues(filters, {
@@ -23,6 +31,9 @@ export default function Home() {
       placeholderData: (prev) => prev,
     },
   });
+
+  const visibleVenues = venues?.slice(0, visibleCount) ?? [];
+  const remaining = (venues?.length ?? 0) - visibleVenues.length;
 
   return (
     <div className="min-h-screen">
@@ -49,12 +60,21 @@ export default function Home() {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <VenueFilters
               filters={filters}
               setFilters={setFilters}
               markets={markets}
             />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <ActiveFilterChips filters={filters} setFilters={setFilters} markets={markets} />
+            <p className="text-xs font-mono text-muted-foreground shrink-0" data-testid="venue-count">
+              {isLoading && !venues
+                ? "Scanning venues…"
+                : `Showing ${visibleVenues.length} of ${venues?.length ?? 0} venues`}
+            </p>
           </div>
 
           {isLoading ? (
@@ -68,11 +88,27 @@ export default function Home() {
               No venues matching your pulse check.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {venues?.map(venue => (
-                <VenueCard key={venue.id} venue={venue} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {visibleVenues.map(venue => (
+                  <VenueCard key={venue.id} venue={venue} />
+                ))}
+              </div>
+              {remaining > 0 && (
+                <div className="flex justify-center mt-8">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="font-mono border-primary/40 hover:border-primary"
+                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                    data-testid="load-more-venues"
+                  >
+                    <ChevronDown className="w-4 h-4 mr-2" />
+                    Load {Math.min(remaining, PAGE_SIZE)} more ({remaining} left)
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

@@ -44,11 +44,12 @@ A Surfline-style "live conditions" dashboard for local venues (bars, restaurants
 
 ## Product
 
-- Home dashboard: hero stats, hot zones (hottest/fastest-moving/most-open), quick-pick intent filters, category filters, search/sort, market filter, Feed vs. Pulse Layer map toggle (desktop), mobile Google Maps embed + vertical venue list.
+- Home dashboard: hero stats, hot zones (hottest/fastest-moving/most-open), interactive Leaflet map with side panel, quick-pick intent filters, category filters, search/sort, market filter, paginated venue feed.
 - Venue detail page: crowd score, wait time, headcount, line trend, seating odds, noise level, cover cost, best arrival window/timing strategy, live reports feed, comments ("The Wire"), watchlist bookmark, "Open Maps" link.
 - Markets section (13 North American markets) and "For Operators" hospitality market-gap section.
 - Mobile sidebar menu with anchor links: Services, About, Map, Markets, For Operators, Contact.
-- Seeded with 78 venues across 13 markets, including real named venues with source attribution (sourceLabel/sourceUrl).
+- Seeded with 155 venues across 13 markets, including real named venues with source attribution (sourceLabel/sourceUrl).
+- Venue feed paginates 12 at a time ("Load more" button), with a "Showing X of Y venues" count line and removable active-filter chips (search/market/category/intent + Clear all) above the grid; filter changes reset pagination.
 
 ## User preferences
 

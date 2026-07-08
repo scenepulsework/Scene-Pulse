@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ListVenuesIntent, ListVenuesSort, VenueCategory } from "@workspace/api-client-react";
-import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap } from "lucide-react";
+import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X } from "lucide-react";
 
 type VenueFiltersProps = {
   filters: {
@@ -69,6 +69,59 @@ export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps,
           );
         })}
       </div>
+    </div>
+  );
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  bar: "Bars",
+  restaurant: "Restaurants",
+  cafe: "Cafes",
+  retail: "Retail",
+  experience: "Experiences",
+};
+
+export function ActiveFilterChips({ filters, setFilters, markets }: VenueFiltersProps) {
+  const clear = (key: string) => setFilters((prev: any) => ({ ...prev, [key]: undefined }));
+
+  const chips: { key: string; label: string }[] = [];
+  if (filters.search) chips.push({ key: "search", label: `"${filters.search}"` });
+  if (filters.market) {
+    const m = markets.find((m) => m.market === filters.market);
+    chips.push({ key: "market", label: m?.city ?? filters.market });
+  }
+  if (filters.category) chips.push({ key: "category", label: CATEGORY_LABELS[filters.category] ?? filters.category });
+  if (filters.intent) {
+    const intent = INTENTS.find((i) => i.value === filters.intent);
+    chips.push({ key: "intent", label: intent?.label ?? filters.intent });
+  }
+
+  if (chips.length === 0) {
+    return <p className="text-xs font-mono text-muted-foreground">All venues, all markets — filter above to narrow the pulse.</p>;
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2" data-testid="active-filter-chips">
+      {chips.map((chip) => (
+        <button
+          key={chip.key}
+          type="button"
+          data-testid={`filter-chip-${chip.key}`}
+          onClick={() => clear(chip.key)}
+          className="inline-flex items-center gap-1.5 rounded-full border border-primary/50 bg-primary/10 px-3 py-1 text-xs font-mono hover:bg-primary/20 transition-colors"
+        >
+          {chip.label}
+          <X className="w-3 h-3" />
+        </button>
+      ))}
+      <button
+        type="button"
+        data-testid="clear-all-filters"
+        onClick={() => setFilters((prev: any) => ({ sort: prev.sort }))}
+        className="text-xs font-mono text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+      >
+        Clear all
+      </button>
     </div>
   );
 }
