@@ -26,7 +26,7 @@ export const ListVenuesQueryParams = zod.object({
   "category": zod.coerce.string().optional(),
   "search": zod.coerce.string().optional(),
   "sort": zod.enum(['crowdScore', 'waitTime', 'rating', 'name', 'updated']).optional().describe('Sort order for results'),
-  "intent": zod.enum(['dateNight', 'noWait', 'retailDrops', 'liveMusic', 'patioEnergy', 'lateNightFood']).optional().describe('Quick-pick user intent tag to filter by')
+  "intent": zod.enum(['dateNight', 'noWait', 'retailDrops', 'liveMusic', 'patioEnergy', 'lateNightFood', 'speakeasy']).optional().describe('Quick-pick user intent tag to filter by')
 })
 
 export const ListVenuesResponseItem = zod.object({

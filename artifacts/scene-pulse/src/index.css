@@ -226,3 +226,7 @@
   border-radius: 50%;
 }
 .leaflet-container { font-family: inherit; }
+
+html {
+  scroll-behavior: smooth;
+}

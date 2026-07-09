@@ -1,13 +1,13 @@
 import { Venue } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { Clock, Users, Volume2, DollarSign, TrendingUp, TrendingDown, Minus, BookmarkPlus, BookmarkCheck } from "lucide-react";
+import { Clock, Users, Volume2, DollarSign, TrendingUp, TrendingDown, Minus, BookmarkPlus, BookmarkCheck, MapPin } from "lucide-react";
 import { useAddToWatchlist, useRemoveFromWatchlist, getListVenuesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export function VenueCard({ venue }: { venue: Venue }) {
+export function VenueCard({ venue, onShowOnMap }: { venue: Venue; onShowOnMap?: (id: number) => void }) {
   const queryClient = useQueryClient();
   
   const addWatchlist = useAddToWatchlist();
@@ -69,15 +69,32 @@ export function VenueCard({ venue }: { venue: Venue }) {
             </div>
             <h3 className="font-bold text-xl leading-tight group-hover:text-primary transition-colors">{venue.name}</h3>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 -mr-2 -mt-2 text-muted-foreground hover:text-primary"
-            onClick={handleWatchlistToggle}
-            disabled={addWatchlist.isPending || removeWatchlist.isPending}
-          >
-            {venue.isWatchlisted ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <BookmarkPlus className="w-4 h-4" />}
-          </Button>
+          <div className="flex -mr-2 -mt-2">
+            {onShowOnMap && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                data-testid={`show-on-map-${venue.id}`}
+                aria-label={`Show ${venue.name} on map`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onShowOnMap(venue.id);
+                }}
+              >
+                <MapPin className="w-4 h-4" />
+              </Button>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-muted-foreground hover:text-primary"
+              onClick={handleWatchlistToggle}
+              disabled={addWatchlist.isPending || removeWatchlist.isPending}
+            >
+              {venue.isWatchlisted ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <BookmarkPlus className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-4 relative z-10 flex-1">

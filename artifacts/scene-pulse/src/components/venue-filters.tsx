@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ListVenuesIntent, ListVenuesSort, VenueCategory } from "@workspace/api-client-react";
-import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X } from "lucide-react";
+import { ListVenuesIntent, ListVenuesSort, VenueCategory, Venue } from "@workspace/api-client-react";
+import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound } from "lucide-react";
 
 type VenueFiltersProps = {
   filters: {
@@ -15,6 +16,8 @@ type VenueFiltersProps = {
   };
   setFilters: (filters: any) => void;
   markets: { market: string; city: string }[];
+  allVenues?: Venue[];
+  onPickVenue?: (venue: Venue) => void;
 };
 
 const INTENTS = [
@@ -24,6 +27,7 @@ const INTENTS = [
   { value: ListVenuesIntent.liveMusic, label: "Live music", description: "Showrooms, sets, and crowd pressure", badge: "best vibe", icon: <Music className="w-4 h-4" /> },
   { value: ListVenuesIntent.patioEnergy, label: "Patio energy", description: "Outdoor seating with a lively crowd", badge: "best vibe", icon: <Flame className="w-4 h-4" /> },
   { value: ListVenuesIntent.lateNightFood, label: "Late night", description: "Kitchens still firing after hours", badge: "low friction", icon: <Moon className="w-4 h-4" /> },
+  { value: ListVenuesIntent.speakeasy, label: "Speakeasy", description: "Hidden doors and password bars", badge: "if you know", icon: <KeyRound className="w-4 h-4" /> },
 ];
 
 export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps, "filters" | "setFilters">) {
@@ -126,11 +130,24 @@ export function ActiveFilterChips({ filters, setFilters, markets }: VenueFilters
   );
 }
 
-export function VenueFilters({ filters, setFilters, markets }: VenueFiltersProps) {
+export function VenueFilters({ filters, setFilters, markets, allVenues, onPickVenue }: VenueFiltersProps) {
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const updateFilter = (key: string, value: any) => {
     setFilters((prev: any) => ({ ...prev, [key]: value === 'all' ? undefined : value }));
   };
+
+  const term = (filters.search || "").trim().toLowerCase();
+  const suggestions =
+    onPickVenue && searchFocused && term.length >= 2 && allVenues
+      ? allVenues
+          .filter(
+            (v) =>
+              v.name.toLowerCase().includes(term) ||
+              v.city.toLowerCase().includes(term),
+          )
+          .slice(0, 6)
+      : [];
 
   return (
     <div className="space-y-4">
@@ -139,11 +156,53 @@ export function VenueFilters({ filters, setFilters, markets }: VenueFiltersProps
         <div className="relative col-span-1 md:col-span-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search venues..." 
+            placeholder="Search venues, cities..." 
             className="pl-9 bg-card border-border/50 font-mono text-sm"
             value={filters.search || ""}
             onChange={(e) => updateFilter("search", e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            data-testid="venue-search-input"
           />
+          {suggestions.length > 0 && (
+            <div
+              className="absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border border-border/60 bg-card shadow-xl shadow-black/40 overflow-hidden"
+              data-testid="search-suggestions"
+            >
+              {suggestions.map((venue) => (
+                <button
+                  key={venue.id}
+                  type="button"
+                  data-testid={`suggestion-${venue.id}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setSearchFocused(false);
+                    onPickVenue?.(venue);
+                  }}
+                  className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-primary/10 transition-colors border-b border-border/30 last:border-b-0"
+                >
+                  <span className="min-w-0">
+                    <span className="block font-bold text-sm truncate">{venue.name}</span>
+                    <span className="block text-[10px] font-mono uppercase text-muted-foreground">
+                      {venue.category} • {venue.city}
+                    </span>
+                  </span>
+                  <span className="shrink-0 flex items-center gap-2 text-xs font-mono text-muted-foreground">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        venue.crowdLevel === "packed"
+                          ? "bg-destructive"
+                          : venue.crowdLevel === "lively"
+                            ? "bg-secondary"
+                            : "bg-green-500"
+                      }`}
+                    />
+                    {venue.waitTimeMinutes}m
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Market */}

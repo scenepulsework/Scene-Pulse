@@ -41,14 +41,18 @@ A Surfline-style "live conditions" dashboard for local venues (bars, restaurants
 - `useListVenues` on home uses `placeholderData: (prev) => prev` so search/filter keystrokes never unmount the map or drop the selected pin.
 - The old abstract radar "Pulse Layer" tab, static Scene Map overview card (Google embed), and mobile Google Maps iframe were replaced by the Leaflet map (works on mobile too).
 - Hero has a warm accent color (`--warm`, orange) reserved for primary CTAs ("Use my location", live-sync pill) layered on top of the app's core cyan/pink neon theme, plus functional geolocation (nearest-market lookup via Haversine distance over all venues) and a manual "Refresh conditions" refetch button.
+- Map selection is lifted to Home (`selectedVenueId`) and LiveMap is controlled (`selectedId`/`onSelect`, plus a `dataReady` prop gating the auto-deselect effect so stale placeholder data never wipes a fresh selection). "Show on map" (venue cards, speakeasy cards, search suggestions) widens filters to `{sort}` if the venue is hidden and smooth-scrolls to `#map`.
+- Search suggestions dropdown in `venue-filters.tsx` filters a second unfiltered `useListVenues({})` list client-side (name/city, top 6); picking one clears filters and selects the pin. No keyboard navigation yet (mouse/touch only — noted as a follow-up).
+- `speakeasy` is a first-class intent (OpenAPI enum + INTENT_TAG_MATCH matches the "Speakeasy" bestFor tag); `speakeasy-section.tsx` renders "The Speakeasy Files" horizontal scroller on home.
+- Seed gotcha: DC entries must use city "Washington DC" (no comma) — a "Washington, DC" variant splits it into a 14th market.
 
 ## Product
 
-- Home dashboard: hero stats, hot zones (hottest/fastest-moving/most-open), interactive Leaflet map with side panel, quick-pick intent filters, category filters, search/sort, market filter, paginated venue feed.
+- Home dashboard (section order: hero → Live Pulse map → Speakeasy Files → Services → Markets → Operators → About → Contact; map is front-and-center on mobile too): hero stats, hot zones, interactive Leaflet map with side panel, quick-pick intent filters (incl. Speakeasy), category filters, search with live suggestions dropdown, market filter, paginated venue feed with per-card "show on map", back-to-top button, html smooth scrolling.
 - Venue detail page: crowd score, wait time, headcount, line trend, seating odds, noise level, cover cost, best arrival window/timing strategy, live reports feed, comments ("The Wire"), watchlist bookmark, "Open Maps" link.
 - Markets section (13 North American markets) and "For Operators" hospitality market-gap section.
-- Mobile sidebar menu with anchor links: Services, About, Map, Markets, For Operators, Contact.
-- Seeded with 155 venues across 13 markets, including real named venues with source attribution (sourceLabel/sourceUrl).
+- Mobile sidebar menu with anchor links: Map, Speakeasies, Services, Markets, For Operators, About, Contact (same order as desktop nav).
+- Seeded with 219 venues across 13 markets, including real named venues with source attribution (sourceLabel/sourceUrl: Google Maps listing, Yelp pick, Uber Eats/DoorDash/Grubhub favorite, Local favorite). 27 are speakeasies (1–2 per market) surfaced in "The Speakeasy Files" section and the speakeasy intent filter.
 - Venue feed paginates 12 at a time ("Load more" button), with a "Showing X of Y venues" count line and removable active-filter chips (search/market/category/intent + Clear all) above the grid; filter changes reset pagination.
 
 ## User preferences

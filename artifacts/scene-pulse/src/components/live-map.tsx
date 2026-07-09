@@ -65,19 +65,26 @@ function MapController({ venues, selected }: { venues: Venue[]; selected: Venue 
 export function LiveMap({
   venues,
   emptyPanel,
+  selectedId,
+  onSelect,
+  dataReady = true,
 }: {
   venues: Venue[];
   emptyPanel?: ReactNode;
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
+  dataReady?: boolean;
 }) {
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const selected = venues.find((v) => v.id === selectedId) ?? null;
 
   // If filters change and the selected venue is no longer visible, deselect it.
+  // Skipped while showing stale placeholder data so a fresh selection isn't
+  // wiped before the refetch lands.
   useEffect(() => {
-    if (selectedId != null && !venues.some((v) => v.id === selectedId)) {
-      setSelectedId(null);
+    if (dataReady && selectedId != null && !venues.some((v) => v.id === selectedId)) {
+      onSelect(null);
     }
-  }, [venues, selectedId]);
+  }, [venues, selectedId, onSelect, dataReady]);
 
   const hottest = useMemo(
     () => [...venues].sort((a, b) => b.crowdScore - a.crowdScore).slice(0, 4),
@@ -106,7 +113,7 @@ export function LiveMap({
                 position={[venue.latitude, venue.longitude]}
                 icon={pinIcon(venue, venue.id === selectedId)}
                 eventHandlers={{
-                  click: () => setSelectedId(venue.id),
+                  click: () => onSelect(venue.id),
                 }}
                 title={venue.name}
               />
@@ -140,7 +147,7 @@ export function LiveMap({
                 <button
                   type="button"
                   data-testid="button-close-map-panel"
-                  onClick={() => setSelectedId(null)}
+                  onClick={() => onSelect(null)}
                   className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground transition-colors"
                   aria-label="Close venue panel"
                 >
@@ -202,7 +209,7 @@ export function LiveMap({
                       key={venue.id}
                       type="button"
                       data-testid={`map-hot-${venue.id}`}
-                      onClick={() => setSelectedId(venue.id)}
+                      onClick={() => onSelect(venue.id)}
                       className="flex items-center justify-between gap-2 rounded-lg border border-border/40 px-3 py-2 text-left hover:border-primary/60 hover:bg-primary/5 transition-colors"
                     >
                       <span className="min-w-0">

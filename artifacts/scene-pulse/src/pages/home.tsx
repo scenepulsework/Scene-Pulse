@@ -1,14 +1,41 @@
-import { useEffect, useState } from "react";
-import { useListVenues, useListMarkets, getListVenuesQueryKey, ListVenuesIntent, ListVenuesSort } from "@workspace/api-client-react";
+import { useCallback, useEffect, useState } from "react";
+import { useListVenues, useListMarkets, getListVenuesQueryKey, ListVenuesIntent, ListVenuesSort, Venue } from "@workspace/api-client-react";
 import { HeroSection, MarketsSection, OperatorsSection, ServicesSection, ContactSection } from "@/components/home-sections";
 import { VenueFilters, QuickPicksPanel, ActiveFilterChips } from "@/components/venue-filters";
 import { VenueCard } from "@/components/venue-card";
 import { LiveMap } from "@/components/live-map";
+import { SpeakeasySection } from "@/components/speakeasy-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Activity, ChevronDown } from "lucide-react";
+import { Activity, ChevronDown, ArrowUp } from "lucide-react";
 
 const PAGE_SIZE = 12;
+
+function BackToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 700);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      aria-label="Back to top"
+      data-testid="back-to-top"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className="fixed bottom-5 right-5 z-[1100] rounded-full bg-background/90 backdrop-blur border-primary/40 hover:border-primary shadow-lg shadow-black/40"
+    >
+      <ArrowUp className="w-4 h-4" />
+    </Button>
+  );
+}
 
 export default function Home() {
   const [filters, setFilters] = useState<{
@@ -19,18 +46,49 @@ export default function Home() {
     intent?: ListVenuesIntent;
   }>({});
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [filters.market, filters.category, filters.search, filters.intent, filters.sort]);
 
   const { data: markets = [] } = useListMarkets();
-  const { data: venues, isLoading } = useListVenues(filters, {
+  const { data: venues, isLoading, isPlaceholderData } = useListVenues(filters, {
     query: {
       queryKey: getListVenuesQueryKey(filters),
       placeholderData: (prev) => prev,
     },
   });
+  const { data: allVenues } = useListVenues(
+    {},
+    {
+      query: {
+        queryKey: getListVenuesQueryKey({}),
+        placeholderData: (prev) => prev,
+      },
+    },
+  );
+
+  const showVenueOnMap = useCallback(
+    (id: number) => {
+      // If the current filters hide this venue, widen them so its pin exists.
+      if (!venues?.some((v) => v.id === id)) {
+        setFilters((prev) => ({ sort: prev.sort }));
+      }
+      setSelectedVenueId(id);
+      document.getElementById("map")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    [venues],
+  );
+
+  const handlePickVenue = useCallback(
+    (venue: Venue) => {
+      // Jump straight to the venue: clear narrowing filters so its pin is on the map.
+      setFilters((prev) => ({ sort: prev.sort }));
+      showVenueOnMap(venue.id);
+    },
+    [showVenueOnMap],
+  );
 
   const visibleVenues = venues?.slice(0, visibleCount) ?? [];
   const remaining = (venues?.length ?? 0) - visibleVenues.length;
@@ -39,9 +97,7 @@ export default function Home() {
     <div className="min-h-screen">
       <HeroSection />
 
-      <ServicesSection />
-
-      <section id="map" className="py-8 bg-muted/20 border-y border-border/40">
+      <section id="map" className="py-8 bg-muted/20 border-y border-border/40 scroll-mt-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2 mb-6">
             <div className="flex items-center gap-3">
@@ -57,6 +113,9 @@ export default function Home() {
             <LiveMap
               venues={venues || []}
               emptyPanel={<QuickPicksPanel filters={filters} setFilters={setFilters} />}
+              selectedId={selectedVenueId}
+              onSelect={setSelectedVenueId}
+              dataReady={!isLoading && !isPlaceholderData}
             />
           </div>
 
@@ -65,6 +124,8 @@ export default function Home() {
               filters={filters}
               setFilters={setFilters}
               markets={markets}
+              allVenues={allVenues}
+              onPickVenue={handlePickVenue}
             />
           </div>
 
@@ -91,7 +152,7 @@ export default function Home() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {visibleVenues.map(venue => (
-                  <VenueCard key={venue.id} venue={venue} />
+                  <VenueCard key={venue.id} venue={venue} onShowOnMap={showVenueOnMap} />
                 ))}
               </div>
               {remaining > 0 && (
@@ -113,6 +174,9 @@ export default function Home() {
         </div>
       </section>
 
+      <SpeakeasySection onShowOnMap={showVenueOnMap} />
+
+      <ServicesSection />
       <MarketsSection />
       <OperatorsSection />
 
@@ -127,6 +191,7 @@ export default function Home() {
       </section>
 
       <ContactSection />
+      <BackToTop />
     </div>
   );
 }

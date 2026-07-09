@@ -202,6 +202,7 @@ export const ListVenuesIntent = {
   liveMusic: 'liveMusic',
   patioEnergy: 'patioEnergy',
   lateNightFood: 'lateNightFood',
+  speakeasy: 'speakeasy',
 } as const;
 
 export type GetHotZonesParams = {

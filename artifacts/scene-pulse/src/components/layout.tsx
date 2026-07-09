@@ -6,11 +6,12 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
-  { href: "#services", label: "Services" },
-  { href: "#about", label: "About" },
   { href: "#map", label: "Map" },
+  { href: "#speakeasies", label: "Speakeasies" },
+  { href: "#services", label: "Services" },
   { href: "#markets", label: "Markets" },
   { href: "#operators", label: "For Operators" },
+  { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
 
@@ -27,9 +28,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">SCENEPULSE</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <a href="#services" className="hover:text-foreground transition-colors">Services</a>
-            <a href="#about" className="hover:text-foreground transition-colors">About</a>
             <a href="#map" className="hover:text-foreground transition-colors">Map</a>
+            <a href="#speakeasies" className="hover:text-foreground transition-colors">Speakeasies</a>
+            <a href="#services" className="hover:text-foreground transition-colors">Services</a>
             <a href="#markets" className="hover:text-foreground transition-colors">Markets</a>
             <a href="#operators" className="hover:text-foreground transition-colors">Operators</a>
             <a href="#contact" className="hover:text-foreground transition-colors">Contact</a>

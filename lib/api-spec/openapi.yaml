@@ -62,7 +62,7 @@ paths:
           description: Quick-pick user intent tag to filter by
           schema:
             type: string
-            enum: [dateNight, noWait, retailDrops, liveMusic, patioEnergy, lateNightFood]
+            enum: [dateNight, noWait, retailDrops, liveMusic, patioEnergy, lateNightFood, speakeasy]
       responses:
         "200":
           description: List of venues
