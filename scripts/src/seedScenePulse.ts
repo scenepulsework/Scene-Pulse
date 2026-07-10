@@ -1,4 +1,4 @@
-import { db, venuesTable } from "@workspace/db";
+import { db, venuesTable, commentsTable } from "@workspace/db";
 import type { InsertVenue } from "@workspace/db";
 
 type SeedVenue = Omit<InsertVenue, "isWatchlisted">;
@@ -435,11 +435,134 @@ market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Taquería Los Co
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Cardinal Casa de Café", category: "cafe", latitude: 19.4192, longitude: -99.1660, address: "Córdoba 132, Roma Norte, Mexico City", bestFor: ["No Wait"], sourceLabel: "Yelp pick", sourceUrl: "https://www.yelp.com/search?find_desc=Cardinal+Casa+de+Cafe" });
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Foro El Tejedor", category: "experience", latitude: 19.4171, longitude: -99.1662, address: "Álvaro Obregón 86, Roma Norte, Mexico City", bestFor: ["Live Music"], sourceLabel: "Local favorite", sourceUrl: "https://www.yelp.com/search?find_desc=Foro+El+Tejedor+CDMX" });
 
+// ---------- PAST-EXPERIENCE COMMENTS ("The Wire") ----------
+const AUTHORS = [
+  "Maya R.", "Jordan T.", "Priya K.", "Devon S.", "Alexis M.", "Sam W.", "Nina P.", "Marcus L.",
+  "Elena V.", "Chris B.", "Tasha J.", "Omar H.", "Rachel F.", "Diego C.", "Kayla N.", "Ben A.",
+  "Zoe D.", "Andre G.", "Lena K.", "Tyler O.", "Sofia M.", "Jae P.", "Whitney C.", "Noah E.",
+  "Camille B.", "Ravi S.", "Gabby T.", "Miles D.", "Harper L.", "Vince R.", "Ivy W.", "Leo F.",
+];
+
+const COMMENTS_BY_CATEGORY: Record<string, string[]> = {
+  bar: [
+    "Came through last Friday around 10 — line looked scary but moved in 15 minutes. Worth it.",
+    "Bartender remembered my order from last month. Crowd was loud but the good kind of loud.",
+    "Showed up at peak and couldn't get near the bar. Go before 9 if you actually want a seat.",
+    "Happy hour here is criminally underrated. Had the whole corner booth to ourselves.",
+    "DJ didn't start till 11 but the room was already packed by 10:30. Pace yourself.",
+    "Doorman was chill, no cover before 10. Drinks came fast even with a full house.",
+    "Was dead when we walked in at 8, completely flipped by 9:30. Wild swing.",
+    "Patio was the move. Inside was a crush but outside we could actually hear each other.",
+    "Waited 40 minutes on a Saturday. Great once inside but check the pulse before you go.",
+    "Went on a Tuesday — half empty, full vibe. Weeknights are the secret here.",
+    "The back room opened up around 11 and the whole night changed. Stick around.",
+    "Solid pour, fair prices, zero attitude. My new default when friends are in town.",
+  ],
+  restaurant: [
+    "Walked in at 6 sharp and got seated instantly. By 7 the wait was an hour. Timing is everything.",
+    "The wait said 30 but it was more like 50. Food made up for it, mostly.",
+    "Solo diner tip: the counter seats never have a wait. Ate like royalty in 20 minutes.",
+    "Came for a birthday last weekend — they handled our party of 8 way better than expected.",
+    "Kitchen was slammed but the host kept us posted the whole time. Respect.",
+    "Lunch here is a completely different scene than dinner. Quiet, fast, same menu.",
+    "Got the last two bar seats at 8:15 on a Friday. Felt like winning the lottery.",
+    "They quoted 45 minutes and sat us in 25. Under-promise, over-deliver.",
+    "Portions huge, line long, both deserved. Go early or go hungry.",
+    "The patio at golden hour is the best table in the neighborhood, full stop.",
+    "Service slowed way down when the rush hit around 7:30. Order everything up front.",
+    "Sunday early evening is the sweet spot — no wait, kitchen still sharp.",
+  ],
+  cafe: [
+    "Morning rush is real — 15 deep at 8:30. By 10 it's calm and all the seats free up.",
+    "Best laptop corner in the city, but the outlets by the window are always taken by 9.",
+    "Baristas move fast even when the line's out the door. Never waited more than 10.",
+    "Weekend brunch line wraps the block. Weekday mornings? Walk right up.",
+    "Got the last croissant at 11am on a Saturday. Learn from my near-miss.",
+    "Quiet enough to actually take a call in the back room. Rare find.",
+    "Afternoon lull hits around 2 — whole place to yourself plus the good pastries are half off.",
+    "Wi-Fi solid, coffee better. Camped here for four hours and nobody blinked.",
+    "The line looks long but it's mostly mobile orders. In-person moves quick.",
+    "Cold brew sold out by noon last Sunday. They restock around 1 if you're patient.",
+  ],
+  retail: [
+    "Drop day was chaos — line at 9am for an 11am open. Restock Thursdays are way calmer.",
+    "Staff actually knows the inventory. Found what three other shops couldn't.",
+    "Weekday afternoons are dead quiet. Had the whole floor and staff to myself.",
+    "Went during the weekend rush — checkout line was 20 minutes. Weekday lunch is the move.",
+    "They held an item for me for two hours past closing pickup time. Real ones.",
+    "New arrivals hit the floor Friday mornings. By Saturday afternoon the good sizes are gone.",
+    "Browsing pressure level: zero. Stayed an hour, bought nothing, still felt welcome.",
+    "Sale rack in the back turns over every Tuesday. That's all I'm saying.",
+    "Busy but organized — even packed it never felt like a scrum.",
+    "Called ahead to check stock and they actually picked up. Saved me a wasted trip.",
+  ],
+  experience: [
+    "Doors said 8, real crowd showed at 9:30. Openers deserved better — and you get the rail.",
+    "Sold-out show but the floor never felt dangerous-packed. Well run room.",
+    "Sound was crisp even at the back bar. No bad spot in the house.",
+    "Line for coat check longer than the line for drinks. Travel light.",
+    "Went on a whim on a Wednesday — half full, all energy. Weeknight shows are underrated.",
+    "The balcony is 21+ and half empty most nights. Best kept secret in the building.",
+    "Merch line was a mess at close. Hit it mid-set if you actually want the shirt.",
+    "Got there at door time, front row, no fight. This city sleeps on early arrival.",
+    "Bar service during the headliner was surprisingly fast. Two deep, max.",
+    "Last call sneaks up fast here — 30 minutes before the encore. Plan accordingly.",
+  ],
+};
+
+const SPEAKEASY_COMMENTS = [
+  "Took us 10 minutes to find the door. Worth every second of confusion.",
+  "Password was on their story that morning — do your homework and you walk right in.",
+  "Waited 25 outside a fake storefront feeling ridiculous. Then the door opened. Magic.",
+  "Tiny room, huge drinks. Get there at open or accept the wait.",
+  "The bartender quizzed us on our order like a job interview. Passed. Incredible night.",
+  "Don't roll deeper than four people — they will bounce big groups fast.",
+  "Reservation dropped at noon, gone by 12:04. Set an alarm.",
+  "Found it on the second try. Look for the unmarked door, not the neon.",
+  "Quietest 1am drink in the city. Nobody yells in here and it's beautiful.",
+  "The 'hidden' part is real — my date walked past it twice while I watched from inside.",
+  "Cocktails take a while when it's full. Order two at once, thank me later.",
+  "Cash only at the back bar. The ATM outside blows the whole cover story.",
+];
+
+function hoursAgo(h: number): Date {
+  return new Date(Date.now() - h * 3_600_000);
+}
+
 async function seed() {
   console.log(`Seeding ${venues.length} venues...`);
   await db.delete(venuesTable);
-  await db.insert(venuesTable).values(venues.map((v) => ({ ...v, isWatchlisted: false })));
-  console.log("Done.");
+  const inserted = await db
+    .insert(venuesTable)
+    .values(venues.map((v) => ({ ...v, isWatchlisted: false })))
+    .returning({
+      id: venuesTable.id,
+      name: venuesTable.name,
+      category: venuesTable.category,
+      bestFor: venuesTable.bestFor,
+    });
+
+  const comments: (typeof commentsTable.$inferInsert)[] = [];
+  inserted.forEach((v, i) => {
+    const isSpeakeasy = (v.bestFor ?? []).includes("Speakeasy");
+    const pool = isSpeakeasy
+      ? SPEAKEASY_COMMENTS
+      : (COMMENTS_BY_CATEGORY[v.category] ?? COMMENTS_BY_CATEGORY.bar);
+    const count = 2 + ((i * 7) % 3); // 2-4 comments per venue
+    for (let c = 0; c < count; c++) {
+      comments.push({
+        venueId: v.id,
+        authorName: AUTHORS[(i * 11 + c * 17) % AUTHORS.length],
+        message: pool[(i * 3 + c * 5) % pool.length],
+        // Spread between ~6 hours and ~40 days ago
+        createdAt: hoursAgo(6 + ((i * 13 + c * 101) % (24 * 40))),
+      });
+    }
+  });
+  for (let i = 0; i < comments.length; i += 500) {
+    await db.insert(commentsTable).values(comments.slice(i, i + 500));
+  }
+  console.log(`Done. Seeded ${inserted.length} venues and ${comments.length} comments.`);
   process.exit(0);
 }
 

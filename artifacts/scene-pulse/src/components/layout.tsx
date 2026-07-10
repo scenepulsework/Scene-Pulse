@@ -91,8 +91,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Activity className="w-5 h-5 text-primary" />
               SCENEPULSE
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-3">
               Live conditions for local nightlife, dining, and retail. Know before you go.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              We build radar for the night — crowd scores, wait times, and vibe checks reported by
+              the people in the room, across 13 North American markets.
             </p>
           </div>
           <div>
@@ -109,12 +113,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <h3 className="font-bold mb-4 font-mono uppercase tracking-wider text-sm">Company</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link href="/careers" className="hover:text-primary transition-colors" data-testid="link-footer-careers">Careers</Link></li>
               <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4 font-mono uppercase tracking-wider text-sm">Get in Touch</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <a href="mailto:hello@scenepulse.app" className="hover:text-primary transition-colors font-mono">hello@scenepulse.app</a>
+              </li>
+              <li>
+                <a href="mailto:press@scenepulse.app" className="hover:text-primary transition-colors font-mono">press@scenepulse.app</a>
+              </li>
+              <li className="pt-2">
+                <Link href="/operators" className="hover:text-primary transition-colors">
+                  Run a venue? Get on the map →
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
         <div className="container mx-auto px-4 mt-12 pt-8 border-t border-border/40 text-center text-xs text-muted-foreground font-mono">
-          © {new Date().getFullYear()} ScenePulse. All rights reserved.
+          © {new Date().getFullYear()} ScenePulse. All rights reserved. Read the room before you leave.
         </div>
       </footer>
     </div>

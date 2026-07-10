@@ -1,6 +1,8 @@
+import { Link } from "wouter";
 import { PageIntro } from "@/components/page-intro";
+import { Button } from "@/components/ui/button";
 import { useGetHeroStats } from "@workspace/api-client-react";
-import { Activity, Users, MapPin, Map } from "lucide-react";
+import { Activity, Users, MapPin, Map, Briefcase } from "lucide-react";
 
 export default function About() {
   const { data: stats } = useGetHeroStats();
@@ -64,6 +66,17 @@ export default function About() {
               For operators, the same signals become a live view of demand pressure: when the line builds,
               when the room empties, and where the market has gaps worth filling.
             </p>
+          </div>
+          <div className="mt-10 bg-muted/20 border border-border/40 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Briefcase className="w-5 h-5 text-primary shrink-0" />
+              <p className="text-sm text-muted-foreground">
+                We're hiring across engineering, design, and growth.
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm" className="font-mono text-xs border-primary/30 hover:border-primary shrink-0">
+              <Link href="/careers" data-testid="link-about-careers">See open roles</Link>
+            </Button>
           </div>
         </div>
       </section>

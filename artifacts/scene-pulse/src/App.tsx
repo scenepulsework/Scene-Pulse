@@ -12,6 +12,7 @@ import Services from "@/pages/services";
 import Markets from "@/pages/markets";
 import Operators from "@/pages/operators";
 import About from "@/pages/about";
+import Careers from "@/pages/careers";
 import Contact from "@/pages/contact";
 import Layout from "@/components/layout";
 
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/markets" component={Markets} />
       <Route path="/operators" component={Operators} />
       <Route path="/about" component={About} />
+      <Route path="/careers" component={Careers} />
       <Route path="/contact" component={Contact} />
       <Route component={NotFound} />
     </Switch>

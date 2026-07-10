@@ -46,7 +46,7 @@ export function HeroSection() {
   };
 
   return (
-    <div className="py-12 md:py-20 relative overflow-hidden">
+    <div className="py-10 md:py-14 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-warm/20 via-background to-background pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent pointer-events-none" />
       <div className="container mx-auto px-4 relative z-10">
@@ -56,29 +56,40 @@ export function HeroSection() {
               <RadioTower className="w-3.5 h-3.5 animate-pulse" />
               Live sync on
             </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 uppercase leading-none">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-5 uppercase leading-none">
               <span className="block text-foreground">Read the room.</span>
               <span className="block bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Before you leave.</span>
             </h1>
-            <p className="text-xl text-muted-foreground font-mono leading-relaxed mb-8">
-              Live crowd scores, wait times, and vibe checks for the city's best spots. Don't waste your night guessing.
+            <p className="text-lg text-muted-foreground font-mono leading-relaxed mb-6">
+              Live crowd scores, wait times, and vibe checks for the city's best spots.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Button
-                data-testid="button-use-location"
-                onClick={handleUseLocation}
+                data-testid="button-explore-map"
+                onClick={() => document.getElementById("map")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 className="rounded-full bg-warm text-warm-foreground hover:opacity-90 gap-2"
+              >
+                <Map className="w-4 h-4" /> Explore the live map
+              </Button>
+              <Button
+                data-testid="button-use-location"
+                variant="outline"
+                onClick={handleUseLocation}
+                className="rounded-full gap-2"
               >
                 <Navigation className="w-4 h-4" /> Use my location
               </Button>
               <Button
                 data-testid="button-refresh-conditions"
-                variant="outline"
+                variant="ghost"
+                size="icon"
+                aria-label="Refresh conditions"
+                title="Refresh conditions"
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="rounded-full gap-2"
+                className="rounded-full"
               >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} /> Refresh conditions
+                <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
               </Button>
             </div>
             {locationNote && (
@@ -88,24 +99,22 @@ export function HeroSection() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              {hotZones?.hottestPin && (
+                <HighlightCard title="Hottest scene" venue={hotZones.hottestPin} icon={<Flame className="w-4 h-4 text-destructive" />} />
+              )}
+              {hotZones?.mostOpen && (
+                <HighlightCard title="Best easy walk-in" venue={hotZones.mostOpen} icon={<Star className="w-4 h-4 text-green-500" />} />
+              )}
+            </div>
             {stats && (
-              <>
-                <StatCard label="Venues Tracked" value={stats.totalVenues} icon={<MapPin className="w-4 h-4 text-primary" />} />
-                <StatCard label="Markets" value={stats.marketsCovered} icon={<Map className="w-4 h-4 text-secondary" />} />
-              </>
-            )}
-            {hotZones?.hottestPin && (
-              <HighlightCard title="Hottest scene" venue={hotZones.hottestPin} icon={<Flame className="w-4 h-4 text-destructive" />} />
-            )}
-            {hotZones?.mostOpen && (
-              <HighlightCard title="Best easy walk-in" venue={hotZones.mostOpen} icon={<Star className="w-4 h-4 text-green-500" />} />
-            )}
-            {stats && (
-              <>
-                <StatCard label="Packed Now" value={stats.packedNow} icon={<Users className="w-4 h-4 text-destructive" />} />
-                <StatCard label="Open Now" value={stats.openNow} icon={<CheckCircle2 className="w-4 h-4 text-green-500" />} />
-              </>
+              <div className="bg-card border border-border/50 rounded-2xl px-4 py-3 grid grid-cols-4 gap-2 text-center">
+                <MiniStat label="Venues" value={stats.totalVenues} />
+                <MiniStat label="Markets" value={stats.marketsCovered} />
+                <MiniStat label="Packed" value={stats.packedNow} />
+                <MiniStat label="Open" value={stats.openNow} />
+              </div>
             )}
           </div>
         </div>
@@ -114,14 +123,11 @@ export function HeroSection() {
   );
 }
 
-function StatCard({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) {
+function MiniStat({ label, value }: { label: string, value: string | number }) {
   return (
-    <div className="bg-card border border-border/50 rounded-2xl p-4 flex flex-col items-start gap-2 hover:border-primary/50 transition-colors">
-      <div className="flex items-center gap-2 text-muted-foreground text-xs font-mono uppercase tracking-wider">
-        {icon}
-        {label}
-      </div>
-      <div className="text-2xl font-black">{value}</div>
+    <div>
+      <div className="text-xl font-black leading-none">{value}</div>
+      <div className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground mt-1">{label}</div>
     </div>
   );
 }
