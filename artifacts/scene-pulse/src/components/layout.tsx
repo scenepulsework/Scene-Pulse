@@ -4,10 +4,11 @@ import { Activity, Menu } from "lucide-react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useSpeakeasy } from "@/components/speakeasy-context";
 
 const NAV_LINKS = [
   { href: "/", label: "Map" },
-  { href: "/speakeasies", label: "Speakeasies" },
+  { href: "/speakeasies", label: "Speakeasies", hidden: true },
   { href: "/services", label: "Services" },
   { href: "/markets", label: "Markets" },
   { href: "/operators", label: "For Operators" },
@@ -17,8 +18,10 @@ const NAV_LINKS = [
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: health } = useHealthCheck();
+  const { unlocked } = useSpeakeasy();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [location] = useLocation();
+  const navLinks = NAV_LINKS.filter((link) => !link.hidden || unlocked);
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
@@ -29,7 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">SCENEPULSE</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -60,7 +63,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </SheetTrigger>
               <SheetContent side="right" className="w-72 bg-background border-border/40">
                 <nav className="flex flex-col gap-1 mt-10">
-                  {NAV_LINKS.map((link) => (
+                  {navLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
@@ -103,7 +106,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <h3 className="font-bold mb-4 font-mono uppercase tracking-wider text-sm">Platform</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/" className="hover:text-primary transition-colors">Live Map</Link></li>
-              <li><Link href="/speakeasies" className="hover:text-primary transition-colors">Speakeasies</Link></li>
+              {unlocked && (
+                <li><Link href="/speakeasies" className="hover:text-primary transition-colors" data-testid="link-footer-speakeasies">Speakeasies</Link></li>
+              )}
               <li><Link href="/services" className="hover:text-primary transition-colors">Services</Link></li>
               <li><Link href="/markets" className="hover:text-primary transition-colors">Markets</Link></li>
               <li><Link href="/operators" className="hover:text-primary transition-colors">For Operators</Link></li>
@@ -136,6 +141,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="container mx-auto px-4 mt-12 pt-8 border-t border-border/40 text-center text-xs text-muted-foreground font-mono">
           © {new Date().getFullYear()} ScenePulse. All rights reserved. Read the room before you leave.
+          {!unlocked && (
+            <span className="block mt-2 italic opacity-50" data-testid="speakeasy-hint">
+              Some doors don't have signs. Ask the search bar nicely.
+            </span>
+          )}
         </div>
       </footer>
     </div>

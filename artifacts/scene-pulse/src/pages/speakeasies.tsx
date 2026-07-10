@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "wouter";
 import { KeyRound, Clock, ArrowUpRight, MapPin } from "lucide-react";
 import {
@@ -10,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageIntro } from "@/components/page-intro";
+import { useSpeakeasy } from "@/components/speakeasy-context";
 
 const SPEAKEASY_FILTERS = { intent: ListVenuesIntent.speakeasy };
 
@@ -78,6 +80,12 @@ function SpeakeasyCard({ venue }: { venue: Venue }) {
 }
 
 export default function Speakeasies() {
+  const { unlock } = useSpeakeasy();
+  // Finding the page directly counts as knowing the password.
+  useEffect(() => {
+    unlock();
+  }, [unlock]);
+
   const { data: venues, isLoading } = useListVenues(SPEAKEASY_FILTERS, {
     query: { queryKey: getListVenuesQueryKey(SPEAKEASY_FILTERS) },
   });

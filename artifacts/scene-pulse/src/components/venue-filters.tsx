@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ListVenuesIntent, ListVenuesSort, VenueCategory, Venue } from "@workspace/api-client-react";
 import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound } from "lucide-react";
+import { useSpeakeasy, SECRET_PATTERN } from "@/components/speakeasy-context";
 
 type VenueFiltersProps = {
   filters: {
@@ -31,6 +32,8 @@ const INTENTS = [
 ];
 
 export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps, "filters" | "setFilters">) {
+  const { unlocked } = useSpeakeasy();
+  const intents = INTENTS.filter((i) => i.value !== ListVenuesIntent.speakeasy || unlocked);
   const updateFilter = (key: string, value: any) => {
     setFilters((prev: any) => ({ ...prev, [key]: value === 'all' ? undefined : value }));
   };
@@ -54,7 +57,7 @@ export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps,
           <div className="font-bold">All vibes</div>
           <div className="text-sm text-muted-foreground">Clear quick pick filter and see everything</div>
         </button>
-        {INTENTS.map((intent) => {
+        {intents.map((intent) => {
           const active = filters.intent === intent.value;
           return (
             <button
@@ -132,9 +135,22 @@ export function ActiveFilterChips({ filters, setFilters, markets }: VenueFilters
 
 export function VenueFilters({ filters, setFilters, markets, allVenues, onPickVenue }: VenueFiltersProps) {
   const [searchFocused, setSearchFocused] = useState(false);
+  const { unlocked, unlock } = useSpeakeasy();
 
   const updateFilter = (key: string, value: any) => {
     setFilters((prev: any) => ({ ...prev, [key]: value === 'all' ? undefined : value }));
+  };
+
+  const handleSearchChange = (value: string) => {
+    // Only hijack secret words while locked — once unlocked, search behaves normally
+    // (e.g. venue names like "Handshake Speakeasy" must stay searchable).
+    if (!unlocked && SECRET_PATTERN.test(value.toLowerCase())) {
+      // The secret word is consumed: unlock the files and flip to the speakeasy view.
+      unlock({ celebrate: true });
+      setFilters((prev: any) => ({ ...prev, search: undefined, intent: ListVenuesIntent.speakeasy }));
+      return;
+    }
+    updateFilter("search", value);
   };
 
   const term = (filters.search || "").trim().toLowerCase();
@@ -156,10 +172,10 @@ export function VenueFilters({ filters, setFilters, markets, allVenues, onPickVe
         <div className="relative col-span-1 md:col-span-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search venues, cities..." 
+            placeholder="Search venues, cities... or whisper the password" 
             className="pl-9 bg-card border-border/50 font-mono text-sm"
             value={filters.search || ""}
-            onChange={(e) => updateFilter("search", e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             data-testid="venue-search-input"

@@ -15,6 +15,7 @@ import About from "@/pages/about";
 import Careers from "@/pages/careers";
 import Contact from "@/pages/contact";
 import Layout from "@/components/layout";
+import { SpeakeasyProvider } from "@/components/speakeasy-context";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,10 +58,12 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <ScrollToTop />
-            <Layout>
-              <Router />
-            </Layout>
+            <SpeakeasyProvider>
+              <ScrollToTop />
+              <Layout>
+                <Router />
+              </Layout>
+            </SpeakeasyProvider>
           </WouterRouter>
           <Toaster />
         </TooltipProvider>
