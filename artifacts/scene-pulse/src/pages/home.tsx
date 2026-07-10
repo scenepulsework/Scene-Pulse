@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useListVenues, useListMarkets, getListVenuesQueryKey, ListVenuesIntent, ListVenuesSort, Venue } from "@workspace/api-client-react";
-import { HeroSection, MarketsSection, OperatorsSection, ServicesSection, ContactSection } from "@/components/home-sections";
+import { HeroSection } from "@/components/home-sections";
 import { VenueFilters, QuickPicksPanel, ActiveFilterChips } from "@/components/venue-filters";
 import { VenueCard } from "@/components/venue-card";
 import { LiveMap } from "@/components/live-map";
@@ -175,22 +175,6 @@ export default function Home() {
       </section>
 
       <SpeakeasySection onShowOnMap={showVenueOnMap} />
-
-      <ServicesSection />
-      <MarketsSection />
-      <OperatorsSection />
-
-      <section id="about" className="py-16">
-        <div className="container mx-auto px-4 max-w-3xl text-center">
-          <h2 className="text-3xl font-black uppercase tracking-tighter mb-6">About ScenePulse</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed font-mono">
-            We build radar for the night. No more dead crowds, no more unexpected lines, no more guessing.
-            Real-time data for the hospitality industry and the people who keep it alive.
-          </p>
-        </div>
-      </section>
-
-      <ContactSection />
       <BackToTop />
     </div>
   );

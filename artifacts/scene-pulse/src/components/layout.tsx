@@ -1,23 +1,24 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Activity, Menu } from "lucide-react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
-  { href: "#map", label: "Map" },
-  { href: "#speakeasies", label: "Speakeasies" },
-  { href: "#services", label: "Services" },
-  { href: "#markets", label: "Markets" },
-  { href: "#operators", label: "For Operators" },
-  { href: "#about", label: "About" },
-  { href: "#contact", label: "Contact" },
+  { href: "/", label: "Map" },
+  { href: "/speakeasies", label: "Speakeasies" },
+  { href: "/services", label: "Services" },
+  { href: "/markets", label: "Markets" },
+  { href: "/operators", label: "For Operators" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: health } = useHealthCheck();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [location] = useLocation();
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
@@ -28,12 +29,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">SCENEPULSE</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <a href="#map" className="hover:text-foreground transition-colors">Map</a>
-            <a href="#speakeasies" className="hover:text-foreground transition-colors">Speakeasies</a>
-            <a href="#services" className="hover:text-foreground transition-colors">Services</a>
-            <a href="#markets" className="hover:text-foreground transition-colors">Markets</a>
-            <a href="#operators" className="hover:text-foreground transition-colors">Operators</a>
-            <a href="#contact" className="hover:text-foreground transition-colors">Contact</a>
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                data-testid={`link-nav-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+                className={`transition-colors ${
+                  location === link.href ? "text-primary" : "hover:text-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${health?.status === 'ok' ? 'bg-primary pulse-indicator' : 'bg-destructive'}`} />
               <span className="text-xs uppercase tracking-wider font-mono">Live</span>
@@ -54,15 +61,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <SheetContent side="right" className="w-72 bg-background border-border/40">
                 <nav className="flex flex-col gap-1 mt-10">
                   {NAV_LINKS.map((link) => (
-                    <a
+                    <Link
                       key={link.href}
                       href={link.href}
                       data-testid={`link-mobile-nav-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
                       onClick={() => setMobileNavOpen(false)}
-                      className="px-2 py-3 text-base font-medium text-muted-foreground hover:text-foreground border-b border-border/40 transition-colors"
+                      className={`px-2 py-3 text-base font-medium border-b border-border/40 transition-colors ${
+                        location === link.href
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
                     >
                       {link.label}
-                    </a>
+                    </Link>
                   ))}
                 </nav>
               </SheetContent>
@@ -87,16 +98,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div>
             <h3 className="font-bold mb-4 font-mono uppercase tracking-wider text-sm">Platform</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#map" className="hover:text-primary transition-colors">Live Map</a></li>
-              <li><a href="#markets" className="hover:text-primary transition-colors">Markets</a></li>
-              <li><a href="#operators" className="hover:text-primary transition-colors">For Operators</a></li>
+              <li><Link href="/" className="hover:text-primary transition-colors">Live Map</Link></li>
+              <li><Link href="/speakeasies" className="hover:text-primary transition-colors">Speakeasies</Link></li>
+              <li><Link href="/services" className="hover:text-primary transition-colors">Services</Link></li>
+              <li><Link href="/markets" className="hover:text-primary transition-colors">Markets</Link></li>
+              <li><Link href="/operators" className="hover:text-primary transition-colors">For Operators</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold mb-4 font-mono uppercase tracking-wider text-sm">Company</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#about" className="hover:text-primary transition-colors">About Us</a></li>
-              <li><a href="#contact" className="hover:text-primary transition-colors">Contact</a></li>
+              <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>
         </div>

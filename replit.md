@@ -48,11 +48,12 @@ A Surfline-style "live conditions" dashboard for local venues (bars, restaurants
 
 ## Product
 
-- Home dashboard (section order: hero → Live Pulse map → Speakeasy Files → Services → Markets → Operators → About → Contact; map is front-and-center on mobile too): hero stats, hot zones, interactive Leaflet map with side panel, quick-pick intent filters (incl. Speakeasy), category filters, search with live suggestions dropdown, market filter, paginated venue feed with per-card "show on map", back-to-top button, html smooth scrolling.
+- Multi-page app (wouter routes): `/` home, `/venue/:id`, `/speakeasies`, `/services`, `/markets`, `/operators`, `/about`, `/contact`. Header (desktop + mobile sheet) and footer use wouter `Link`s with active-state highlighting (`text-primary` when `location === href`); nav testids `link-nav-{label}` / `link-mobile-nav-{label}`. A `ScrollToTop` component in App.tsx forces `behavior: "instant"` scroll on route change (html has smooth-scroll CSS that would otherwise animate it).
+- Home dashboard is now slim: hero → Live Pulse map (filters, quick picks, paginated venue feed) → Speakeasy Files scroller (with "See all" → `/speakeasies`) → back-to-top. Services/Markets/Operators/About/Contact sections moved to their own pages (section components still live in `home-sections.tsx`, imported by the pages).
+- Pages share a `PageIntro` breadcrumb header (`components/page-intro.tsx`). `/speakeasies` groups all speakeasies by market with per-card "Full intel" links (testids `speakeasy-page-card-{id}`, `speakeasy-page-intel-{id}`).
 - Venue detail page: crowd score, wait time, headcount, line trend, seating odds, noise level, cover cost, best arrival window/timing strategy, live reports feed, comments ("The Wire"), watchlist bookmark, "Open Maps" link.
-- Markets section (13 North American markets) and "For Operators" hospitality market-gap section.
-- Mobile sidebar menu with anchor links: Map, Speakeasies, Services, Markets, For Operators, About, Contact (same order as desktop nav).
-- Seeded with 219 venues across 13 markets, including real named venues with source attribution (sourceLabel/sourceUrl: Google Maps listing, Yelp pick, Uber Eats/DoorDash/Grubhub favorite, Local favorite). 27 are speakeasies (1–2 per market) surfaced in "The Speakeasy Files" section and the speakeasy intent filter.
+- Markets page (13 North American markets) and "For Operators" hospitality market-gap page.
+- Seeded with 310 venues across 13 markets, including real named venues with source attribution (sourceLabel/sourceUrl: Google Maps listing, Yelp pick, Uber Eats/DoorDash/Grubhub favorite, Local favorite). 53 are speakeasies (3–5 per market) surfaced in "The Speakeasy Files" scroller, the `/speakeasies` page, and the speakeasy intent filter.
 - Venue feed paginates 12 at a time ("Load more" button), with a "Showing X of Y venues" count line and removable active-filter chips (search/market/category/intent + Clear all) above the grid; filter changes reset pagination.
 
 ## User preferences

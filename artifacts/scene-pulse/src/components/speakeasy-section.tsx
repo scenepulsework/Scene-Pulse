@@ -39,8 +39,21 @@ export function SpeakeasySection({
               signals so the secret stays worth it.
             </p>
           </div>
-          <div className="text-sm font-mono text-muted-foreground shrink-0">
-            {venues.length} hidden rooms tracked
+          <div className="flex items-center gap-4 shrink-0">
+            <div className="text-sm font-mono text-muted-foreground">
+              {venues.length} hidden rooms tracked
+            </div>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="font-mono text-xs border-secondary/30 hover:border-secondary"
+            >
+              <Link href="/speakeasies" data-testid="link-all-speakeasies">
+                See all
+                <ArrowUpRight className="w-3 h-3 ml-1" />
+              </Link>
+            </Button>
           </div>
         </div>
 
