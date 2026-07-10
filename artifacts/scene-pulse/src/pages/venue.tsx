@@ -279,8 +279,8 @@ export default function VenueDetail() {
 
         {/* Sidebar / Live Feed */}
         <div className="w-full md:w-[350px] shrink-0 space-y-8">
-          <VenueReports venueId={venue.id} />
           <VenueComments venueId={venue.id} />
+          <VenueReports venueId={venue.id} />
           
           <div className="bg-card border border-border/50 rounded-lg p-4">
             <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3">Signals Tracked</h4>
