@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Activity, Menu } from "lucide-react";
+import { Activity, Menu, KeyRound } from "lucide-react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -142,7 +142,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 mt-12 pt-8 border-t border-border/40 text-center text-xs text-muted-foreground font-mono">
           © {new Date().getFullYear()} ScenePulse. All rights reserved. Read the room before you leave.
           {!unlocked && (
-            <span className="block mt-2 italic opacity-50" data-testid="speakeasy-hint">
+            <span
+              className="mt-3 flex items-center justify-center gap-1.5 text-secondary/90 not-italic"
+              data-testid="speakeasy-hint"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
               Some doors don't have signs. Ask the search bar nicely.
             </span>
           )}

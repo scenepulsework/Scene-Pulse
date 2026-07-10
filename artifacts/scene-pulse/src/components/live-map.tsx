@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { Venue } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { ArrowUpRight, Users, Clock3, X, Flame } from "lucide-react";
-import { VenueComments } from "@/components/venue-comments";
+import { VenueReports } from "@/components/venue-reports";
 
 function crowdColor(level: Venue["crowdLevel"]) {
   switch (level) {
@@ -193,7 +193,7 @@ export function LiveMap({
               </Link>
             </div>
 
-            <VenueComments venueId={selected.id} />
+            <VenueReports venueId={selected.id} />
           </div>
         ) : (
           <div className="flex flex-col gap-3">

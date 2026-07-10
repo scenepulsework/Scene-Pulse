@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ListVenuesIntent, ListVenuesSort, VenueCategory, Venue } from "@workspace/api-client-react";
-import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound } from "lucide-react";
+import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound, Lock } from "lucide-react";
 import { useSpeakeasy, SECRET_PATTERN } from "@/components/speakeasy-context";
 
 type VenueFiltersProps = {
@@ -75,6 +75,26 @@ export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps,
             </button>
           );
         })}
+        {!unlocked && (
+          <button
+            type="button"
+            data-testid="quickpick-speakeasy-locked"
+            onClick={() => {
+              const el = document.querySelector<HTMLInputElement>('[data-testid="venue-search-input"]');
+              el?.focus();
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+            className="text-left rounded-xl px-4 py-3 border border-dashed border-secondary/40 bg-secondary/5 hover:bg-secondary/10 transition-colors flex items-center justify-between gap-3"
+          >
+            <div className="min-w-0">
+              <div className="font-bold flex items-center gap-2 text-secondary">
+                <Lock className="w-4 h-4" /> Speakeasy
+              </div>
+              <div className="text-sm text-muted-foreground">Some doors are hidden. Whisper the right word in search to unlock.</div>
+            </div>
+            <Badge variant="secondary" className="shrink-0 rounded-full font-mono text-[10px] uppercase">locked</Badge>
+          </button>
+        )}
       </div>
     </div>
   );

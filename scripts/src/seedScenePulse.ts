@@ -1,4 +1,4 @@
-import { db, venuesTable, commentsTable } from "@workspace/db";
+import { db, venuesTable, commentsTable, liveReportsTable } from "@workspace/db";
 import type { InsertVenue } from "@workspace/db";
 
 type SeedVenue = Omit<InsertVenue, "isWatchlisted">;
@@ -457,6 +457,10 @@ const COMMENTS_BY_CATEGORY: Record<string, string[]> = {
     "Went on a Tuesday — half empty, full vibe. Weeknights are the secret here.",
     "The back room opened up around 11 and the whole night changed. Stick around.",
     "Solid pour, fair prices, zero attitude. My new default when friends are in town.",
+    "Bachelorette party took over the bar around midnight — still had room to breathe by the windows.",
+    "Bartender talked me through the whole menu unprompted. Left with three new favorites.",
+    "Line moved way faster than it looked from the sidewalk. Don't judge it from outside.",
+    "First round came out slow, everything after was on point. Kitchen fixed the backlog fast.",
   ],
   restaurant: [
     "Walked in at 6 sharp and got seated instantly. By 7 the wait was an hour. Timing is everything.",
@@ -471,6 +475,10 @@ const COMMENTS_BY_CATEGORY: Record<string, string[]> = {
     "The patio at golden hour is the best table in the neighborhood, full stop.",
     "Service slowed way down when the rush hit around 7:30. Order everything up front.",
     "Sunday early evening is the sweet spot — no wait, kitchen still sharp.",
+    "Took a call-ahead seating slot and still waited 10 minutes. Worth it over walking in cold.",
+    "Table for two turned into a two-hour hang because nobody rushed us out. Rare these days.",
+    "Host stand was slammed but the actual dining room felt calm the whole time.",
+    "Went right when they opened — kitchen still warming up but zero wait either way.",
   ],
   cafe: [
     "Morning rush is real — 15 deep at 8:30. By 10 it's calm and all the seats free up.",
@@ -483,6 +491,8 @@ const COMMENTS_BY_CATEGORY: Record<string, string[]> = {
     "Wi-Fi solid, coffee better. Camped here for four hours and nobody blinked.",
     "The line looks long but it's mostly mobile orders. In-person moves quick.",
     "Cold brew sold out by noon last Sunday. They restock around 1 if you're patient.",
+    "Study crowd takes over after 3pm on weekdays. Headphones recommended, it gets full.",
+    "Ordered ahead on the app and it was ready before I found parking. Smooth system.",
   ],
   retail: [
     "Drop day was chaos — line at 9am for an 11am open. Restock Thursdays are way calmer.",
@@ -495,6 +505,8 @@ const COMMENTS_BY_CATEGORY: Record<string, string[]> = {
     "Sale rack in the back turns over every Tuesday. That's all I'm saying.",
     "Busy but organized — even packed it never felt like a scrum.",
     "Called ahead to check stock and they actually picked up. Saved me a wasted trip.",
+    "Line was mostly resellers at open. Regular shoppers, come back around noon instead.",
+    "Staff pulled my size from the back without me even asking. That's the whole pitch.",
   ],
   experience: [
     "Doors said 8, real crowd showed at 9:30. Openers deserved better — and you get the rail.",
@@ -507,6 +519,8 @@ const COMMENTS_BY_CATEGORY: Record<string, string[]> = {
     "Got there at door time, front row, no fight. This city sleeps on early arrival.",
     "Bar service during the headliner was surprisingly fast. Two deep, max.",
     "Last call sneaks up fast here — 30 minutes before the encore. Plan accordingly.",
+    "Doors-to-opener gap was long but the room filled steadily — never felt like a crush.",
+    "Grabbed rail spot 20 minutes in. Security kept it civil even once it filled up.",
   ],
 };
 
@@ -523,6 +537,59 @@ const SPEAKEASY_COMMENTS = [
   "The 'hidden' part is real — my date walked past it twice while I watched from inside.",
   "Cocktails take a while when it's full. Order two at once, thank me later.",
   "Cash only at the back bar. The ATM outside blows the whole cover story.",
+  "Texted the number on the sign and got a reply in two minutes. Old-school but it works.",
+  "Brought out-of-towners and they still talk about finding the door. Good party trick.",
+];
+
+// ---------- LIVE REPORTS ----------
+const REPORTER_HANDLES = [
+  "NightOwl99", "CrowdWatcher", "LineWatcherLIVE", "PulseChecker", "DoorScoutDC",
+  "WaitTimeWes", "VibeRadar", "TheScoutingReport", "RealTimeRae", "CurbAlertKay",
+  "OnTheGroundOG", "SceneSniffer", "FirstInLineFin", "BarometerBri", "FootTrafficFio",
+  "LiveFromTheDoor", "QueueQueen", "HeatCheckHal", "GroundTruthGio", "PulsePingPat",
+];
+
+const VIBE_NOTES_BY_CATEGORY: Record<string, string[]> = {
+  bar: [
+    "Just walked past — line's moving steady, maybe 10 min max right now.",
+    "Standing room only inside but bar service is still quick.",
+    "Dead right now honestly, great time to swing by.",
+    "Just got in, DJ's warming up and the floor's filling fast.",
+    "Bouncer's checking IDs slow tonight, adds a few minutes at the door.",
+  ],
+  restaurant: [
+    "Hostess just told me 20 min wait, patio opened up though.",
+    "Kitchen's cranking, food's coming out fast even with the crowd.",
+    "Just sat down, place is maybe half full right now.",
+    "Wait board says 35 but it's moving quicker than that in person.",
+    "Bar seats open right now if you don't mind eating there.",
+  ],
+  cafe: [
+    "Line's out the door but it's mostly mobile pickups, moves fast.",
+    "Quiet right now, plenty of tables free.",
+    "Just ordered, maybe 5 min wait at the counter.",
+    "Getting the afternoon rush right now, standing room only.",
+    "Outlets are free by the window if you're coming to work.",
+  ],
+  retail: [
+    "Just browsed through, floor's calm and staff are free to help.",
+    "Checkout line's a bit long but moving.",
+    "New drop just hit the floor, good energy right now.",
+    "Pretty quiet in here at the moment, good time to shop.",
+  ],
+  experience: [
+    "Doors just opened, line's moving quick into the room.",
+    "Floor's filling up fast, opener's about to start.",
+    "Still plenty of room up front right now.",
+    "Bar line inside is short, drinks before it gets packed.",
+  ],
+};
+
+const SPEAKEASY_VIBE_NOTES = [
+  "Just knocked, door opened right away tonight — no wait.",
+  "Small crowd right now, easiest I've seen it get in.",
+  "Line's forming at the hidden door, maybe 15 min.",
+  "Bartender says it's filling up fast, get here soon.",
 ];
 
 function hoursAgo(h: number): Date {
@@ -540,6 +607,8 @@ async function seed() {
       name: venuesTable.name,
       category: venuesTable.category,
       bestFor: venuesTable.bestFor,
+      crowdLevel: venuesTable.crowdLevel,
+      waitTimeMinutes: venuesTable.waitTimeMinutes,
     });
 
   const comments: (typeof commentsTable.$inferInsert)[] = [];
@@ -548,7 +617,7 @@ async function seed() {
     const pool = isSpeakeasy
       ? SPEAKEASY_COMMENTS
       : (COMMENTS_BY_CATEGORY[v.category] ?? COMMENTS_BY_CATEGORY.bar);
-    const count = 2 + ((i * 7) % 3); // 2-4 comments per venue
+    const count = 3 + ((i * 7) % 4); // 3-6 comments per venue
     for (let c = 0; c < count; c++) {
       comments.push({
         venueId: v.id,
@@ -562,7 +631,39 @@ async function seed() {
   for (let i = 0; i < comments.length; i += 500) {
     await db.insert(commentsTable).values(comments.slice(i, i + 500));
   }
-  console.log(`Done. Seeded ${inserted.length} venues and ${comments.length} comments.`);
+
+  const reports: (typeof liveReportsTable.$inferInsert)[] = [];
+  const CROWD_LEVELS = ["open", "lively", "packed"] as const;
+  inserted.forEach((v, i) => {
+    const isSpeakeasy = (v.bestFor ?? []).includes("Speakeasy");
+    const notePool = isSpeakeasy
+      ? SPEAKEASY_VIBE_NOTES
+      : (VIBE_NOTES_BY_CATEGORY[v.category] ?? VIBE_NOTES_BY_CATEGORY.bar);
+    const count = 1 + ((i * 5) % 3); // 1-3 live reports per venue
+    for (let r = 0; r < count; r++) {
+      // Mostly mirror the venue's current crowd level, occasionally drift to simulate change over time
+      const drift = (i * 19 + r * 31) % 10;
+      const crowdLevel = drift < 8 ? v.crowdLevel : CROWD_LEVELS[(i + r) % CROWD_LEVELS.length];
+      const waitJitter = ((i * 3 + r * 7) % 11) - 5; // +/- 5 minutes
+      const waitTimeMinutes = Math.max(0, v.waitTimeMinutes + waitJitter);
+      reports.push({
+        venueId: v.id,
+        reporterName: REPORTER_HANDLES[(i * 7 + r * 13) % REPORTER_HANDLES.length],
+        crowdLevel,
+        waitTimeMinutes,
+        vibeNote: notePool[(i * 5 + r * 3) % notePool.length],
+        // Spread between just now and ~10 hours ago, so the feed reads as genuinely live
+        createdAt: hoursAgo((i * 7 + r * 41) % 10),
+      });
+    }
+  });
+  for (let i = 0; i < reports.length; i += 500) {
+    await db.insert(liveReportsTable).values(reports.slice(i, i + 500));
+  }
+
+  console.log(
+    `Done. Seeded ${inserted.length} venues, ${comments.length} comments, and ${reports.length} live reports.`,
+  );
   process.exit(0);
 }
 
