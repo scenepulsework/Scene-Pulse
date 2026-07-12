@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ListVenuesIntent, ListVenuesSort, VenueCategory, Venue } from "@workspace/api-client-react";
-import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound, Lock } from "lucide-react";
+import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound, Lock, Gamepad2 } from "lucide-react";
 import { useSpeakeasy, SECRET_PATTERN } from "@/components/speakeasy-context";
 
 type VenueFiltersProps = {
@@ -28,6 +28,7 @@ const INTENTS = [
   { value: ListVenuesIntent.liveMusic, label: "Live music", description: "Showrooms, sets, and crowd pressure", badge: "best vibe", icon: <Music className="w-4 h-4" /> },
   { value: ListVenuesIntent.patioEnergy, label: "Patio energy", description: "Outdoor seating with a lively crowd", badge: "best vibe", icon: <Flame className="w-4 h-4" /> },
   { value: ListVenuesIntent.lateNightFood, label: "Late night", description: "Kitchens still firing after hours", badge: "low friction", icon: <Moon className="w-4 h-4" /> },
+  { value: ListVenuesIntent.interactiveBars, label: "Game bars", description: "Pool tables, shuffleboard, darts & more", badge: "play all night", icon: <Gamepad2 className="w-4 h-4" /> },
   { value: ListVenuesIntent.speakeasy, label: "Speakeasy", description: "Hidden doors and password bars", badge: "if you know", icon: <KeyRound className="w-4 h-4" /> },
 ];
 

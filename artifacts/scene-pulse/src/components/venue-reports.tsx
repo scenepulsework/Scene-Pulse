@@ -3,9 +3,12 @@ import {
   useCreateVenueReport,
   useListVenueComments,
   useCreateVenueComment,
+  useLikeComment,
+  useDislikeComment,
   getGetVenueQueryKey,
   getListVenueReportsQueryKey,
   getListVenueCommentsQueryKey,
+  Comment,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -15,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
-import { Activity, Clock, MessageSquare, Send } from "lucide-react";
+import { Activity, Clock, MessageSquare, Send, ThumbsUp, ThumbsDown, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -35,9 +38,31 @@ const commentSchema = z.object({
   message: z.string().min(1, "Message required").max(200, "Too long"),
 });
 
-type FeedItem =
-  | { type: "report"; id: string; createdAt: string; reporterName: string; crowdLevel: string; waitTimeMinutes: number; vibeNote: string }
-  | { type: "comment"; id: string; createdAt: string; authorName: string; message: string };
+type ReportItem = {
+  type: "report";
+  id: string;
+  numId: number;
+  createdAt: string;
+  reporterName: string;
+  crowdLevel: string;
+  waitTimeMinutes: number;
+  vibeNote: string;
+};
+
+type CommentItem = {
+  type: "comment";
+  id: string;
+  numId: number;
+  createdAt: string;
+  authorName: string;
+  message: string;
+  likes: number;
+  dislikes: number;
+  parentCommentId: number | null;
+  replies: Comment[];
+};
+
+type FeedItem = ReportItem | CommentItem;
 
 export function VenueReports({ venueId }: { venueId: number }) {
   const queryClient = useQueryClient();
@@ -52,25 +77,28 @@ export function VenueReports({ venueId }: { venueId: number }) {
   });
   const createReport = useCreateVenueReport();
   const createComment = useCreateVenueComment();
+  const likeComment = useLikeComment();
+  const dislikeComment = useDislikeComment();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [replyingToId, setReplyingToId] = useState<number | null>(null);
+  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
+  const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
+  const [dislikedIds, setDislikedIds] = useState<Set<number>>(new Set());
 
   const reportForm = useForm<z.infer<typeof reportSchema>>({
     resolver: zodResolver(reportSchema),
-    defaultValues: {
-      reporterName: "",
-      crowdLevel: "lively",
-      waitTimeMinutes: 0,
-      vibeNote: "",
-    },
+    defaultValues: { reporterName: "", crowdLevel: "lively", waitTimeMinutes: 0, vibeNote: "" },
   });
 
   const commentForm = useForm<z.infer<typeof commentSchema>>({
     resolver: zodResolver(commentSchema),
-    defaultValues: {
-      authorName: "",
-      message: "",
-    },
+    defaultValues: { authorName: "", message: "" },
+  });
+
+  const replyForm = useForm<z.infer<typeof commentSchema>>({
+    resolver: zodResolver(commentSchema),
+    defaultValues: { authorName: "", message: "" },
   });
 
   const onSubmitReport = (values: z.infer<typeof reportSchema>) => {
@@ -84,9 +112,7 @@ export function VenueReports({ venueId }: { venueId: number }) {
           queryClient.invalidateQueries({ queryKey: getListVenueReportsQueryKey(venueId) });
           queryClient.invalidateQueries({ queryKey: getGetVenueQueryKey(venueId) });
         },
-        onError: () => {
-          toast.error("Failed to submit report");
-        }
+        onError: () => toast.error("Failed to submit report"),
       }
     );
   };
@@ -96,14 +122,59 @@ export function VenueReports({ venueId }: { venueId: number }) {
       { venueId, data: values },
       {
         onSuccess: () => {
-          commentForm.reset({ ...values, message: "" }); // keep name, clear message
+          commentForm.reset({ ...values, message: "" });
           queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) });
         },
-        onError: () => {
-          toast.error("Failed to post comment");
-        }
+        onError: () => toast.error("Failed to post comment"),
       }
     );
+  };
+
+  const onSubmitReply = (parentId: number, values: z.infer<typeof commentSchema>) => {
+    createComment.mutate(
+      { venueId, data: { ...values, parentCommentId: parentId } },
+      {
+        onSuccess: () => {
+          replyForm.reset();
+          setReplyingToId(null);
+          setExpandedReplies((prev) => new Set([...prev, parentId]));
+          queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) });
+        },
+        onError: () => toast.error("Failed to post reply"),
+      }
+    );
+  };
+
+  const handleLike = (commentId: number) => {
+    if (likedIds.has(commentId) || dislikedIds.has(commentId)) return;
+    setLikedIds((prev) => new Set([...prev, commentId]));
+    likeComment.mutate(
+      { venueId, commentId },
+      {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) }),
+        onError: () => setLikedIds((prev) => { const n = new Set(prev); n.delete(commentId); return n; }),
+      }
+    );
+  };
+
+  const handleDislike = (commentId: number) => {
+    if (likedIds.has(commentId) || dislikedIds.has(commentId)) return;
+    setDislikedIds((prev) => new Set([...prev, commentId]));
+    dislikeComment.mutate(
+      { venueId, commentId },
+      {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) }),
+        onError: () => setDislikedIds((prev) => { const n = new Set(prev); n.delete(commentId); return n; }),
+      }
+    );
+  };
+
+  const toggleReplies = (commentId: number) => {
+    setExpandedReplies((prev) => {
+      const n = new Set(prev);
+      if (n.has(commentId)) n.delete(commentId); else n.add(commentId);
+      return n;
+    });
   };
 
   const getCrowdColor = (level: string) => {
@@ -117,27 +188,47 @@ export function VenueReports({ venueId }: { venueId: number }) {
 
   const isLoading = reportsLoading || commentsLoading;
 
+  const repliesByParent = useMemo(() => {
+    const map = new Map<number, Comment[]>();
+    for (const c of comments ?? []) {
+      if (c.parentCommentId != null) {
+        const list = map.get(c.parentCommentId) ?? [];
+        list.push(c);
+        map.set(c.parentCommentId, list);
+      }
+    }
+    return map;
+  }, [comments]);
+
   const feed: FeedItem[] = useMemo(() => {
     const reportItems: FeedItem[] = (reports ?? []).map((r) => ({
       type: "report",
       id: `report-${r.id}`,
+      numId: r.id,
       createdAt: r.createdAt,
       reporterName: r.reporterName,
       crowdLevel: r.crowdLevel,
       waitTimeMinutes: r.waitTimeMinutes,
       vibeNote: r.vibeNote,
     }));
-    const commentItems: FeedItem[] = (comments ?? []).map((c) => ({
-      type: "comment",
-      id: `comment-${c.id}`,
-      createdAt: c.createdAt,
-      authorName: c.authorName,
-      message: c.message,
-    }));
-    return [...reportItems, ...commentItems].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    const topLevelComments: FeedItem[] = (comments ?? [])
+      .filter((c) => c.parentCommentId == null)
+      .map((c) => ({
+        type: "comment",
+        id: `comment-${c.id}`,
+        numId: c.id,
+        createdAt: c.createdAt,
+        authorName: c.authorName,
+        message: c.message,
+        likes: c.likes,
+        dislikes: c.dislikes,
+        parentCommentId: c.parentCommentId ?? null,
+        replies: repliesByParent.get(c.id) ?? [],
+      }));
+    return [...reportItems, ...topLevelComments].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [reports, comments]);
+  }, [reports, comments, repliesByParent]);
 
   return (
     <div className="bg-card border border-border/50 rounded-lg overflow-hidden flex flex-col" data-testid="venue-reports">
@@ -174,7 +265,6 @@ export function VenueReports({ venueId }: { venueId: number }) {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={reportForm.control}
                 name="crowdLevel"
@@ -182,70 +272,43 @@ export function VenueReports({ venueId }: { venueId: number }) {
                   <FormItem className="space-y-1">
                     <FormLabel className="text-xs font-mono uppercase text-muted-foreground">Crowd Level</FormLabel>
                     <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex gap-2"
-                      >
-                        <FormItem className="flex items-center space-x-0 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="open" className="peer sr-only" />
-                          </FormControl>
-                          <FormLabel className="font-normal font-mono text-xs uppercase cursor-pointer rounded-md border border-border/50 px-2 py-1 peer-data-[state=checked]:border-green-500 peer-data-[state=checked]:text-green-500 hover:bg-muted/50">
-                            Open
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-0 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="lively" className="peer sr-only" />
-                          </FormControl>
-                          <FormLabel className="font-normal font-mono text-xs uppercase cursor-pointer rounded-md border border-border/50 px-2 py-1 peer-data-[state=checked]:border-secondary peer-data-[state=checked]:text-secondary hover:bg-muted/50">
-                            Lively
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-0 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="packed" className="peer sr-only" />
-                          </FormControl>
-                          <FormLabel className="font-normal font-mono text-xs uppercase cursor-pointer rounded-md border border-border/50 px-2 py-1 peer-data-[state=checked]:border-destructive peer-data-[state=checked]:text-destructive hover:bg-muted/50">
-                            Packed
-                          </FormLabel>
-                        </FormItem>
+                      <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-2">
+                        {(['open', 'lively', 'packed'] as const).map((v) => (
+                          <FormItem key={v} className="flex items-center space-x-0 space-y-0">
+                            <FormControl><RadioGroupItem value={v} className="peer sr-only" /></FormControl>
+                            <FormLabel className={`font-normal font-mono text-xs uppercase cursor-pointer rounded-md border border-border/50 px-2 py-1 hover:bg-muted/50 peer-data-[state=checked]:border-${v === 'open' ? 'green-500' : v === 'lively' ? 'secondary' : 'destructive'} peer-data-[state=checked]:text-${v === 'open' ? 'green-500' : v === 'lively' ? 'secondary' : 'destructive'}`}>
+                              {v}
+                            </FormLabel>
+                          </FormItem>
+                        ))}
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={reportForm.control}
                 name="waitTimeMinutes"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-mono uppercase text-muted-foreground">Wait Time (min)</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} className="h-8 font-mono text-sm bg-card" />
-                    </FormControl>
+                    <FormControl><Input type="number" {...field} className="h-8 font-mono text-sm bg-card" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={reportForm.control}
                 name="vibeNote"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-mono uppercase text-muted-foreground">Vibe Check</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Line moving fast. Good energy." {...field} className="resize-none h-16 font-mono text-sm bg-card" />
-                    </FormControl>
+                    <FormControl><Textarea placeholder="Line moving fast. Good energy." {...field} className="resize-none h-16 font-mono text-sm bg-card" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <Button type="submit" className="w-full font-mono uppercase tracking-wider text-xs" disabled={createReport.isPending}>
                 {createReport.isPending ? "Submitting..." : "Send Pulse"}
               </Button>
@@ -254,7 +317,7 @@ export function VenueReports({ venueId }: { venueId: number }) {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto max-h-[400px] p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto max-h-[500px] p-4 space-y-4">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-20 w-full" />
@@ -285,9 +348,7 @@ export function VenueReports({ venueId }: { venueId: number }) {
                     {item.waitTimeMinutes}m wait
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground leading-snug">
-                  "{item.vibeNote}"
-                </p>
+                <p className="text-sm text-muted-foreground leading-snug">"{item.vibeNote}"</p>
               </div>
             ) : (
               <div key={item.id} className="relative pl-4 border-l-2 border-border/30 pb-2" data-testid={`feed-comment-${item.id}`}>
@@ -299,9 +360,137 @@ export function VenueReports({ venueId }: { venueId: number }) {
                     {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">{item.message}</p>
+                <p className="text-sm text-muted-foreground mb-2">{item.message}</p>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleLike(item.numId)}
+                    disabled={likedIds.has(item.numId) || dislikedIds.has(item.numId)}
+                    className={`flex items-center gap-1 text-[11px] font-mono transition-colors rounded px-1.5 py-0.5 ${
+                      likedIds.has(item.numId)
+                        ? "text-green-500 bg-green-500/10"
+                        : "text-muted-foreground hover:text-green-500 hover:bg-green-500/10 disabled:opacity-40"
+                    }`}
+                    data-testid={`like-comment-${item.numId}`}
+                  >
+                    <ThumbsUp className="w-3 h-3" />
+                    {item.likes + (likedIds.has(item.numId) ? 1 : 0)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDislike(item.numId)}
+                    disabled={likedIds.has(item.numId) || dislikedIds.has(item.numId)}
+                    className={`flex items-center gap-1 text-[11px] font-mono transition-colors rounded px-1.5 py-0.5 ${
+                      dislikedIds.has(item.numId)
+                        ? "text-destructive bg-destructive/10"
+                        : "text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-40"
+                    }`}
+                    data-testid={`dislike-comment-${item.numId}`}
+                  >
+                    <ThumbsDown className="w-3 h-3" />
+                    {item.dislikes + (dislikedIds.has(item.numId) ? 1 : 0)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReplyingToId(replyingToId === item.numId ? null : item.numId)}
+                    className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-primary transition-colors rounded px-1.5 py-0.5"
+                  >
+                    <CornerDownRight className="w-3 h-3" />
+                    Reply
+                  </button>
+                  {item.replies.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => toggleReplies(item.numId)}
+                      className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-primary transition-colors ml-auto rounded px-1.5 py-0.5"
+                    >
+                      {expandedReplies.has(item.numId) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      {item.replies.length} {item.replies.length === 1 ? "reply" : "replies"}
+                    </button>
+                  )}
+                </div>
+
+                {replyingToId === item.numId && (
+                  <div className="mt-2 pl-3 border-l border-primary/30">
+                    <Form {...replyForm}>
+                      <form
+                        onSubmit={replyForm.handleSubmit((vals) => onSubmitReply(item.numId, vals))}
+                        className="flex gap-2"
+                      >
+                        <FormField
+                          control={replyForm.control}
+                          name="authorName"
+                          render={({ field }) => (
+                            <FormItem className="w-1/3">
+                              <FormControl>
+                                <Input placeholder="Name" {...field} className="h-7 text-xs font-mono bg-card" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={replyForm.control}
+                          name="message"
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormControl>
+                                <Input placeholder={`Reply to ${item.authorName}...`} {...field} className="h-7 text-xs font-mono bg-card" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="submit" size="icon" className="h-7 w-7 shrink-0" disabled={createComment.isPending}>
+                          <Send className="w-3 h-3" />
+                        </Button>
+                      </form>
+                    </Form>
+                  </div>
+                )}
+
+                {expandedReplies.has(item.numId) && item.replies.length > 0 && (
+                  <div className="mt-2 pl-3 border-l border-border/20 space-y-2">
+                    {item.replies
+                      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                      .map((reply) => (
+                        <div key={reply.id} className="text-sm">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-bold text-xs text-foreground">{reply.authorName}</span>
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{reply.message}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleLike(reply.id)}
+                              disabled={likedIds.has(reply.id) || dislikedIds.has(reply.id)}
+                              className={`flex items-center gap-1 text-[10px] font-mono transition-colors rounded px-1 py-0.5 ${
+                                likedIds.has(reply.id) ? "text-green-500" : "text-muted-foreground hover:text-green-500 disabled:opacity-40"
+                              }`}
+                            >
+                              <ThumbsUp className="w-2.5 h-2.5" />
+                              {reply.likes + (likedIds.has(reply.id) ? 1 : 0)}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDislike(reply.id)}
+                              disabled={likedIds.has(reply.id) || dislikedIds.has(reply.id)}
+                              className={`flex items-center gap-1 text-[10px] font-mono transition-colors rounded px-1 py-0.5 ${
+                                dislikedIds.has(reply.id) ? "text-destructive" : "text-muted-foreground hover:text-destructive disabled:opacity-40"
+                              }`}
+                            >
+                              <ThumbsDown className="w-2.5 h-2.5" />
+                              {reply.dislikes + (dislikedIds.has(reply.id) ? 1 : 0)}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
-            ),
+            )
           )
         )}
       </div>

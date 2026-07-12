@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db, commentsTable, venuesTable } from "@workspace/db";
 import {
   ListVenueCommentsParams,
@@ -48,6 +48,44 @@ router.post("/venues/:venueId/comments", async (req, res): Promise<void> => {
     .values({ venueId: params.data.venueId, ...body.data })
     .returning();
   res.status(201).json(CreateVenueCommentResponse.parse(comment));
+});
+
+router.post("/venues/:venueId/comments/:commentId/like", async (req, res): Promise<void> => {
+  const venueId = Number(req.params.venueId);
+  const commentId = Number(req.params.commentId);
+  if (!Number.isInteger(venueId) || venueId < 1 || !Number.isInteger(commentId) || commentId < 1) {
+    res.status(400).json({ error: "Invalid params" });
+    return;
+  }
+  const [comment] = await db
+    .update(commentsTable)
+    .set({ likes: sql`${commentsTable.likes} + 1` })
+    .where(eq(commentsTable.id, commentId))
+    .returning();
+  if (!comment) {
+    res.status(404).json({ error: "Comment not found" });
+    return;
+  }
+  res.json(comment);
+});
+
+router.post("/venues/:venueId/comments/:commentId/dislike", async (req, res): Promise<void> => {
+  const venueId = Number(req.params.venueId);
+  const commentId = Number(req.params.commentId);
+  if (!Number.isInteger(venueId) || venueId < 1 || !Number.isInteger(commentId) || commentId < 1) {
+    res.status(400).json({ error: "Invalid params" });
+    return;
+  }
+  const [comment] = await db
+    .update(commentsTable)
+    .set({ dislikes: sql`${commentsTable.dislikes} + 1` })
+    .where(eq(commentsTable.id, commentId))
+    .returning();
+  if (!comment) {
+    res.status(404).json({ error: "Comment not found" });
+    return;
+  }
+  res.json(comment);
 });
 
 export default router;

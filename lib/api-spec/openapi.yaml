@@ -62,7 +62,7 @@ paths:
           description: Quick-pick user intent tag to filter by
           schema:
             type: string
-            enum: [dateNight, noWait, retailDrops, liveMusic, patioEnergy, lateNightFood, speakeasy]
+            enum: [dateNight, noWait, retailDrops, liveMusic, patioEnergy, lateNightFood, speakeasy, interactiveBars]
       responses:
         "200":
           description: List of venues
@@ -246,6 +246,54 @@ paths:
         "404":
           description: Venue not found
 
+  /venues/{venueId}/comments/{commentId}/like:
+    post:
+      operationId: likeComment
+      tags: [comments]
+      summary: Like a comment
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: commentId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Updated comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "404":
+          description: Not found
+
+  /venues/{venueId}/comments/{commentId}/dislike:
+    post:
+      operationId: dislikeComment
+      tags: [comments]
+      summary: Dislike a comment
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: commentId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Updated comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "404":
+          description: Not found
+
   /venues/{venueId}/watchlist:
     post:
       operationId: addToWatchlist
@@ -424,12 +472,15 @@ components:
 
     Comment:
       type: object
-      required: [id, venueId, authorName, message, createdAt]
+      required: [id, venueId, authorName, message, likes, dislikes, createdAt]
       properties:
         id: { type: integer }
         venueId: { type: integer }
+        parentCommentId: { type: [integer, "null"] }
         authorName: { type: string }
         message: { type: string }
+        likes: { type: integer }
+        dislikes: { type: integer }
         createdAt: { type: string, format: date-time }
 
     CommentInput:
@@ -438,6 +489,7 @@ components:
       properties:
         authorName: { type: string, minLength: 1 }
         message: { type: string, minLength: 1 }
+        parentCommentId: { type: [integer, "null"] }
 
     LiveReport:
       type: object

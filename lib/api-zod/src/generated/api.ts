@@ -26,7 +26,7 @@ export const ListVenuesQueryParams = zod.object({
   "category": zod.coerce.string().optional(),
   "search": zod.coerce.string().optional(),
   "sort": zod.enum(['crowdScore', 'waitTime', 'rating', 'name', 'updated']).optional().describe('Sort order for results'),
-  "intent": zod.enum(['dateNight', 'noWait', 'retailDrops', 'liveMusic', 'patioEnergy', 'lateNightFood', 'speakeasy']).optional().describe('Quick-pick user intent tag to filter by')
+  "intent": zod.enum(['dateNight', 'noWait', 'retailDrops', 'liveMusic', 'patioEnergy', 'lateNightFood', 'speakeasy', 'interactiveBars']).optional().describe('Quick-pick user intent tag to filter by')
 })
 
 export const ListVenuesResponseItem = zod.object({
@@ -273,8 +273,11 @@ export const ListVenueCommentsParams = zod.object({
 export const ListVenueCommentsResponseItem = zod.object({
   "id": zod.number(),
   "venueId": zod.number(),
+  "parentCommentId": zod.number().nullish(),
   "authorName": zod.string(),
   "message": zod.string(),
+  "likes": zod.number(),
+  "dislikes": zod.number(),
   "createdAt": zod.coerce.date()
 })
 export const ListVenueCommentsResponse = zod.array(ListVenueCommentsResponseItem)
@@ -293,14 +296,18 @@ export const CreateVenueCommentParams = zod.object({
 
 export const CreateVenueCommentBody = zod.object({
   "authorName": zod.string().min(1),
-  "message": zod.string().min(1)
+  "message": zod.string().min(1),
+  "parentCommentId": zod.number().nullish()
 })
 
 export const CreateVenueCommentResponse = zod.object({
   "id": zod.number(),
   "venueId": zod.number(),
+  "parentCommentId": zod.number().nullish(),
   "authorName": zod.string(),
   "message": zod.string(),
+  "likes": zod.number(),
+  "dislikes": zod.number(),
   "createdAt": zod.coerce.date()
 })
 
@@ -352,6 +359,46 @@ export const CreateVenueReportResponse = zod.object({
   "crowdLevel": zod.enum(['open', 'lively', 'packed']),
   "waitTimeMinutes": zod.number(),
   "vibeNote": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Like a comment
+ */
+export const LikeCommentParams = zod.object({
+  "venueId": zod.coerce.number(),
+  "commentId": zod.coerce.number()
+})
+
+export const LikeCommentResponse = zod.object({
+  "id": zod.number(),
+  "venueId": zod.number(),
+  "parentCommentId": zod.number().nullish(),
+  "authorName": zod.string(),
+  "message": zod.string(),
+  "likes": zod.number(),
+  "dislikes": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Dislike a comment
+ */
+export const DislikeCommentParams = zod.object({
+  "venueId": zod.coerce.number(),
+  "commentId": zod.coerce.number()
+})
+
+export const DislikeCommentResponse = zod.object({
+  "id": zod.number(),
+  "venueId": zod.number(),
+  "parentCommentId": zod.number().nullish(),
+  "authorName": zod.string(),
+  "message": zod.string(),
+  "likes": zod.number(),
+  "dislikes": zod.number(),
   "createdAt": zod.coerce.date()
 })
 

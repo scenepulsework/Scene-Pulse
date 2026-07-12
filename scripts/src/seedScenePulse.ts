@@ -299,6 +299,26 @@ market("Washington", "Washington DC", "District of Columbia", "USA", { name: "Ch
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Handshake Speakeasy", category: "bar", latitude: 19.4260, longitude: -99.1621, address: "Amberes 65, Juárez, Mexico City", bestFor: ["Speakeasy", "Date Night"], sourceLabel: "Local favorite", sourceUrl: "https://www.yelp.com/search?find_desc=Handshake+Speakeasy+CDMX" });
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Hanky Panky", category: "bar", latitude: 19.4247, longitude: -99.1580, address: "Turín 52, Juárez, Mexico City", bestFor: ["Speakeasy", "Date Night"], sourceLabel: "Local favorite", sourceUrl: "https://www.yelp.com/search?find_desc=Hanky+Panky+CDMX" });
 
+// ---------- INTERACTIVE BARS (pool tables, shuffleboard, darts, bar games) ----------
+chicago({ name: "The Break Room Chicago", category: "bar", latitude: 41.8978, longitude: -87.6467, address: "1756 W Lake St, Chicago, IL", bestFor: ["Pool Tables", "Bar Games"], crowdScore: 72, waitTimeMinutes: 10 });
+chicago({ name: "Punch Bowl Social Chicago", category: "experience", latitude: 41.8832, longitude: -87.6484, address: "355 N Green St, Chicago, IL", bestFor: ["Shuffleboard", "Bar Games", "Late-Night Food"], crowdScore: 81, waitTimeMinutes: 20, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Punch+Bowl+Social+Chicago" });
+chicago({ name: "Headquarters Beercade", category: "bar", latitude: 41.8916, longitude: -87.6364, address: "213 W Institute Pl, Chicago, IL", bestFor: ["Bar Games", "Pool Tables"], crowdScore: 65, waitTimeMinutes: 5 });
+market("New York", "New York City", "New York", "USA", { name: "Slate NY", category: "bar", latitude: 40.7424, longitude: -73.9979, address: "54 W 21st St, New York, NY", bestFor: ["Pool Tables", "Bar Games"], crowdScore: 78, waitTimeMinutes: 15, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Slate+NY" });
+market("New York", "New York City", "New York", "USA", { name: "Fat Cat", category: "bar", latitude: 40.7311, longitude: -74.0004, address: "75 Christopher St, New York, NY", bestFor: ["Pool Tables", "Shuffleboard", "Ping Pong", "Bar Games"], crowdScore: 70, waitTimeMinutes: 5, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Fat+Cat+NYC" });
+market("Los Angeles", "Los Angeles", "California", "USA", { name: "Emporium Arcade Bar LA", category: "bar", latitude: 34.1017, longitude: -118.3257, address: "6280 Hollywood Blvd, Los Angeles, CA", bestFor: ["Bar Games", "Pool Tables"], crowdScore: 68, waitTimeMinutes: 10 });
+market("Los Angeles", "Los Angeles", "California", "USA", { name: "EightyTwo", category: "bar", latitude: 34.0418, longitude: -118.2439, address: "707 E 4th Pl, Los Angeles, CA", bestFor: ["Shuffleboard", "Bar Games", "Pool Tables"], crowdScore: 74, waitTimeMinutes: 15, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=EightyTwo+DTLA" });
+market("Miami", "Miami", "Florida", "USA", { name: "Gramps Miami", category: "bar", latitude: 25.8023, longitude: -80.1972, address: "176 NW 24th St, Miami, FL", bestFor: ["Shuffleboard", "Bar Games", "Patio Energy"], crowdScore: 76, waitTimeMinutes: 10, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Gramps+Miami" });
+market("Austin", "Austin", "Texas", "USA", { name: "Pinballz Kingdom", category: "experience", latitude: 30.2645, longitude: -97.7468, address: "8940 Research Blvd, Austin, TX", bestFor: ["Bar Games", "Pool Tables"], crowdScore: 62, waitTimeMinutes: 0 });
+market("Austin", "Austin", "Texas", "USA", { name: "The Crafthouse Gastropub", category: "bar", latitude: 30.2563, longitude: -97.7504, address: "1801 Barton Springs Rd, Austin, TX", bestFor: ["Shuffleboard", "Bar Games"], crowdScore: 69, waitTimeMinutes: 10 });
+market("Nashville", "Nashville", "Tennessee", "USA", { name: "Pinewood Social", category: "experience", latitude: 36.1536, longitude: -86.7720, address: "33 Peabody St, Nashville, TN", bestFor: ["Shuffleboard", "Bar Games", "Patio Energy"], crowdScore: 83, waitTimeMinutes: 25, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Pinewood+Social+Nashville" });
+market("Seattle", "Seattle", "Washington", "USA", { name: "Raygun Lounge", category: "bar", latitude: 47.6134, longitude: -122.3200, address: "1121 E Pike St, Seattle, WA", bestFor: ["Bar Games", "Pool Tables"], crowdScore: 61, waitTimeMinutes: 0, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Raygun+Lounge+Seattle" });
+market("San Francisco", "San Francisco", "California", "USA", { name: "Brewcade", category: "bar", latitude: 37.7682, longitude: -122.4303, address: "2600 16th St, San Francisco, CA", bestFor: ["Bar Games", "Shuffleboard"], crowdScore: 73, waitTimeMinutes: 10, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Brewcade+SF" });
+market("Boston", "Boston", "Massachusetts", "USA", { name: "Pawn & Pint", category: "bar", latitude: 42.3456, longitude: -71.0698, address: "75 Kneeland St, Boston, MA", bestFor: ["Bar Games", "Pool Tables", "Darts"], crowdScore: 66, waitTimeMinutes: 5 });
+market("Washington", "Washington DC", "District of Columbia", "USA", { name: "Punch Bowl Social DC", category: "experience", latitude: 38.9047, longitude: -77.0250, address: "1800 14th St NW, Washington, DC", bestFor: ["Shuffleboard", "Bar Games", "Pool Tables"], crowdScore: 79, waitTimeMinutes: 20, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Punch+Bowl+Social+DC" });
+market("Toronto", "Toronto", "Ontario", "Canada", { name: "The Rec Room Toronto", category: "experience", latitude: 43.6419, longitude: -79.3914, address: "255 Bremner Blvd, Toronto, ON", bestFor: ["Shuffleboard", "Bar Games", "Pool Tables"], crowdScore: 80, waitTimeMinutes: 15, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=The+Rec+Room+Toronto" });
+market("Vancouver", "Vancouver", "British Columbia", "Canada", { name: "Storm Crow Tavern", category: "bar", latitude: 49.2636, longitude: -123.1028, address: "1305 Commercial Dr, Vancouver, BC", bestFor: ["Bar Games", "Darts", "Foosball"], crowdScore: 64, waitTimeMinutes: 5, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Storm+Crow+Tavern+Vancouver" });
+market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "La Cervecería de Barrio", category: "bar", latitude: 19.4185, longitude: -99.1713, address: "Sonora 11, Roma Norte, Mexico City", bestFor: ["Bar Games", "Pool Tables", "Patio Energy"], crowdScore: 71, waitTimeMinutes: 10, sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Cerveceria+de+Barrio+CDMX" });
+
 // ---------- DELIVERY-APP & LOCAL-GEM PICKS ----------
 chicago({ name: "Au Cheval", category: "restaurant", latitude: 41.8846, longitude: -87.6479, address: "800 W Randolph St, Chicago, IL", bestFor: ["Late-Night Food"], sourceLabel: "Yelp pick", sourceUrl: "https://www.yelp.com/search?find_desc=Au+Cheval+Chicago" });
 chicago({ name: "Pequod's Pizza", category: "restaurant", latitude: 41.9218, longitude: -87.6644, address: "2207 N Clybourn Ave, Chicago, IL", bestFor: ["Late-Night Food"], sourceLabel: "Local favorite", sourceUrl: "https://www.yelp.com/search?find_desc=Pequods+Pizza+Chicago" });
@@ -524,6 +544,23 @@ const COMMENTS_BY_CATEGORY: Record<string, string[]> = {
   ],
 };
 
+const BAR_GAMES_COMMENTS = [
+  "Called a table 20 minutes out and it was ready right when we walked in. System works.",
+  "Pool tables were all taken when we arrived but only waited one game. Turnover is quick.",
+  "Shuffleboard lane opened up right as we finished our first round. Timing was perfect.",
+  "Three pool tables, two taken. Grabbed the third, played for two hours no pressure.",
+  "Darts board in the back is free basically all night on weekdays. No wait ever.",
+  "Foosball tables are in rough shape but it adds to the charm honestly.",
+  "Ping pong table gets packed after 10. Show up before 9 if you actually want a game.",
+  "They have a wait list app for tables — put your name in at the bar, they text you.",
+  "Mix of serious players and casual groups tonight. Good energy all around.",
+  "Highly recommend the back room for shuffleboard — quieter and easier to hear each other.",
+  "Bocce courts are outside and free to use. Best combo with the patio beers.",
+  "Game tokens included with the cover. Actually a solid deal for what you get inside.",
+  "Staff reset the pool table mid-game when a ball rolled under the bar. Solid service.",
+  "Walked in on a Tuesday — had the whole game floor to ourselves basically.",
+];
+
 const SPEAKEASY_COMMENTS = [
   "Took us 10 minutes to find the door. Worth every second of confusion.",
   "Password was on their story that morning — do your homework and you walk right in.",
@@ -614,10 +651,15 @@ async function seed() {
   const comments: (typeof commentsTable.$inferInsert)[] = [];
   inserted.forEach((v, i) => {
     const isSpeakeasy = (v.bestFor ?? []).includes("Speakeasy");
+    const isBarGame = (v.bestFor ?? []).some((t) =>
+      ["Pool Tables", "Shuffleboard", "Bar Games", "Darts", "Foosball", "Ping Pong", "Bocce"].includes(t)
+    );
     const pool = isSpeakeasy
       ? SPEAKEASY_COMMENTS
-      : (COMMENTS_BY_CATEGORY[v.category] ?? COMMENTS_BY_CATEGORY.bar);
-    const count = 3 + ((i * 7) % 4); // 3-6 comments per venue
+      : isBarGame
+        ? BAR_GAMES_COMMENTS
+        : (COMMENTS_BY_CATEGORY[v.category] ?? COMMENTS_BY_CATEGORY.bar);
+    const count = 6 + ((i * 7) % 5); // 6-10 comments per venue
     for (let c = 0; c < count; c++) {
       comments.push({
         venueId: v.id,

@@ -117,8 +117,12 @@ export interface MarketGap {
 export interface Comment {
   id: number;
   venueId: number;
+  /** @nullable */
+  parentCommentId?: number | null;
   authorName: string;
   message: string;
+  likes: number;
+  dislikes: number;
   createdAt: string;
 }
 
@@ -127,6 +131,8 @@ export interface CommentInput {
   authorName: string;
   /** @minLength 1 */
   message: string;
+  /** @nullable */
+  parentCommentId?: number | null;
 }
 
 export type LiveReportCrowdLevel = typeof LiveReportCrowdLevel[keyof typeof LiveReportCrowdLevel];
@@ -203,6 +209,7 @@ export const ListVenuesIntent = {
   patioEnergy: 'patioEnergy',
   lateNightFood: 'lateNightFood',
   speakeasy: 'speakeasy',
+  interactiveBars: 'interactiveBars',
 } as const;
 
 export type GetHotZonesParams = {

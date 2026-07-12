@@ -17,4 +17,5 @@ export const ListVenuesIntent = {
   patioEnergy: 'patioEnergy',
   lateNightFood: 'lateNightFood',
   speakeasy: 'speakeasy',
+  interactiveBars: 'interactiveBars',
 } as const;

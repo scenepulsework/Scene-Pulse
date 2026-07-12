@@ -23,6 +23,7 @@ const INTENT_TAG_MATCH: Record<string, string[]> = {
   patioEnergy: ["patio"],
   lateNightFood: ["late-night food", "late night food"],
   speakeasy: ["speakeasy"],
+  interactiveBars: ["pool table", "shuffleboard", "bar game", "game bar", "interactive bar", "darts", "foosball", "ping pong", "bocce"],
 };
 
 router.get("/venues", async (req, res): Promise<void> => {

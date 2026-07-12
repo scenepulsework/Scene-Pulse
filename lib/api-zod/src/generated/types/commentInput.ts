@@ -11,4 +11,6 @@ export interface CommentInput {
   authorName: string;
   /** @minLength 1 */
   message: string;
+  /** @nullable */
+  parentCommentId?: number | null;
 }

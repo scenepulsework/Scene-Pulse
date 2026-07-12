@@ -5,6 +5,7 @@ import { VenueFilters, QuickPicksPanel, ActiveFilterChips } from "@/components/v
 import { VenueCard } from "@/components/venue-card";
 import { LiveMap } from "@/components/live-map";
 import { SpeakeasySection } from "@/components/speakeasy-section";
+import { InteractiveBarsSection } from "@/components/interactive-bars-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Activity, ChevronDown, ArrowUp } from "lucide-react";
@@ -174,6 +175,7 @@ export default function Home() {
         </div>
       </section>
 
+      <InteractiveBarsSection onShowOnMap={showVenueOnMap} />
       <SpeakeasySection onShowOnMap={showVenueOnMap} />
       <BackToTop />
     </div>

@@ -919,6 +919,152 @@ export const useCreateVenueReport = <TError = ErrorType<void>,
       return useMutation(getCreateVenueReportMutationOptions(options));
     }
 
+export const getLikeCommentUrl = (venueId: number,
+    commentId: number,) => {
+
+
+
+
+  return `/api/venues/${venueId}/comments/${commentId}/like`
+}
+
+/**
+ * @summary Like a comment
+ */
+export const likeComment = async (venueId: number,
+    commentId: number, options?: RequestInit): Promise<Comment> => {
+
+  return customFetch<Comment>(getLikeCommentUrl(venueId,commentId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getLikeCommentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof likeComment>>, TError,{venueId: number;commentId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof likeComment>>, TError,{venueId: number;commentId: number}, TContext> => {
+
+const mutationKey = ['likeComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof likeComment>>, {venueId: number;commentId: number}> = (props) => {
+          const {venueId,commentId} = props ?? {};
+
+          return  likeComment(venueId,commentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LikeCommentMutationResult = NonNullable<Awaited<ReturnType<typeof likeComment>>>
+
+    export type LikeCommentMutationError = ErrorType<void>
+
+    /**
+ * @summary Like a comment
+ */
+export const useLikeComment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof likeComment>>, TError,{venueId: number;commentId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof likeComment>>,
+        TError,
+        {venueId: number;commentId: number},
+        TContext
+      > => {
+      return useMutation(getLikeCommentMutationOptions(options));
+    }
+
+export const getDislikeCommentUrl = (venueId: number,
+    commentId: number,) => {
+
+
+
+
+  return `/api/venues/${venueId}/comments/${commentId}/dislike`
+}
+
+/**
+ * @summary Dislike a comment
+ */
+export const dislikeComment = async (venueId: number,
+    commentId: number, options?: RequestInit): Promise<Comment> => {
+
+  return customFetch<Comment>(getDislikeCommentUrl(venueId,commentId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getDislikeCommentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dislikeComment>>, TError,{venueId: number;commentId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof dislikeComment>>, TError,{venueId: number;commentId: number}, TContext> => {
+
+const mutationKey = ['dislikeComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dislikeComment>>, {venueId: number;commentId: number}> = (props) => {
+          const {venueId,commentId} = props ?? {};
+
+          return  dislikeComment(venueId,commentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DislikeCommentMutationResult = NonNullable<Awaited<ReturnType<typeof dislikeComment>>>
+
+    export type DislikeCommentMutationError = ErrorType<void>
+
+    /**
+ * @summary Dislike a comment
+ */
+export const useDislikeComment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dislikeComment>>, TError,{venueId: number;commentId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof dislikeComment>>,
+        TError,
+        {venueId: number;commentId: number},
+        TContext
+      > => {
+      return useMutation(getDislikeCommentMutationOptions(options));
+    }
+
 export const getAddToWatchlistUrl = (venueId: number,) => {
 
 

@@ -9,7 +9,11 @@
 export interface Comment {
   id: number;
   venueId: number;
+  /** @nullable */
+  parentCommentId?: number | null;
   authorName: string;
   message: string;
+  likes: number;
+  dislikes: number;
   createdAt: Date;
 }
