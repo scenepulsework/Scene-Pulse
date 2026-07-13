@@ -4,8 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ListVenuesIntent, ListVenuesSort, VenueCategory, Venue } from "@workspace/api-client-react";
-import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound, Lock, Gamepad2 } from "lucide-react";
-import { useSpeakeasy, SECRET_PATTERN } from "@/components/speakeasy-context";
+import { Search, MapPin, SlidersHorizontal, Flame, Music, Moon, Clock, Heart, GlassWater, Coffee, ShoppingBag, Map, Zap, X, KeyRound, Gamepad2 } from "lucide-react";
 
 type VenueFiltersProps = {
   filters: {
@@ -33,8 +32,6 @@ const INTENTS = [
 ];
 
 export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps, "filters" | "setFilters">) {
-  const { unlocked } = useSpeakeasy();
-  const intents = INTENTS.filter((i) => i.value !== ListVenuesIntent.speakeasy || unlocked);
   const updateFilter = (key: string, value: any) => {
     setFilters((prev: any) => ({ ...prev, [key]: value === 'all' ? undefined : value }));
   };
@@ -58,7 +55,7 @@ export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps,
           <div className="font-bold">All vibes</div>
           <div className="text-sm text-muted-foreground">Clear quick pick filter and see everything</div>
         </button>
-        {intents.map((intent) => {
+        {INTENTS.map((intent) => {
           const active = filters.intent === intent.value;
           return (
             <button
@@ -76,26 +73,6 @@ export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps,
             </button>
           );
         })}
-        {!unlocked && (
-          <button
-            type="button"
-            data-testid="quickpick-speakeasy-locked"
-            onClick={() => {
-              const el = document.querySelector<HTMLInputElement>('[data-testid="venue-search-input"]');
-              el?.focus();
-              el?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }}
-            className="text-left rounded-xl px-4 py-3 border border-dashed border-secondary/40 bg-secondary/5 hover:bg-secondary/10 transition-colors flex items-center justify-between gap-3"
-          >
-            <div className="min-w-0">
-              <div className="font-bold flex items-center gap-2 text-secondary">
-                <Lock className="w-4 h-4" /> Speakeasy
-              </div>
-              <div className="text-sm text-muted-foreground">Some doors are hidden. Whisper the right word in search to unlock.</div>
-            </div>
-            <Badge variant="secondary" className="shrink-0 rounded-full font-mono text-[10px] uppercase">locked</Badge>
-          </button>
-        )}
       </div>
     </div>
   );
@@ -156,21 +133,12 @@ export function ActiveFilterChips({ filters, setFilters, markets }: VenueFilters
 
 export function VenueFilters({ filters, setFilters, markets, allVenues, onPickVenue }: VenueFiltersProps) {
   const [searchFocused, setSearchFocused] = useState(false);
-  const { unlocked, unlock } = useSpeakeasy();
 
   const updateFilter = (key: string, value: any) => {
     setFilters((prev: any) => ({ ...prev, [key]: value === 'all' ? undefined : value }));
   };
 
   const handleSearchChange = (value: string) => {
-    // Only hijack secret words while locked — once unlocked, search behaves normally
-    // (e.g. venue names like "Handshake Speakeasy" must stay searchable).
-    if (!unlocked && SECRET_PATTERN.test(value.toLowerCase())) {
-      // The secret word is consumed: unlock the files and flip to the speakeasy view.
-      unlock({ celebrate: true });
-      setFilters((prev: any) => ({ ...prev, search: undefined, intent: ListVenuesIntent.speakeasy }));
-      return;
-    }
     updateFilter("search", value);
   };
 
@@ -193,7 +161,7 @@ export function VenueFilters({ filters, setFilters, markets, allVenues, onPickVe
         <div className="relative col-span-1 md:col-span-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search venues, cities... or whisper the password" 
+            placeholder="Search venues, cities, neighborhoods..." 
             className="pl-9 bg-card border-border/50 font-mono text-sm"
             value={filters.search || ""}
             onChange={(e) => handleSearchChange(e.target.value)}

@@ -7,7 +7,6 @@ import {
 } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useSpeakeasy } from "@/components/speakeasy-context";
 
 const SPEAKEASY_FILTERS = { intent: ListVenuesIntent.speakeasy };
 
@@ -16,15 +15,13 @@ export function SpeakeasySection({
 }: {
   onShowOnMap: (id: number) => void;
 }) {
-  const { unlocked } = useSpeakeasy();
   const { data: venues = [] } = useListVenues(SPEAKEASY_FILTERS, {
     query: {
       queryKey: getListVenuesQueryKey(SPEAKEASY_FILTERS),
-      enabled: unlocked,
     },
   });
 
-  if (!unlocked || venues.length === 0) return null;
+  if (venues.length === 0) return null;
 
   return (
     <section id="speakeasies" className="py-16 md:py-24 relative overflow-hidden scroll-mt-16">
