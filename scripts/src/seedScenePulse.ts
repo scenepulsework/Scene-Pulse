@@ -531,8 +531,10 @@ market("Venice", "Los Angeles", "California", "USA", { name: "Gjusta Bakery", ca
 market("Venice", "Los Angeles", "California", "USA", { name: "Townhouse and Del Monte Speakeasy", category: "bar", latitude: 33.9904, longitude: -118.4736, address: "52 Windward Ave, Venice, CA", bestFor: ["Speakeasy", "Date Night", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Townhouse+Venice+CA" });
 market("Venice", "Los Angeles", "California", "USA", { name: "The Roosterfish", category: "bar", latitude: 33.9881, longitude: -118.4697, address: "1302 Abbot Kinney Blvd, Venice, CA", bestFor: ["No Wait", "pool table"], sourceLabel: "Local favorite" });
 
-// Jon & Vinny's
-market("Los Angeles", "Los Angeles", "California", "USA", { name: "Jon & Vinny's", category: "restaurant", latitude: 34.0781, longitude: -118.3616, address: "412 N Fairfax Ave, Los Angeles, CA", bestFor: ["Date Night", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Jon+and+Vinny's+Fairfax" });
+// Jon & Vinny's — all three locations
+market("Los Angeles", "Los Angeles", "California", "USA", { name: "Jon & Vinny's Fairfax", category: "restaurant", latitude: 34.0781, longitude: -118.3616, address: "412 N Fairfax Ave, Los Angeles, CA", bestFor: ["Date Night", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Jon+and+Vinny's+Fairfax" });
+market("Los Angeles", "Los Angeles", "California", "USA", { name: "Jon & Vinny's Brentwood", category: "restaurant", latitude: 34.0490, longitude: -118.4750, address: "11628 San Vicente Blvd, Los Angeles, CA", bestFor: ["Date Night", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Jon+and+Vinny's+Brentwood" });
+market("Studio City", "Los Angeles", "California", "USA", { name: "Jon & Vinny's Studio City", category: "restaurant", latitude: 34.1415, longitude: -118.3942, address: "11266 Ventura Blvd, Studio City, CA", bestFor: ["Date Night", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Jon+and+Vinny's+Studio+City" });
 
 // ---------- MALIBU & ORANGE COUNTY DEEP EXPANSION ----------
 
