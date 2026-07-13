@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
-import { useGetVenue, useAddToWatchlist, useRemoveFromWatchlist, getGetVenueQueryKey, getListVenuesQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useGetVenue, getGetVenueQueryKey } from "@workspace/api-client-react";
+import { useWatchlist } from "@/hooks/use-watchlist";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +13,8 @@ export default function VenueDetail() {
   const params = useParams();
   const id = Number(params.id);
   
-  const queryClient = useQueryClient();
   const { data: venue, isLoading } = useGetVenue(id, { query: { enabled: !!id, queryKey: getGetVenueQueryKey(id) } });
-  const addWatchlist = useAddToWatchlist();
-  const removeWatchlist = useRemoveFromWatchlist();
+  const { isWatchlisted, toggle } = useWatchlist();
 
   if (isLoading) {
     return (
@@ -43,23 +41,8 @@ export default function VenueDetail() {
   }
 
   const handleWatchlistToggle = () => {
-    if (venue.isWatchlisted) {
-      removeWatchlist.mutate({ venueId: venue.id }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetVenueQueryKey(venue.id) });
-          queryClient.invalidateQueries({ queryKey: getListVenuesQueryKey() });
-          toast.success("Removed from watchlist");
-        }
-      });
-    } else {
-      addWatchlist.mutate({ venueId: venue.id }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetVenueQueryKey(venue.id) });
-          queryClient.invalidateQueries({ queryKey: getListVenuesQueryKey() });
-          toast.success("Added to watchlist");
-        }
-      });
-    }
+    const added = toggle(venue.id);
+    toast.success(added ? "Added to watchlist" : "Removed from watchlist");
   };
 
   const getCrowdColor = (level: string) => {
@@ -118,9 +101,8 @@ export default function VenueDetail() {
                   variant="outline" 
                   size="icon" 
                   onClick={handleWatchlistToggle}
-                  disabled={addWatchlist.isPending || removeWatchlist.isPending}
                 >
-                  {venue.isWatchlisted ? <BookmarkCheck className="w-5 h-5 text-primary" /> : <BookmarkPlus className="w-5 h-5" />}
+                  {isWatchlisted(venue.id) ? <BookmarkCheck className="w-5 h-5 text-primary" /> : <BookmarkPlus className="w-5 h-5" />}
                 </Button>
                 {venue.mapsUrl && (
                   <Button asChild className="font-mono uppercase tracking-wider text-xs">

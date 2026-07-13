@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, sql } from "drizzle-orm";
-import { db, commentsTable, venuesTable } from "@workspace/db";
+import { and, eq, desc, or, sql } from "drizzle-orm";
+import { db, commentsTable, commentVotesTable, venuesTable } from "@workspace/db";
 import {
   ListVenueCommentsParams,
   ListVenueCommentsResponse,
@@ -10,6 +10,49 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+const VOTER_ID_MAX_LEN = 128;
+
+const REACTION_WINDOW_MS = 60 * 1000;
+const MAX_REACTIONS_PER_WINDOW = 20;
+const reactionRateMap = new Map<string, number[]>();
+
+function extractVoterId(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0 || trimmed.length > VOTER_ID_MAX_LEN) return null;
+  return trimmed;
+}
+
+function isReactionRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (reactionRateMap.get(ip) ?? []).filter(
+    (t) => now - t < REACTION_WINDOW_MS,
+  );
+  if (timestamps.length >= MAX_REACTIONS_PER_WINDOW) {
+    return true;
+  }
+  timestamps.push(now);
+  reactionRateMap.set(ip, timestamps);
+  return false;
+}
+
+async function hasAlreadyVoted(commentId: number, voterId: string, voterIp: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: commentVotesTable.id })
+    .from(commentVotesTable)
+    .where(
+      and(
+        eq(commentVotesTable.commentId, commentId),
+        or(
+          eq(commentVotesTable.voterId, voterId),
+          eq(commentVotesTable.voterIp, voterIp),
+        ),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
 
 router.get("/venues/:venueId/comments", async (req, res): Promise<void> => {
   const params = ListVenueCommentsParams.safeParse(req.params);
@@ -57,16 +100,50 @@ router.post("/venues/:venueId/comments/:commentId/like", async (req, res): Promi
     res.status(400).json({ error: "Invalid params" });
     return;
   }
+
+  const voterId = extractVoterId(req.headers["x-voter-id"]);
+  if (!voterId) {
+    res.status(400).json({ error: "Missing or invalid X-Voter-ID header" });
+    return;
+  }
+
+  const voterIp = req.ip ?? "unknown";
+
+  if (isReactionRateLimited(voterIp)) {
+    res.status(429).json({ error: "Too many reactions. Please slow down." });
+    return;
+  }
+
+  const alreadyVoted = await hasAlreadyVoted(commentId, voterId, voterIp);
+  if (alreadyVoted) {
+    res.status(409).json({ error: "Already voted on this comment" });
+    return;
+  }
+
   const [comment] = await db
-    .update(commentsTable)
-    .set({ likes: sql`${commentsTable.likes} + 1` })
-    .where(eq(commentsTable.id, commentId))
-    .returning();
+    .select()
+    .from(commentsTable)
+    .where(and(eq(commentsTable.id, commentId), eq(commentsTable.venueId, venueId)))
+    .limit(1);
   if (!comment) {
     res.status(404).json({ error: "Comment not found" });
     return;
   }
-  res.json(comment);
+
+  try {
+    await db.insert(commentVotesTable).values({ commentId, voterId, voterIp, voteType: "like" });
+  } catch {
+    res.status(409).json({ error: "Already voted on this comment" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(commentsTable)
+    .set({ likes: sql`${commentsTable.likes} + 1` })
+    .where(eq(commentsTable.id, commentId))
+    .returning();
+
+  res.json(updated);
 });
 
 router.post("/venues/:venueId/comments/:commentId/dislike", async (req, res): Promise<void> => {
@@ -76,16 +153,50 @@ router.post("/venues/:venueId/comments/:commentId/dislike", async (req, res): Pr
     res.status(400).json({ error: "Invalid params" });
     return;
   }
+
+  const voterId = extractVoterId(req.headers["x-voter-id"]);
+  if (!voterId) {
+    res.status(400).json({ error: "Missing or invalid X-Voter-ID header" });
+    return;
+  }
+
+  const voterIp = req.ip ?? "unknown";
+
+  if (isReactionRateLimited(voterIp)) {
+    res.status(429).json({ error: "Too many reactions. Please slow down." });
+    return;
+  }
+
+  const alreadyVoted = await hasAlreadyVoted(commentId, voterId, voterIp);
+  if (alreadyVoted) {
+    res.status(409).json({ error: "Already voted on this comment" });
+    return;
+  }
+
   const [comment] = await db
-    .update(commentsTable)
-    .set({ dislikes: sql`${commentsTable.dislikes} + 1` })
-    .where(eq(commentsTable.id, commentId))
-    .returning();
+    .select()
+    .from(commentsTable)
+    .where(and(eq(commentsTable.id, commentId), eq(commentsTable.venueId, venueId)))
+    .limit(1);
   if (!comment) {
     res.status(404).json({ error: "Comment not found" });
     return;
   }
-  res.json(comment);
+
+  try {
+    await db.insert(commentVotesTable).values({ commentId, voterId, voterIp, voteType: "dislike" });
+  } catch {
+    res.status(409).json({ error: "Already voted on this comment" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(commentsTable)
+    .set({ dislikes: sql`${commentsTable.dislikes} + 1` })
+    .where(eq(commentsTable.id, commentId))
+    .returning();
+
+  res.json(updated);
 });
 
 export default router;

@@ -1,15 +1,11 @@
 import { Router, type IRouter } from "express";
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { and, eq, ilike, or } from "drizzle-orm";
 import { db, venuesTable } from "@workspace/db";
 import {
   ListVenuesQueryParams,
   ListVenuesResponse,
   GetVenueParams,
   GetVenueResponse,
-  AddToWatchlistParams,
-  AddToWatchlistResponse,
-  RemoveFromWatchlistParams,
-  RemoveFromWatchlistResponse,
 } from "@workspace/api-zod";
 import { presentVenue } from "../lib/venuePresenter";
 
@@ -102,40 +98,12 @@ router.get("/venues/:id", async (req, res): Promise<void> => {
   res.json(GetVenueResponse.parse(presentVenue(venue)));
 });
 
-router.post("/venues/:venueId/watchlist", async (req, res): Promise<void> => {
-  const params = AddToWatchlistParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
-  const [venue] = await db
-    .update(venuesTable)
-    .set({ isWatchlisted: true })
-    .where(eq(venuesTable.id, params.data.venueId))
-    .returning();
-  if (!venue) {
-    res.status(404).json({ error: "Venue not found" });
-    return;
-  }
-  res.json(AddToWatchlistResponse.parse(presentVenue(venue)));
+router.post("/venues/:venueId/watchlist", (_req, res): void => {
+  res.status(405).json({ error: "Watchlist is managed client-side." });
 });
 
-router.delete("/venues/:venueId/watchlist", async (req, res): Promise<void> => {
-  const params = RemoveFromWatchlistParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
-  const [venue] = await db
-    .update(venuesTable)
-    .set({ isWatchlisted: false })
-    .where(eq(venuesTable.id, params.data.venueId))
-    .returning();
-  if (!venue) {
-    res.status(404).json({ error: "Venue not found" });
-    return;
-  }
-  res.json(RemoveFromWatchlistResponse.parse(presentVenue(venue)));
+router.delete("/venues/:venueId/watchlist", (_req, res): void => {
+  res.status(405).json({ error: "Watchlist is managed client-side." });
 });
 
 export default router;

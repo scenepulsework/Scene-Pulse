@@ -19,4 +19,5 @@
 
 export * from "./venues";
 export * from "./comments";
+export * from "./commentVotes";
 export * from "./liveReports";

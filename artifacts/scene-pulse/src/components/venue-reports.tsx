@@ -3,14 +3,15 @@ import {
   useCreateVenueReport,
   useListVenueComments,
   useCreateVenueComment,
-  useLikeComment,
-  useDislikeComment,
+  likeComment,
+  dislikeComment,
   getGetVenueQueryKey,
   getListVenueReportsQueryKey,
   getListVenueCommentsQueryKey,
   Comment,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { getVoterId } from "@/lib/voter-id";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,8 +78,14 @@ export function VenueReports({ venueId }: { venueId: number }) {
   });
   const createReport = useCreateVenueReport();
   const createComment = useCreateVenueComment();
-  const likeComment = useLikeComment();
-  const dislikeComment = useDislikeComment();
+  const likeCommentMutation = useMutation({
+    mutationFn: ({ venueId: vid, commentId }: { venueId: number; commentId: number }) =>
+      likeComment(vid, commentId, { headers: { "X-Voter-ID": getVoterId() } }),
+  });
+  const dislikeCommentMutation = useMutation({
+    mutationFn: ({ venueId: vid, commentId }: { venueId: number; commentId: number }) =>
+      dislikeComment(vid, commentId, { headers: { "X-Voter-ID": getVoterId() } }),
+  });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [replyingToId, setReplyingToId] = useState<number | null>(null);
@@ -148,7 +155,7 @@ export function VenueReports({ venueId }: { venueId: number }) {
   const handleLike = (commentId: number) => {
     if (likedIds.has(commentId) || dislikedIds.has(commentId)) return;
     setLikedIds((prev) => new Set([...prev, commentId]));
-    likeComment.mutate(
+    likeCommentMutation.mutate(
       { venueId, commentId },
       {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) }),
@@ -160,7 +167,7 @@ export function VenueReports({ venueId }: { venueId: number }) {
   const handleDislike = (commentId: number) => {
     if (likedIds.has(commentId) || dislikedIds.has(commentId)) return;
     setDislikedIds((prev) => new Set([...prev, commentId]));
-    dislikeComment.mutate(
+    dislikeCommentMutation.mutate(
       { venueId, commentId },
       {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) }),

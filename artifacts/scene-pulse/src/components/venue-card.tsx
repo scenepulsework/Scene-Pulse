@@ -1,35 +1,19 @@
 import { Venue } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Clock, Users, Volume2, DollarSign, TrendingUp, TrendingDown, Minus, BookmarkPlus, BookmarkCheck, MapPin } from "lucide-react";
-import { useAddToWatchlist, useRemoveFromWatchlist, getListVenuesQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useWatchlist } from "@/hooks/use-watchlist";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export function VenueCard({ venue, onShowOnMap }: { venue: Venue; onShowOnMap?: (id: number) => void }) {
-  const queryClient = useQueryClient();
-  
-  const addWatchlist = useAddToWatchlist();
-  const removeWatchlist = useRemoveFromWatchlist();
+  const { isWatchlisted, toggle } = useWatchlist();
+  const watchlisted = isWatchlisted(venue.id);
 
   const handleWatchlistToggle = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigating to detail page
-    if (venue.isWatchlisted) {
-      removeWatchlist.mutate({ venueId: venue.id }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListVenuesQueryKey() });
-          toast.success("Removed from watchlist");
-        }
-      });
-    } else {
-      addWatchlist.mutate({ venueId: venue.id }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListVenuesQueryKey() });
-          toast.success("Added to watchlist");
-        }
-      });
-    }
+    e.preventDefault();
+    const added = toggle(venue.id);
+    toast.success(added ? "Added to watchlist" : "Removed from watchlist");
   };
 
   const getCrowdColor = (level: string) => {
@@ -90,9 +74,8 @@ export function VenueCard({ venue, onShowOnMap }: { venue: Venue; onShowOnMap?: 
               size="icon" 
               className="h-8 w-8 text-muted-foreground hover:text-primary"
               onClick={handleWatchlistToggle}
-              disabled={addWatchlist.isPending || removeWatchlist.isPending}
             >
-              {venue.isWatchlisted ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <BookmarkPlus className="w-4 h-4" />}
+              {watchlisted ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <BookmarkPlus className="w-4 h-4" />}
             </Button>
           </div>
         </div>
