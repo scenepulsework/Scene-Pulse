@@ -531,6 +531,67 @@ market("Venice", "Los Angeles", "California", "USA", { name: "Gjusta Bakery", ca
 market("Venice", "Los Angeles", "California", "USA", { name: "Townhouse and Del Monte Speakeasy", category: "bar", latitude: 33.9904, longitude: -118.4736, address: "52 Windward Ave, Venice, CA", bestFor: ["Speakeasy", "Date Night", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Townhouse+Venice+CA" });
 market("Venice", "Los Angeles", "California", "USA", { name: "The Roosterfish", category: "bar", latitude: 33.9881, longitude: -118.4697, address: "1302 Abbot Kinney Blvd, Venice, CA", bestFor: ["No Wait", "pool table"], sourceLabel: "Local favorite" });
 
+// ---------- MALIBU & ORANGE COUNTY DEEP EXPANSION ----------
+
+// Malibu — more
+market("Malibu", "Los Angeles", "California", "USA", { name: "Gladstone's Malibu", category: "restaurant", latitude: 34.0445, longitude: -118.5380, address: "17300 Pacific Coast Hwy, Pacific Palisades, CA", bestFor: ["Patio Energy", "No Wait", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Gladstones+Malibu" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Paradise Cove Beach Cafe", category: "restaurant", latitude: 34.0133, longitude: -118.7788, address: "28128 Pacific Coast Hwy, Malibu, CA", bestFor: ["Patio Energy", "Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Paradise+Cove+Beach+Cafe" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Tra di Noi", category: "restaurant", latitude: 34.0362, longitude: -118.6802, address: "22706 Pacific Coast Hwy, Malibu, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Tra+di+Noi+Malibu" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Taverna Tony", category: "restaurant", latitude: 34.0374, longitude: -118.6843, address: "23410 Civic Center Way, Malibu, CA", bestFor: ["Date Night", "Live Music", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Taverna+Tony+Malibu" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "SandBar Malibu", category: "bar", latitude: 34.0323, longitude: -118.6882, address: "22969 Pacific Coast Hwy, Malibu, CA", bestFor: ["Patio Energy", "Late-Night Food", "Live Music"], sourceLabel: "Local favorite" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Vintage Grocers", category: "cafe", latitude: 34.0375, longitude: -118.6822, address: "3876 Cross Creek Rd, Malibu, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Vintage+Grocers+Malibu" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Café Habana Malibu", category: "restaurant", latitude: 34.0376, longitude: -118.6826, address: "3939 Cross Creek Rd, Malibu, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Cafe+Habana+Malibu" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Malibu Pier Bar & Grill", category: "bar", latitude: 34.0362, longitude: -118.6769, address: "23000 Pacific Coast Hwy, Malibu, CA", bestFor: ["Patio Energy", "No Wait"], sourceLabel: "Local favorite" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Carbon Beach Club", category: "bar", latitude: 34.0319, longitude: -118.6901, address: "22878 Pacific Coast Hwy, Malibu, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Local favorite" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Little Buddha", category: "restaurant", latitude: 34.0361, longitude: -118.6800, address: "22706 Pacific Coast Hwy, Malibu, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Yelp pick" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Malibu Brewery", category: "bar", latitude: 34.0371, longitude: -118.6837, address: "23240 Civic Center Way, Malibu, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Local favorite" });
+market("Malibu", "Los Angeles", "California", "USA", { name: "Soho Beach House Malibu", category: "experience", latitude: 34.0328, longitude: -118.6856, address: "21940 Pacific Coast Hwy, Malibu, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Soho+Beach+House+Malibu" });
+
+// Orange County — Newport Beach more
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Bear Flag Fish Company", category: "restaurant", latitude: 33.6072, longitude: -117.9176, address: "3421 Via Lido, Newport Beach, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Bear+Flag+Fish+Company" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "The Fig & Olive Newport", category: "restaurant", latitude: 33.6157, longitude: -117.8990, address: "414 N Old Newport Blvd, Newport Beach, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Fig+Olive+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Zinc Café Newport", category: "cafe", latitude: 33.6164, longitude: -117.8991, address: "3718 E Coast Hwy, Corona del Mar, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Local favorite" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Sol Cucina", category: "restaurant", latitude: 33.6193, longitude: -117.9231, address: "251 E Pacific Coast Hwy, Newport Beach, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Yelp pick" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Cappy's Café", category: "cafe", latitude: 33.6044, longitude: -117.9134, address: "5930 W Coast Hwy, Newport Beach, CA", bestFor: ["No Wait"], sourceLabel: "Local favorite" });
+
+// Orange County — Laguna Beach more
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "Sapphire Laguna", category: "restaurant", latitude: 33.5423, longitude: -117.7837, address: "1200 S Coast Hwy, Laguna Beach, CA", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Sapphire+Laguna" });
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "Selanne Steak Tavern", category: "restaurant", latitude: 33.5418, longitude: -117.7843, address: "1464 S Coast Hwy, Laguna Beach, CA", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Selanne+Steak+Tavern" });
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "Watermarc Restaurant", category: "restaurant", latitude: 33.5429, longitude: -117.7851, address: "448 S Coast Hwy, Laguna Beach, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Yelp pick" });
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "Zinc Café Laguna", category: "cafe", latitude: 33.5438, longitude: -117.7856, address: "350 Ocean Ave, Laguna Beach, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Local favorite" });
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "The Rooftop Lounge Laguna Beach", category: "bar", latitude: 33.5431, longitude: -117.7848, address: "1289 S Coast Hwy, Laguna Beach, CA", bestFor: ["Patio Energy", "Date Night", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Rooftop+Lounge+Laguna+Beach" });
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "The Stand Natural Foods", category: "cafe", latitude: 33.5284, longitude: -117.7739, address: "30806 S Coast Hwy, Laguna Beach, CA", bestFor: ["No Wait"], sourceLabel: "Local favorite" });
+
+// Orange County — Dana Point
+market("Dana Point", "Los Angeles", "California", "USA", { name: "Wind & Sea Restaurant", category: "restaurant", latitude: 33.4688, longitude: -117.7002, address: "34699 Golden Lantern St, Dana Point, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Wind+Sea+Dana+Point" });
+market("Dana Point", "Los Angeles", "California", "USA", { name: "The Deck on Laguna Beach", category: "bar", latitude: 33.4714, longitude: -117.7096, address: "34549 Green Lantern St, Dana Point, CA", bestFor: ["Patio Energy", "Late-Night Food", "Live Music"], sourceLabel: "Yelp pick" });
+market("Dana Point", "Los Angeles", "California", "USA", { name: "Cannons Seafood Grill", category: "restaurant", latitude: 33.4625, longitude: -117.7080, address: "34344 S St of the Golden Lantern, Dana Point, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Local favorite" });
+market("Dana Point", "Los Angeles", "California", "USA", { name: "Lost Winds Brewing", category: "bar", latitude: 33.4668, longitude: -117.6972, address: "34443 PCH, Dana Point, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Local favorite" });
+market("Dana Point", "Los Angeles", "California", "USA", { name: "The Hive Dana Point", category: "experience", latitude: 33.4681, longitude: -117.6987, address: "24382 Del Prado, Dana Point, CA", bestFor: ["Live Music", "Date Night"], sourceLabel: "Local favorite" });
+
+// Orange County — San Clemente
+market("San Clemente", "Los Angeles", "California", "USA", { name: "The Fisherman's Restaurant and Bar", category: "restaurant", latitude: 33.4270, longitude: -117.6186, address: "611 Avenida Victoria, San Clemente, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Fisherman's+Restaurant+San+Clemente" });
+market("San Clemente", "Los Angeles", "California", "USA", { name: "Cellar 67", category: "bar", latitude: 33.4268, longitude: -117.6155, address: "210 S El Camino Real, San Clemente, CA", bestFor: ["Speakeasy", "Date Night", "No Wait"], sourceLabel: "Local favorite" });
+market("San Clemente", "Los Angeles", "California", "USA", { name: "Surfing Heritage & Culture Center", category: "experience", latitude: 33.4335, longitude: -117.6187, address: "110 Calle Iglesia, San Clemente, CA", bestFor: ["No Wait"], sourceLabel: "Local favorite" });
+
+// Orange County — Irvine
+market("Irvine", "Los Angeles", "California", "USA", { name: "Eureka! Irvine", category: "restaurant", latitude: 33.6846, longitude: -117.8265, address: "2491 Park Ave, Tustin, CA", bestFor: ["Date Night", "No Wait", "shuffleboard"], sourceLabel: "Yelp pick" });
+market("Irvine", "Los Angeles", "California", "USA", { name: "Sessions West Coast Deli Irvine", category: "cafe", latitude: 33.6762, longitude: -117.8296, address: "2700 Alton Pkwy, Irvine, CA", bestFor: ["No Wait"], sourceLabel: "Local favorite" });
+market("Irvine", "Los Angeles", "California", "USA", { name: "Unsung Brewing Co", category: "bar", latitude: 33.7109, longitude: -117.7997, address: "1 Glenn Curtiss, Tustin, CA", bestFor: ["No Wait", "Patio Energy", "game bar"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Unsung+Brewing+Tustin" });
+market("Irvine", "Los Angeles", "California", "USA", { name: "Lazy Dog Restaurant & Bar", category: "restaurant", latitude: 33.6847, longitude: -117.8244, address: "2799 Park Ave, Tustin, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Yelp pick" });
+
+// Orange County — Seal Beach
+market("Seal Beach", "Los Angeles", "California", "USA", { name: "Walt's Wharf", category: "restaurant", latitude: 33.7403, longitude: -118.1044, address: "201 Main St, Seal Beach, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Walts+Wharf+Seal+Beach" });
+market("Seal Beach", "Los Angeles", "California", "USA", { name: "The Hideout", category: "bar", latitude: 33.7411, longitude: -118.1049, address: "311 Main St, Seal Beach, CA", bestFor: ["No Wait", "pool table", "Late-Night Food"], sourceLabel: "Local favorite" });
+
+// Orange County — San Juan Capistrano
+market("San Juan Capistrano", "Los Angeles", "California", "USA", { name: "The Ramos House Café", category: "cafe", latitude: 33.5012, longitude: -117.6628, address: "31752 Los Rios St, San Juan Capistrano, CA", bestFor: ["No Wait", "Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Ramos+House+Cafe" });
+market("San Juan Capistrano", "Los Angeles", "California", "USA", { name: "Trabuco Oaks Steakhouse", category: "restaurant", latitude: 33.5673, longitude: -117.5793, address: "20782 Trabuco Oaks Dr, Trabuco Canyon, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Local favorite" });
+
+// Orange County — Fullerton / Brea more
+market("Fullerton", "Los Angeles", "California", "USA", { name: "Hopscotch Craft Beer & Whiskey", category: "bar", latitude: 33.8712, longitude: -117.9265, address: "118 W Commonwealth Ave, Fullerton, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Yelp pick" });
+market("Brea", "Los Angeles", "California", "USA", { name: "The Hive Brea", category: "experience", latitude: 33.9169, longitude: -117.9013, address: "1 Pointe Dr, Brea, CA", bestFor: ["game bar", "shuffleboard", "Date Night", "Late-Night Food"], sourceLabel: "Google Maps listing" });
+
 // ---------- EXPANDED VENUES ----------
 
 // Chicago — game bars + speakeasies + more
