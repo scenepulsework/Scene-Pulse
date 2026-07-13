@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useGetHeroStats, useListMarkets, useGetHotZones, useListMarketGaps, useListVenues } from "@workspace/api-client-react";
-import { Activity, Users, MapPin, Map, Zap, CheckCircle2, ChevronRight, Radar, MessageSquareText, Compass, Mail, RadioTower, Navigation, RefreshCw, Flame, Star } from "lucide-react";
+import { Activity, Users, MapPin, Map, Zap, CheckCircle2, ChevronRight, Radar, MessageSquareText, Compass, Mail, RadioTower, Navigation, RefreshCw, Flame, Star, Search, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export function HeroSection() {
+export function HeroSection({ onSearch }: { onSearch?: (q: string) => void }) {
   const { data: stats, refetch: refetchStats } = useGetHeroStats();
   const { data: hotZones, refetch: refetchHotZones } = useGetHotZones();
   const { data: allVenues, refetch: refetchVenues } = useListVenues({});
   const [locationNote, setLocationNote] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [heroQuery, setHeroQuery] = useState("");
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -60,9 +62,36 @@ export function HeroSection() {
               <span className="block text-foreground">Read the room.</span>
               <span className="block bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Before you leave.</span>
             </h1>
-            <p className="text-lg text-muted-foreground font-mono leading-relaxed mb-6">
+            <p className="text-lg text-muted-foreground font-mono leading-relaxed mb-5">
               Live crowd scores, wait times, and vibe checks for the city's best spots.
             </p>
+
+            <form
+              className="flex items-center gap-2 mb-6 max-w-xl"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (onSearch) onSearch(heroQuery);
+                document.getElementById("map")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  data-testid="hero-search"
+                  value={heroQuery}
+                  onChange={(e) => setHeroQuery(e.target.value)}
+                  placeholder="Search venues, cities, or vibes…"
+                  className="pl-10 pr-4 h-12 rounded-full bg-card/80 border-border/50 focus:border-primary text-base placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="h-12 px-5 rounded-full bg-primary text-primary-foreground hover:opacity-90 gap-2 font-mono uppercase tracking-wider text-sm shrink-0"
+              >
+                Search <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </form>
+
             <div className="flex flex-wrap items-center gap-3">
               <Button
                 data-testid="button-explore-map"

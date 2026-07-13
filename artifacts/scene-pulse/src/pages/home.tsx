@@ -96,7 +96,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <HeroSection />
+      <HeroSection onSearch={(q) => {
+        setFilters((prev) => ({ ...prev, search: q }));
+        document.getElementById("map")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }} />
 
       <section id="map" className="py-8 bg-muted/20 border-y border-border/40 scroll-mt-16">
         <div className="container mx-auto px-4">
