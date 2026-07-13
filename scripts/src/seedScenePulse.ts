@@ -727,6 +727,98 @@ market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Expendio de Maí
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Mercado Roma", category: "restaurant", latitude: 19.4169, longitude: -99.1668, address: "Querétaro 225, Roma Norte, Mexico City", bestFor: ["No Wait", "Late-Night Food"], sourceLabel: "Yelp pick" });
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Parker & Lenox", category: "bar", latitude: 19.4233, longitude: -99.1758, address: "Newton 88, Polanco, Mexico City", bestFor: ["Speakeasy", "Date Night", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Parker+and+Lenox+CDMX" });
 
+// ---------- NEWPORT BEACH DEEP EXPANSION ----------
+
+// Mariners Mile / PCH West
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "The Rusty Pelican", category: "restaurant", latitude: 33.6142, longitude: -117.9389, address: "2735 W Coast Hwy, Newport Beach, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Rusty+Pelican+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "A Restaurant", category: "restaurant", latitude: 33.6128, longitude: -117.9307, address: "3334 W Coast Hwy, Newport Beach, CA", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=A+Restaurant+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Harborside Restaurant", category: "restaurant", latitude: 33.6151, longitude: -117.9258, address: "3001 W Coast Hwy, Newport Beach, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Harborside+Restaurant+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Bluewater Grill Newport Harbor", category: "restaurant", latitude: 33.6044, longitude: -117.9258, address: "630 Lido Park Dr, Newport Beach, CA", bestFor: ["Date Night", "Patio Energy", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Bluewater+Grill+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Don the Beachcomber", category: "bar", latitude: 33.6152, longitude: -117.9261, address: "3000 W Coast Hwy, Newport Beach, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Don+the+Beachcomber+Newport+Beach" });
+
+// Lido Marina Village
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Lido Bottle Works", category: "bar", latitude: 33.6067, longitude: -117.9254, address: "3408 Via Oporto, Newport Beach, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Lido+Bottle+Works+Newport+Beach" });
+
+// Balboa Peninsula & Newport Pier
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "21 Oceanfront", category: "restaurant", latitude: 33.6034, longitude: -117.9334, address: "2100 W Oceanfront, Newport Beach, CA", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=21+Oceanfront+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Mutt Lynch's", category: "bar", latitude: 33.6027, longitude: -117.9341, address: "2300 W Oceanfront, Newport Beach, CA", bestFor: ["No Wait", "Patio Energy", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Mutt+Lynch's+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Woody's Wharf", category: "bar", latitude: 33.6133, longitude: -117.9264, address: "2318 Newport Blvd, Newport Beach, CA", bestFor: ["Live Music", "Patio Energy", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Woody's+Wharf+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Mama D's Italian Kitchen", category: "restaurant", latitude: 33.6160, longitude: -117.9252, address: "3012 Newport Blvd, Newport Beach, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Mama+D's+Italian+Kitchen+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "The Crab Cooker", category: "restaurant", latitude: 33.6123, longitude: -117.9243, address: "2200 Newport Blvd, Newport Beach, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Crab+Cooker+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Alta Coffee", category: "cafe", latitude: 33.6082, longitude: -117.9260, address: "506 31st St, Newport Beach, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Alta+Coffee+Newport+Beach" });
+
+// Balboa Island
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Basilic Restaurant", category: "restaurant", latitude: 33.6046, longitude: -117.8903, address: "217 Marine Ave, Balboa Island, CA", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Basilic+Restaurant+Balboa+Island" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Dad's Donut & Bakery", category: "cafe", latitude: 33.6040, longitude: -117.8908, address: "309 Marine Ave, Balboa Island, CA", bestFor: ["No Wait"], sourceLabel: "Local favorite" });
+
+// Fashion Island
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Nobu Newport Beach", category: "restaurant", latitude: 33.6164, longitude: -117.8722, address: "143 Newport Center Dr, Newport Beach, CA", bestFor: ["Date Night", "Speakeasy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Nobu+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Mastro's Ocean Club", category: "restaurant", latitude: 33.6179, longitude: -117.8741, address: "1131 Newport Center Dr, Newport Beach, CA", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Mastro's+Ocean+Club+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "True Food Kitchen Newport", category: "restaurant", latitude: 33.6157, longitude: -117.8746, address: "451 Newport Center Dr, Newport Beach, CA", bestFor: ["No Wait", "Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=True+Food+Kitchen+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "R+D Kitchen Newport Beach", category: "restaurant", latitude: 33.6161, longitude: -117.8740, address: "101 Newport Center Dr, Newport Beach, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=R+D+Kitchen+Newport+Beach" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Stag Bar + Kitchen", category: "bar", latitude: 33.6160, longitude: -117.8754, address: "297 Newport Center Dr, Newport Beach, CA", bestFor: ["Late-Night Food", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Stag+Bar+Kitchen+Newport+Beach" });
+
+// Corona del Mar
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "The Bungalow CDM", category: "bar", latitude: 33.5957, longitude: -117.8690, address: "2441 E Coast Hwy, Corona del Mar, CA", bestFor: ["Date Night", "No Wait", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=The+Bungalow+Corona+del+Mar" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Bandera", category: "restaurant", latitude: 33.5946, longitude: -117.8699, address: "3201 E Coast Hwy, Corona del Mar, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Bandera+Corona+del+Mar" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Helmsman Ale House", category: "bar", latitude: 33.5933, longitude: -117.8713, address: "2855 E Coast Hwy, Corona del Mar, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Helmsman+Ale+House+Corona+del+Mar" });
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "Five Crowns CDM", category: "restaurant", latitude: 33.5939, longitude: -117.8705, address: "3801 E Coast Hwy, Corona del Mar, CA", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Five+Crowns+Corona+del+Mar" });
+
+// Crystal Cove
+market("Newport Beach", "Los Angeles", "California", "USA", { name: "The Beachcomber at Crystal Cove", category: "restaurant", latitude: 33.5782, longitude: -117.8375, address: "15 Crystal Cove, Newport Coast, CA", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Beachcomber+Crystal+Cove" });
+
+// ---------- OC MARKET EXPANSION ----------
+
+// Costa Mesa
+market("Costa Mesa", "Los Angeles", "California", "USA", { name: "Taco Maria", category: "restaurant", latitude: 33.6857, longitude: -117.8860, address: "3313 Hyland Ave, Costa Mesa, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Taco+Maria+Costa+Mesa" });
+market("Costa Mesa", "Los Angeles", "California", "USA", { name: "Mesa Restaurant", category: "bar", latitude: 33.6626, longitude: -117.9158, address: "1640 Pomona Ave, Costa Mesa, CA", bestFor: ["Date Night", "Late-Night Food", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Mesa+Restaurant+Costa+Mesa" });
+market("Costa Mesa", "Los Angeles", "California", "USA", { name: "Mother's Market & Kitchen", category: "cafe", latitude: 33.6651, longitude: -117.9019, address: "225 E 17th St, Costa Mesa, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Mother's+Market+Kitchen+Costa+Mesa" });
+market("Costa Mesa", "Los Angeles", "California", "USA", { name: "The Waffle", category: "cafe", latitude: 33.6716, longitude: -117.9009, address: "1030 Baker St, Costa Mesa, CA", bestFor: ["No Wait"], sourceLabel: "Yelp pick", sourceUrl: "https://www.yelp.com/search?find_desc=The+Waffle+Costa+Mesa" });
+market("Costa Mesa", "Los Angeles", "California", "USA", { name: "The Lot at SOCO", category: "experience", latitude: 33.6860, longitude: -117.8851, address: "3321 Hyland Ave, Costa Mesa, CA", bestFor: ["No Wait", "Patio Energy", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=The+Lot+SOCO+Costa+Mesa" });
+
+// Huntington Beach
+market("Huntington Beach", "Los Angeles", "California", "USA", { name: "Shorebreak Kitchen & Bar", category: "restaurant", latitude: 33.6582, longitude: -118.0008, address: "500 Pacific Coast Hwy, Huntington Beach, CA", bestFor: ["Patio Energy", "Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Shorebreak+Kitchen+Huntington+Beach" });
+market("Huntington Beach", "Los Angeles", "California", "USA", { name: "Sugar Shack Café", category: "cafe", latitude: 33.6593, longitude: -118.0001, address: "213½ Main St, Huntington Beach, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Sugar+Shack+Cafe+Huntington+Beach" });
+market("Huntington Beach", "Los Angeles", "California", "USA", { name: "Perqs Bar", category: "bar", latitude: 33.6596, longitude: -117.9997, address: "330 Main St, Huntington Beach, CA", bestFor: ["No Wait", "Late-Night Food", "darts"], sourceLabel: "Local favorite" });
+market("Huntington Beach", "Los Angeles", "California", "USA", { name: "Baja Sharkeez HB", category: "bar", latitude: 33.6590, longitude: -118.0003, address: "211 Main St, Huntington Beach, CA", bestFor: ["Late-Night Food", "No Wait", "Patio Energy"], sourceLabel: "Yelp pick", sourceUrl: "https://www.yelp.com/search?find_desc=Baja+Sharkeez+Huntington+Beach" });
+
+// Irvine
+market("Irvine", "Los Angeles", "California", "USA", { name: "Bosscat Kitchen & Libations", category: "bar", latitude: 33.6692, longitude: -117.8505, address: "4397 Campus Dr, Newport Beach, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Bosscat+Kitchen+Newport+Beach" });
+market("Irvine", "Los Angeles", "California", "USA", { name: "Zov's Bistro & Bar", category: "restaurant", latitude: 33.7297, longitude: -117.8244, address: "17440 E 17th St, Tustin, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Zov's+Bistro+Tustin" });
+market("Irvine", "Los Angeles", "California", "USA", { name: "The Ranch Restaurant", category: "restaurant", latitude: 33.8183, longitude: -117.8434, address: "1025 E Foothill Blvd, Anaheim, CA", bestFor: ["Date Night", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=The+Ranch+Restaurant+Anaheim" });
+
+// Seal Beach
+market("Seal Beach", "Los Angeles", "California", "USA", { name: "Simmzy's Seal Beach", category: "restaurant", latitude: 33.7411, longitude: -118.1044, address: "340 Main St, Seal Beach, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Simmzy's+Seal+Beach" });
+market("Seal Beach", "Los Angeles", "California", "USA", { name: "O'Malley's on Main", category: "bar", latitude: 33.7409, longitude: -118.1041, address: "324 Main St, Seal Beach, CA", bestFor: ["No Wait", "Late-Night Food", "pool table"], sourceLabel: "Local favorite" });
+
+// Fullerton
+market("Fullerton", "Los Angeles", "California", "USA", { name: "Heroes Restaurant & Brewery", category: "bar", latitude: 33.8701, longitude: -117.9268, address: "125 W Commonwealth Ave, Fullerton, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Heroes+Restaurant+Brewery+Fullerton" });
+market("Fullerton", "Los Angeles", "California", "USA", { name: "The Continental Room", category: "bar", latitude: 33.8709, longitude: -117.9260, address: "115 E Commonwealth Ave, Fullerton, CA", bestFor: ["Speakeasy", "Date Night", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=The+Continental+Room+Fullerton" });
+
+// Santa Ana
+market("Santa Ana", "Los Angeles", "California", "USA", { name: "Lola Gaspar", category: "bar", latitude: 33.7455, longitude: -117.8674, address: "211 W 2nd St, Santa Ana, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Lola+Gaspar+Santa+Ana" });
+market("Santa Ana", "Los Angeles", "California", "USA", { name: "Alta Baja Market", category: "cafe", latitude: 33.7454, longitude: -117.8681, address: "201 N Broadway, Santa Ana, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Alta+Baja+Market+Santa+Ana" });
+
+// Anaheim
+market("Anaheim", "Los Angeles", "California", "USA", { name: "Anaheim Packing House", category: "experience", latitude: 33.8350, longitude: -117.9180, address: "440 S Anaheim Blvd, Anaheim, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Anaheim+Packing+House" });
+market("Anaheim", "Los Angeles", "California", "USA", { name: "The Catch Restaurant", category: "restaurant", latitude: 33.8072, longitude: -117.9135, address: "1929 S State College Blvd, Anaheim, CA", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=The+Catch+Restaurant+Anaheim" });
+
+// Laguna Beach
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "Cedar Creek Inn", category: "restaurant", latitude: 33.5430, longitude: -117.7843, address: "384 Forest Ave, Laguna Beach, CA", bestFor: ["Date Night", "Patio Energy", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Cedar+Creek+Inn+Laguna+Beach" });
+market("Laguna Beach", "Los Angeles", "California", "USA", { name: "The Loft at Montage Laguna Beach", category: "experience", latitude: 33.5215, longitude: -117.7621, address: "30801 S Coast Hwy, Laguna Beach, CA", bestFor: ["Date Night", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=The+Loft+Montage+Laguna+Beach" });
+
+// Dana Point
+market("Dana Point", "Los Angeles", "California", "USA", { name: "La Sirena Grill Dana Point", category: "restaurant", latitude: 33.4668, longitude: -117.6983, address: "24562 Del Prado, Dana Point, CA", bestFor: ["No Wait"], sourceLabel: "Local favorite" });
+market("Dana Point", "Los Angeles", "California", "USA", { name: "Waterbar Dana Point", category: "bar", latitude: 33.4714, longitude: -117.7032, address: "34671 Golden Lantern St, Dana Point, CA", bestFor: ["Patio Energy", "Date Night", "No Wait"], sourceLabel: "Yelp pick", sourceUrl: "https://www.yelp.com/search?find_desc=Waterbar+Dana+Point" });
+
+// San Juan Capistrano
+market("San Juan Capistrano", "Los Angeles", "California", "USA", { name: "Sundried Tomato Café", category: "cafe", latitude: 33.5016, longitude: -117.6621, address: "31781 Camino Capistrano, San Juan Capistrano, CA", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Sundried+Tomato+Cafe+San+Juan+Capistrano" });
+market("San Juan Capistrano", "Los Angeles", "California", "USA", { name: "Swallow's Inn", category: "bar", latitude: 33.4972, longitude: -117.6598, address: "31786 Camino Capistrano, San Juan Capistrano, CA", bestFor: ["Live Music", "Late-Night Food", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Swallows+Inn+San+Juan+Capistrano" });
+
+// Brea
+market("Brea", "Los Angeles", "California", "USA", { name: "Eureka! Brea", category: "restaurant", latitude: 33.9176, longitude: -117.9008, address: "444 Brea Mall, Brea, CA", bestFor: ["No Wait", "Date Night"], sourceLabel: "Yelp pick", sourceUrl: "https://www.yelp.com/search?find_desc=Eureka+Brea" });
+market("Brea", "Los Angeles", "California", "USA", { name: "The Packing House Brea", category: "experience", latitude: 33.9172, longitude: -117.9011, address: "125 S Brea Blvd, Brea, CA", bestFor: ["No Wait", "Live Music"], sourceLabel: "Local favorite" });
+
 // ---------- ALFRED COFFEE — ALL LA LOCATIONS ----------
 market("West Hollywood", "Los Angeles", "California", "USA", { name: "Alfred Coffee Melrose Place", category: "cafe", latitude: 34.0834, longitude: -118.3694, address: "8428 Melrose Pl, West Hollywood, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Alfred+Coffee+Melrose+Place" });
 market("Los Angeles", "Los Angeles", "California", "USA", { name: "Alfred Coffee Silver Lake", category: "cafe", latitude: 34.0878, longitude: -118.2769, address: "3817 W Sunset Blvd, Los Angeles, CA", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Alfred+Coffee+Silver+Lake" });
