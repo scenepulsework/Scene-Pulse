@@ -21,14 +21,14 @@ type VenueFiltersProps = {
 };
 
 const INTENTS = [
-  { value: ListVenuesIntent.dateNight, label: "Date night", description: "Lower noise, better seating, good energy", badge: "best vibe", icon: <Heart className="w-4 h-4" /> },
-  { value: ListVenuesIntent.noWait, label: "No wait", description: "Shortest friction first", badge: "low friction", icon: <Clock className="w-4 h-4" /> },
-  { value: ListVenuesIntent.retailDrops, label: "Retail drops", description: "Shops with product or promo signals", badge: "best vibe", icon: <ShoppingBag className="w-4 h-4" /> },
-  { value: ListVenuesIntent.liveMusic, label: "Live music", description: "Showrooms, sets, and crowd pressure", badge: "best vibe", icon: <Music className="w-4 h-4" /> },
-  { value: ListVenuesIntent.patioEnergy, label: "Patio energy", description: "Outdoor seating with a lively crowd", badge: "best vibe", icon: <Flame className="w-4 h-4" /> },
-  { value: ListVenuesIntent.lateNightFood, label: "Late night", description: "Kitchens still firing after hours", badge: "low friction", icon: <Moon className="w-4 h-4" /> },
-  { value: ListVenuesIntent.interactiveBars, label: "Game bars", description: "Pool tables, shuffleboard, darts & more", badge: "play all night", icon: <Gamepad2 className="w-4 h-4" /> },
-  { value: ListVenuesIntent.speakeasy, label: "Speakeasy", description: "Hidden doors and password bars", badge: "if you know", icon: <KeyRound className="w-4 h-4" /> },
+  { value: ListVenuesIntent.dateNight, label: "Date night", description: "Low noise, good seating, great energy", badge: "best vibe", icon: <Heart className="w-4 h-4" /> },
+  { value: ListVenuesIntent.noWait, label: "No wait", description: "Walk right in", badge: "low friction", icon: <Clock className="w-4 h-4" /> },
+  { value: ListVenuesIntent.retailDrops, label: "Retail drops", description: "Shops with live product signals", badge: "new in", icon: <ShoppingBag className="w-4 h-4" /> },
+  { value: ListVenuesIntent.liveMusic, label: "Live music", description: "Shows, sets, and live rooms", badge: "on tonight", icon: <Music className="w-4 h-4" /> },
+  { value: ListVenuesIntent.patioEnergy, label: "Patio", description: "Outdoor seating, lively crowd", badge: "outside", icon: <Flame className="w-4 h-4" /> },
+  { value: ListVenuesIntent.lateNightFood, label: "Late night", description: "Kitchens still open", badge: "open late", icon: <Moon className="w-4 h-4" /> },
+  { value: ListVenuesIntent.interactiveBars, label: "Game bars", description: "Pool, shuffleboard, darts & more", badge: "play", icon: <Gamepad2 className="w-4 h-4" /> },
+  { value: ListVenuesIntent.speakeasy, label: "Speakeasy", description: "Hidden bars and password rooms", badge: "secret", icon: <KeyRound className="w-4 h-4" /> },
 ];
 
 export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps, "filters" | "setFilters">) {
@@ -42,8 +42,8 @@ export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps,
         <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-warm mb-1">
           <Zap className="w-3.5 h-3.5" /> Quick Picks
         </div>
-        <h3 className="font-black text-lg leading-tight mb-1">Tell ScenePulse what kind of night you want</h3>
-        <p className="text-sm text-muted-foreground">These shortcuts instantly filter venues so discovery feels like a concierge, not a static directory.</p>
+        <h3 className="font-black text-lg leading-tight mb-1">What's the vibe tonight?</h3>
+        <p className="text-sm text-muted-foreground">Filter venues by mood in one tap.</p>
       </div>
       <div className="flex flex-col gap-2">
         <button
@@ -52,8 +52,8 @@ export function QuickPicksPanel({ filters, setFilters }: Pick<VenueFiltersProps,
           onClick={() => updateFilter("intent", undefined)}
           className={`text-left rounded-xl px-4 py-3 border transition-colors ${!filters.intent ? "border-primary bg-primary/10" : "border-border/50 bg-muted/20 hover:bg-muted/40"}`}
         >
-          <div className="font-bold">All vibes</div>
-          <div className="text-sm text-muted-foreground">Clear quick pick filter and see everything</div>
+          <div className="font-bold">All venues</div>
+          <div className="text-sm text-muted-foreground">Show everything</div>
         </button>
         {INTENTS.map((intent) => {
           const active = filters.intent === intent.value;

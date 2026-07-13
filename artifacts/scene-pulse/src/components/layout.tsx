@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
   { href: "/", label: "Map" },
-  { href: "/speakeasies", label: "Speakeasies" },
   { href: "/services", label: "Services" },
   { href: "/markets", label: "Markets" },
-  { href: "/operators", label: "For Operators" },
+  { href: "/operators", label: "Operators" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -92,12 +91,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Activity className="w-5 h-5 text-primary" />
               SCENEPULSE
             </Link>
-            <p className="text-sm text-muted-foreground mb-3">
-              Live conditions for local nightlife, dining, and retail. Know before you go.
-            </p>
             <p className="text-sm text-muted-foreground">
-              We build radar for the night — crowd scores, wait times, and vibe checks reported by
-              the people in the room, across 13 North American markets.
+              Crowd scores, wait times, and vibe checks for local venues — so you know before you go. 13 North American markets.
             </p>
           </div>
           <div>
@@ -107,7 +102,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <li><Link href="/speakeasies" className="hover:text-primary transition-colors" data-testid="link-footer-speakeasies">Speakeasies</Link></li>
               <li><Link href="/services" className="hover:text-primary transition-colors">Services</Link></li>
               <li><Link href="/markets" className="hover:text-primary transition-colors">Markets</Link></li>
-              <li><Link href="/operators" className="hover:text-primary transition-colors">For Operators</Link></li>
+              <li><Link href="/operators" className="hover:text-primary transition-colors">Operators</Link></li>
             </ul>
           </div>
           <div>
