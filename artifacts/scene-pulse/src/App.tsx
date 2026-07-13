@@ -9,8 +9,11 @@ import Home from "@/pages/home";
 import VenueDetail from "@/pages/venue";
 import Speakeasies from "@/pages/speakeasies";
 import Services from "@/pages/services";
+import ServiceDetail from "@/pages/service-detail";
 import Markets from "@/pages/markets";
+import MarketDetail from "@/pages/market-detail";
 import Operators from "@/pages/operators";
+import OperatorDetail from "@/pages/operator-detail";
 import About from "@/pages/about";
 import Careers from "@/pages/careers";
 import Contact from "@/pages/contact";
@@ -42,8 +45,11 @@ function Router() {
       <Route path="/venue/:id" component={VenueDetail} />
       <Route path="/speakeasies" component={Speakeasies} />
       <Route path="/services" component={Services} />
+      <Route path="/services/:slug" component={ServiceDetail} />
       <Route path="/markets" component={Markets} />
+      <Route path="/markets/:market" component={MarketDetail} />
       <Route path="/operators" component={Operators} />
+      <Route path="/operators/:slug" component={OperatorDetail} />
       <Route path="/about" component={About} />
       <Route path="/careers" component={Careers} />
       <Route path="/contact" component={Contact} />

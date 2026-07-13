@@ -4,17 +4,27 @@ import { ChevronRight } from "lucide-react";
 export function PageIntro({
   eyebrow,
   blurb,
+  parent,
 }: {
   eyebrow: string;
-  blurb?: string;
+  blurb?: string | React.ReactNode;
+  parent?: { label: string; href: string };
 }) {
   return (
     <div className="border-b border-border/40 bg-muted/20">
       <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.25em] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.25em] text-muted-foreground flex-wrap">
           <Link href="/" className="hover:text-primary transition-colors" data-testid="breadcrumb-home">
             ScenePulse
           </Link>
+          {parent && (
+            <>
+              <ChevronRight className="w-3 h-3" />
+              <Link href={parent.href} className="hover:text-primary transition-colors">
+                {parent.label}
+              </Link>
+            </>
+          )}
           <ChevronRight className="w-3 h-3" />
           <span className="text-foreground">{eyebrow}</span>
         </div>

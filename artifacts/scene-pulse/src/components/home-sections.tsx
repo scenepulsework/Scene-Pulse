@@ -210,16 +210,19 @@ function HotZoneCard({ title, venue, color, icon }: { title: string, venue: any,
 export function ServicesSection() {
   const services = [
     {
+      slug: "live-crowd-radar",
       icon: <Radar className="w-6 h-6 text-primary" />,
       title: "Live Crowd Radar",
       description: "Crowd score, headcount, wait time, and line trend refreshed by community reports, not stale check-ins.",
     },
     {
+      slug: "vibe-reports",
       icon: <MessageSquareText className="w-6 h-6 text-secondary" />,
       title: "Real-Time Vibe Reports",
       description: "Guests submit crowd, wait, and vibe checks in seconds so the next person walking up knows exactly what to expect.",
     },
     {
+      slug: "best-time-guidance",
       icon: <Compass className="w-6 h-6 text-accent" />,
       title: "Best-Time Guidance",
       description: "Every venue carries a best arrival window, peak pressure window, and arrival tips so you time it right.",
@@ -232,11 +235,14 @@ export function ServicesSection() {
         <h2 className="text-3xl font-black uppercase tracking-tighter mb-8">Services</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {services.map((s) => (
-            <div key={s.title} className="bg-card border border-border/50 rounded-lg p-6">
+            <Link key={s.title} href={`/services/${s.slug}`} className="group block bg-card border border-border/50 rounded-lg p-6 hover:border-primary/50 transition-colors">
               <div className="mb-4">{s.icon}</div>
-              <h3 className="font-bold text-lg mb-2">{s.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{s.description}</p>
-            </div>
+              <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">{s.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-3">{s.description}</p>
+              <span className="text-xs font-mono uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                Learn more <ChevronRight className="w-3 h-3" />
+              </span>
+            </Link>
           ))}
         </div>
       </div>
@@ -279,10 +285,13 @@ export function MarketsSection() {
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {markets.map(m => (
-            <div key={m.market} className="bg-card border border-border/50 p-4 rounded-lg flex flex-col hover:border-secondary/50 transition-colors">
-              <span className="font-bold truncate">{m.city}</span>
+            <Link key={m.market} href={`/markets/${encodeURIComponent(m.market)}`} className="group bg-card border border-border/50 p-4 rounded-lg flex flex-col hover:border-secondary/50 hover:bg-secondary/5 transition-colors">
+              <span className="font-bold truncate group-hover:text-secondary transition-colors">{m.city}</span>
               <span className="text-xs text-muted-foreground font-mono mt-1">{m.venueCount} Venues</span>
-            </div>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-secondary opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex items-center gap-0.5">
+                Explore <ChevronRight className="w-3 h-3" />
+              </span>
+            </Link>
           ))}
         </div>
       </div>
@@ -304,11 +313,14 @@ export function OperatorsSection() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {gaps.map(gap => (
-            <div key={gap.id} className="bg-card border border-border p-6 rounded-lg relative overflow-hidden group">
+            <Link key={gap.id} href={`/operators/${gap.id}`} className="block bg-card border border-border p-6 rounded-lg relative overflow-hidden group hover:border-primary/50 transition-colors">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-              <h3 className="font-bold text-lg mb-2 relative z-10">{gap.title}</h3>
-              <p className="text-sm text-muted-foreground relative z-10 leading-relaxed">{gap.description}</p>
-            </div>
+              <h3 className="font-bold text-lg mb-2 relative z-10 group-hover:text-primary transition-colors">{gap.title}</h3>
+              <p className="text-sm text-muted-foreground relative z-10 leading-relaxed mb-3">{gap.description}</p>
+              <span className="relative z-10 text-xs font-mono uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                How we fix this <ChevronRight className="w-3 h-3" />
+              </span>
+            </Link>
           ))}
         </div>
       </div>
