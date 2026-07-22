@@ -4,9 +4,11 @@ import { Activity, Menu } from "lucide-react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { VENUE_TYPES } from "@/lib/venue-types";
 
 const NAV_LINKS = [
   { href: "/", label: "Map" },
+  { href: "/types", label: "Types" },
   { href: "/services", label: "Services" },
   { href: "/markets", label: "Markets" },
   { href: "/operators", label: "Operators" },
@@ -75,6 +77,31 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       {link.label}
                     </Link>
                   ))}
+                  <div className="mt-6">
+                    <div className="px-2 pb-2 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                      Browse by type
+                    </div>
+                    {VENUE_TYPES.map((type) => {
+                      const href = `/types/${type.slug}`;
+                      const Icon = type.icon;
+                      return (
+                        <Link
+                          key={type.slug}
+                          href={href}
+                          data-testid={`link-mobile-type-${type.slug}`}
+                          onClick={() => setMobileNavOpen(false)}
+                          className={`flex items-center gap-3 px-2 py-3 text-base font-medium border-b border-border/40 transition-colors ${
+                            location === href
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 text-primary/70" />
+                          {type.plural}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -99,6 +126,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <h3 className="font-bold mb-4 font-mono uppercase tracking-wider text-sm">Platform</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/" className="hover:text-primary transition-colors">Live Map</Link></li>
+              <li><Link href="/types" className="hover:text-primary transition-colors" data-testid="link-footer-types">Venue Types</Link></li>
               <li><Link href="/speakeasies" className="hover:text-primary transition-colors" data-testid="link-footer-speakeasies">Speakeasies</Link></li>
               <li><Link href="/services" className="hover:text-primary transition-colors">Services</Link></li>
               <li><Link href="/markets" className="hover:text-primary transition-colors">Markets</Link></li>

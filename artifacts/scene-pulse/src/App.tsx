@@ -8,6 +8,8 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import VenueDetail from "@/pages/venue";
 import Speakeasies from "@/pages/speakeasies";
+import VenueTypes from "@/pages/venue-types";
+import VenueTypeDetail from "@/pages/venue-type-detail";
 import Services from "@/pages/services";
 import ServiceDetail from "@/pages/service-detail";
 import Markets from "@/pages/markets";
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/venue/:id" component={VenueDetail} />
       <Route path="/speakeasies" component={Speakeasies} />
+      <Route path="/types" component={VenueTypes} />
+      <Route path="/types/:slug" component={VenueTypeDetail} />
       <Route path="/services" component={Services} />
       <Route path="/services/:slug" component={ServiceDetail} />
       <Route path="/markets" component={Markets} />

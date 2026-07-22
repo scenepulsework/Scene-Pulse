@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/home-sections";
 import { VenueFilters, QuickPicksPanel, ActiveFilterChips } from "@/components/venue-filters";
 import { VenueCard } from "@/components/venue-card";
 import { LiveMap } from "@/components/live-map";
+import { BrowseByType } from "@/components/browse-by-type";
 import { SpeakeasySection } from "@/components/speakeasy-section";
 import { InteractiveBarsSection } from "@/components/interactive-bars-section";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -178,6 +179,7 @@ export default function Home() {
         </div>
       </section>
 
+      <BrowseByType />
       <InteractiveBarsSection onShowOnMap={showVenueOnMap} />
       <SpeakeasySection onShowOnMap={showVenueOnMap} />
       <BackToTop />
