@@ -27,6 +27,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0a0a0b' } }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="venue/[id]" />
+      <Stack.Screen name="map" />
       <Stack.Screen name="report/[id]" options={{ presentation: 'modal' }} />
     </Stack>
   );

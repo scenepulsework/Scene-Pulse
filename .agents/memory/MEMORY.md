@@ -1,2 +1,3 @@
 - [Maps without API key](mobile-map-embeds.md) — Google `output=embed` iframe for single-pin previews; Leaflet + CARTO tiles for multi-pin interactive maps (use `basemaps.cartocdn.com`, the `{s}.` variant fails DNS).
+- [react-native-maps + Expo web](rn-maps-expo-web.md) — v1.18.0 (Expo Go pin) breaks web bundling; isolate it behind a `.web.tsx` platform split with a list fallback.
 - [Leaflet map e2e testing quirk](leaflet-map-e2e-testing.md) — clicking dense Leaflet canvas pins is unreliable in automated tests; use list/button alternatives (e.g. "hottest" rows) instead.

@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -35,6 +36,7 @@ const SORTS = [
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [market, setMarket] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<(typeof SORTS)[number]['key']>('crowdScore');
@@ -95,6 +97,22 @@ export default function HomeScreen() {
                 <Text style={[styles.brand, { color: colors.foreground }]}>
                   SCENE<Text style={{ color: colors.primary }}>PULSE</Text>
                 </Text>
+                <View style={{ flex: 1 }} />
+                <Pressable
+                  testID="open-map"
+                  onPress={() => router.push('/map')}
+                  hitSlop={10}
+                  style={({ pressed }) => [
+                    styles.mapBtn,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                >
+                  <Feather name="map" size={18} color={colors.primary} />
+                </Pressable>
               </View>
               {stats ? (
                 <Text style={[styles.subline, { color: colors.mutedForeground }]}>
@@ -287,4 +305,12 @@ const styles = StyleSheet.create({
   loadingWrap: { alignItems: 'center', paddingVertical: 40, gap: 10 },
   loadingText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   retryBtn: { borderWidth: 1, paddingHorizontal: 18, paddingVertical: 8 },
+  mapBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
