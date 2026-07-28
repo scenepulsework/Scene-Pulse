@@ -21,6 +21,7 @@ import {
 } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { CrowdDot } from '@/components/VenueCard';
+import { VenueComments } from '@/components/VenueComments';
 import { crowdColor, timeAgo, trendLabel } from '@/lib/venue-ui';
 
 export default function VenueDetailScreen() {
@@ -275,6 +276,9 @@ export default function VenueDetailScreen() {
             ))
           )}
         </View>
+
+        {/* Comments */}
+        <VenueComments venueId={venue.id} />
       </ScrollView>
 
       {/* Floating report CTA */}
