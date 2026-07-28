@@ -47,10 +47,21 @@ export function VenueComments({ venueId }: { venueId: number }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const [replyingToId, setReplyingToId] = useState<number | null>(null);
+  const [replyAuthorName, setReplyAuthorName] = useState('');
+  const [replyMessage, setReplyMessage] = useState('');
+  const [replyError, setReplyError] = useState<string | null>(null);
+
   // Pre-fill name from account when signed in
   useEffect(() => {
     if (userDisplayName && !authorName) {
       setAuthorName(userDisplayName);
+    }
+  }, [userDisplayName]);
+
+  useEffect(() => {
+    if (userDisplayName && !replyAuthorName) {
+      setReplyAuthorName(userDisplayName);
     }
   }, [userDisplayName]);
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
@@ -93,6 +104,36 @@ export function VenueComments({ venueId }: { venueId: number }) {
       venueId,
       data: { authorName: authorName.trim(), message: message.trim() },
     });
+  };
+
+  const submitReply = (parentId: number) => {
+    setReplyError(null);
+    const name = userDisplayName || replyAuthorName;
+    if (!name.trim()) return setReplyError('Add a name so people know who you are.');
+    if (!replyMessage.trim()) return setReplyError('Write something first.');
+    createComment.mutate(
+      {
+        venueId,
+        data: {
+          authorName: name.trim(),
+          message: replyMessage.trim(),
+          parentCommentId: parentId,
+        },
+      },
+      {
+        onSuccess: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          setReplyMessage('');
+          setReplyError(null);
+          setReplyingToId(null);
+          invalidate();
+        },
+        onError: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          setReplyError("Couldn't post your reply. Try again.");
+        },
+      },
+    );
   };
 
   const reacted = (id: number) => likedIds.has(id) || dislikedIds.has(id);
@@ -325,7 +366,117 @@ export function VenueComments({ venueId }: { venueId: number }) {
               <Text style={[styles.commentText, { color: colors.mutedForeground }]}>
                 {c.message}
               </Text>
-              {renderReactions(c)}
+              <View style={styles.actionRow}>
+                {renderReactions(c)}
+                <Pressable
+                  testID={`reply-comment-${c.id}`}
+                  onPress={() => {
+                    setReplyingToId(replyingToId === c.id ? null : c.id);
+                    setReplyError(null);
+                    setReplyMessage('');
+                  }}
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.replyBtn,
+                    {
+                      backgroundColor:
+                        replyingToId === c.id ? `${colors.primary}22` : 'transparent',
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                >
+                  <Feather
+                    name="corner-down-right"
+                    size={13}
+                    color={replyingToId === c.id ? colors.primary : colors.mutedForeground}
+                  />
+                  <Text
+                    style={[
+                      styles.reactionCount,
+                      { color: replyingToId === c.id ? colors.primary : colors.mutedForeground },
+                    ]}
+                  >
+                    Reply
+                  </Text>
+                </Pressable>
+              </View>
+
+              {replyingToId === c.id && (
+                <View
+                  style={[
+                    styles.replyComposer,
+                    { borderLeftColor: colors.primary, backgroundColor: colors.background },
+                  ]}
+                >
+                  {!userDisplayName && (
+                    <TextInput
+                      testID={`reply-name-input-${c.id}`}
+                      value={replyAuthorName}
+                      onChangeText={setReplyAuthorName}
+                      placeholder="Your name"
+                      placeholderTextColor={colors.mutedForeground}
+                      style={[
+                        styles.input,
+                        styles.replyInput,
+                        {
+                          backgroundColor: colors.card,
+                          borderColor: colors.border,
+                          color: colors.foreground,
+                          borderRadius: colors.radius,
+                        },
+                      ]}
+                    />
+                  )}
+                  <View style={styles.composerRow}>
+                    <TextInput
+                      testID={`reply-message-input-${c.id}`}
+                      value={replyMessage}
+                      onChangeText={setReplyMessage}
+                      placeholder={`Reply to ${c.authorName}…`}
+                      placeholderTextColor={colors.mutedForeground}
+                      multiline
+                      maxLength={200}
+                      style={[
+                        styles.input,
+                        styles.messageInput,
+                        {
+                          backgroundColor: colors.card,
+                          borderColor: colors.border,
+                          color: colors.foreground,
+                          borderRadius: colors.radius,
+                        },
+                      ]}
+                    />
+                    <Pressable
+                      testID={`post-reply-${c.id}`}
+                      onPress={() => submitReply(c.id)}
+                      disabled={createComment.isPending}
+                      style={({ pressed }) => [
+                        styles.sendBtn,
+                        {
+                          backgroundColor: colors.primary,
+                          opacity: createComment.isPending ? 0.6 : pressed ? 0.85 : 1,
+                        },
+                      ]}
+                    >
+                      {createComment.isPending ? (
+                        <ActivityIndicator size="small" color={colors.primaryForeground} />
+                      ) : (
+                        <Feather name="send" size={14} color={colors.primaryForeground} />
+                      )}
+                    </Pressable>
+                  </View>
+                  {replyError && (
+                    <Text
+                      style={[styles.error, { color: colors.destructive }]}
+                      testID={`reply-error-${c.id}`}
+                    >
+                      {replyError}
+                    </Text>
+                  )}
+                </View>
+              )}
+
               {replies.length > 0 && (
                 <View style={[styles.replies, { borderLeftColor: colors.border }]}>
                   {replies.map((r) => (
@@ -407,5 +558,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingLeft: 10,
     borderLeftWidth: StyleSheet.hairlineWidth,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  replyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  replyComposer: {
+    marginTop: 8,
+    paddingLeft: 10,
+    borderLeftWidth: 2,
+    paddingTop: 6,
+    paddingBottom: 2,
+  },
+  replyInput: {
+    marginBottom: 6,
   },
 });
