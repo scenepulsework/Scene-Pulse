@@ -31,9 +31,11 @@ import type {
   LiveReportInput,
   Market,
   MarketGap,
+  MyActivity,
   Venue,
   VenueClaim,
-  VenueUpdate
+  VenueUpdate,
+  WatchlistEntry
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -511,6 +513,302 @@ export function useListOperatorVenues<TData = Awaited<ReturnType<typeof listOper
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListOperatorVenuesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListWatchlistUrl = () => {
+
+
+
+
+  return `/api/watchlist`
+}
+
+/**
+ * @summary List the current user's watchlisted venues
+ */
+export const listWatchlist = async ( options?: RequestInit): Promise<Venue[]> => {
+
+  return customFetch<Venue[]>(getListWatchlistUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWatchlistQueryKey = () => {
+    return [
+    `/api/watchlist`
+    ] as const;
+    }
+
+
+export const getListWatchlistQueryOptions = <TData = Awaited<ReturnType<typeof listWatchlist>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWatchlistQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWatchlist>>> = ({ signal }) => listWatchlist({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWatchlist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWatchlistQueryResult = NonNullable<Awaited<ReturnType<typeof listWatchlist>>>
+export type ListWatchlistQueryError = ErrorType<void>
+
+
+/**
+ * @summary List the current user's watchlisted venues
+ */
+
+export function useListWatchlist<TData = Awaited<ReturnType<typeof listWatchlist>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWatchlistQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddToWatchlistUrl = (venueId: number,) => {
+
+
+
+
+  return `/api/watchlist/${venueId}`
+}
+
+/**
+ * @summary Add a venue to the current user's watchlist
+ */
+export const addToWatchlist = async (venueId: number, options?: RequestInit): Promise<WatchlistEntry> => {
+
+  return customFetch<WatchlistEntry>(getAddToWatchlistUrl(venueId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAddToWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addToWatchlist>>, TError,{venueId: number}, TContext> => {
+
+const mutationKey = ['addToWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addToWatchlist>>, {venueId: number}> = (props) => {
+          const {venueId} = props ?? {};
+
+          return  addToWatchlist(venueId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddToWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof addToWatchlist>>>
+
+    export type AddToWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a venue to the current user's watchlist
+ */
+export const useAddToWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addToWatchlist>>,
+        TError,
+        {venueId: number},
+        TContext
+      > => {
+      return useMutation(getAddToWatchlistMutationOptions(options));
+    }
+
+export const getRemoveFromWatchlistUrl = (venueId: number,) => {
+
+
+
+
+  return `/api/watchlist/${venueId}`
+}
+
+/**
+ * @summary Remove a venue from the current user's watchlist
+ */
+export const removeFromWatchlist = async (venueId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRemoveFromWatchlistUrl(venueId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveFromWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeFromWatchlist>>, TError,{venueId: number}, TContext> => {
+
+const mutationKey = ['removeFromWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeFromWatchlist>>, {venueId: number}> = (props) => {
+          const {venueId} = props ?? {};
+
+          return  removeFromWatchlist(venueId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveFromWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof removeFromWatchlist>>>
+
+    export type RemoveFromWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Remove a venue from the current user's watchlist
+ */
+export const useRemoveFromWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeFromWatchlist>>,
+        TError,
+        {venueId: number},
+        TContext
+      > => {
+      return useMutation(getRemoveFromWatchlistMutationOptions(options));
+    }
+
+export const getGetMyActivityUrl = () => {
+
+
+
+
+  return `/api/me/activity`
+}
+
+/**
+ * @summary Current user's past reports and comments
+ */
+export const getMyActivity = async ( options?: RequestInit): Promise<MyActivity> => {
+
+  return customFetch<MyActivity>(getGetMyActivityUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyActivityQueryKey = () => {
+    return [
+    `/api/me/activity`
+    ] as const;
+    }
+
+
+export const getGetMyActivityQueryOptions = <TData = Awaited<ReturnType<typeof getMyActivity>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyActivity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyActivityQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyActivity>>> = ({ signal }) => getMyActivity({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyActivity>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMyActivityQueryResult = NonNullable<Awaited<ReturnType<typeof getMyActivity>>>
+export type GetMyActivityQueryError = ErrorType<void>
+
+
+/**
+ * @summary Current user's past reports and comments
+ */
+
+export function useGetMyActivity<TData = Awaited<ReturnType<typeof getMyActivity>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyActivity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMyActivityQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1285,147 +1583,5 @@ export const useDislikeComment = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getDislikeCommentMutationOptions(options));
-    }
-
-export const getAddToWatchlistUrl = (venueId: number,) => {
-
-
-
-
-  return `/api/venues/${venueId}/watchlist`
-}
-
-/**
- * @summary Add a venue to the watchlist
- */
-export const addToWatchlist = async (venueId: number, options?: RequestInit): Promise<Venue> => {
-
-  return customFetch<Venue>(getAddToWatchlistUrl(venueId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getAddToWatchlistMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof addToWatchlist>>, TError,{venueId: number}, TContext> => {
-
-const mutationKey = ['addToWatchlist'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addToWatchlist>>, {venueId: number}> = (props) => {
-          const {venueId} = props ?? {};
-
-          return  addToWatchlist(venueId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AddToWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof addToWatchlist>>>
-
-    export type AddToWatchlistMutationError = ErrorType<void>
-
-    /**
- * @summary Add a venue to the watchlist
- */
-export const useAddToWatchlist = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addToWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof addToWatchlist>>,
-        TError,
-        {venueId: number},
-        TContext
-      > => {
-      return useMutation(getAddToWatchlistMutationOptions(options));
-    }
-
-export const getRemoveFromWatchlistUrl = (venueId: number,) => {
-
-
-
-
-  return `/api/venues/${venueId}/watchlist`
-}
-
-/**
- * @summary Remove a venue from the watchlist
- */
-export const removeFromWatchlist = async (venueId: number, options?: RequestInit): Promise<Venue> => {
-
-  return customFetch<Venue>(getRemoveFromWatchlistUrl(venueId),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-);}
-
-
-
-
-
-export const getRemoveFromWatchlistMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof removeFromWatchlist>>, TError,{venueId: number}, TContext> => {
-
-const mutationKey = ['removeFromWatchlist'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeFromWatchlist>>, {venueId: number}> = (props) => {
-          const {venueId} = props ?? {};
-
-          return  removeFromWatchlist(venueId,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RemoveFromWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof removeFromWatchlist>>>
-
-    export type RemoveFromWatchlistMutationError = ErrorType<void>
-
-    /**
- * @summary Remove a venue from the watchlist
- */
-export const useRemoveFromWatchlist = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeFromWatchlist>>, TError,{venueId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof removeFromWatchlist>>,
-        TError,
-        {venueId: number},
-        TContext
-      > => {
-      return useMutation(getRemoveFromWatchlistMutationOptions(options));
     }
 

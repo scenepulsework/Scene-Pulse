@@ -222,6 +222,101 @@ export const ListOperatorVenuesResponse = zod.array(ListOperatorVenuesResponseIt
 
 
 /**
+ * @summary List the current user's watchlisted venues
+ */
+export const ListWatchlistResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['bar', 'restaurant', 'retail', 'cafe', 'experience']),
+  "city": zod.string(),
+  "market": zod.string(),
+  "region": zod.string(),
+  "country": zod.string(),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "address": zod.string(),
+  "rating": zod.number(),
+  "crowdScore": zod.number().describe('0-100 crowd pressure score'),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "headcount": zod.number(),
+  "lineTrend": zod.enum(['rising', 'falling', 'steady']),
+  "seatingOdds": zod.string(),
+  "noiseLevel": zod.enum(['quiet', 'moderate', 'loud']),
+  "coverCost": zod.string(),
+  "bestTimeWindow": zod.string(),
+  "bestFor": zod.array(zod.string()),
+  "operatorGapNote": zod.string(),
+  "peakPressureWindow": zod.string(),
+  "reservationSignal": zod.string(),
+  "staffingSignal": zod.string(),
+  "dataSignalsTracked": zod.array(zod.string()),
+  "arrivalTips": zod.array(zod.string()),
+  "sourceLabel": zod.string().nullish(),
+  "sourceUrl": zod.string().nullish(),
+  "mapsUrl": zod.string().optional(),
+  "isWatchlisted": zod.boolean(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListWatchlistResponse = zod.array(ListWatchlistResponseItem)
+
+
+/**
+ * @summary Add a venue to the current user's watchlist
+ */
+export const AddToWatchlistParams = zod.object({
+  "venueId": zod.coerce.number()
+})
+
+export const AddToWatchlistResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "venueId": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Remove a venue from the current user's watchlist
+ */
+export const RemoveFromWatchlistParams = zod.object({
+  "venueId": zod.coerce.number()
+})
+
+export const RemoveFromWatchlistResponse = zod.void()
+
+
+/**
+ * @summary Current user's past reports and comments
+ */
+export const GetMyActivityResponse = zod.object({
+  "reports": zod.array(zod.object({
+  "id": zod.number(),
+  "venueId": zod.number(),
+  "reporterName": zod.string(),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "vibeNote": zod.string(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "venueName": zod.string()
+}))),
+  "comments": zod.array(zod.object({
+  "id": zod.number(),
+  "venueId": zod.number(),
+  "parentCommentId": zod.number().nullish(),
+  "authorName": zod.string(),
+  "message": zod.string(),
+  "likes": zod.number(),
+  "dislikes": zod.number(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "venueName": zod.string()
+})))
+})
+
+
+/**
  * Distinct markets with venue counts
  * @summary List markets covered
  */
@@ -512,92 +607,6 @@ export const DislikeCommentResponse = zod.object({
   "likes": zod.number(),
   "dislikes": zod.number(),
   "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Add a venue to the watchlist
- */
-export const AddToWatchlistParams = zod.object({
-  "venueId": zod.coerce.number()
-})
-
-export const AddToWatchlistResponse = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "category": zod.enum(['bar', 'restaurant', 'retail', 'cafe', 'experience']),
-  "city": zod.string(),
-  "market": zod.string(),
-  "region": zod.string(),
-  "country": zod.string(),
-  "latitude": zod.number(),
-  "longitude": zod.number(),
-  "address": zod.string(),
-  "rating": zod.number(),
-  "crowdScore": zod.number().describe('0-100 crowd pressure score'),
-  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
-  "waitTimeMinutes": zod.number(),
-  "headcount": zod.number(),
-  "lineTrend": zod.enum(['rising', 'falling', 'steady']),
-  "seatingOdds": zod.string(),
-  "noiseLevel": zod.enum(['quiet', 'moderate', 'loud']),
-  "coverCost": zod.string(),
-  "bestTimeWindow": zod.string(),
-  "bestFor": zod.array(zod.string()),
-  "operatorGapNote": zod.string(),
-  "peakPressureWindow": zod.string(),
-  "reservationSignal": zod.string(),
-  "staffingSignal": zod.string(),
-  "dataSignalsTracked": zod.array(zod.string()),
-  "arrivalTips": zod.array(zod.string()),
-  "sourceLabel": zod.string().nullish(),
-  "sourceUrl": zod.string().nullish(),
-  "mapsUrl": zod.string().optional(),
-  "isWatchlisted": zod.boolean(),
-  "updatedAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Remove a venue from the watchlist
- */
-export const RemoveFromWatchlistParams = zod.object({
-  "venueId": zod.coerce.number()
-})
-
-export const RemoveFromWatchlistResponse = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "category": zod.enum(['bar', 'restaurant', 'retail', 'cafe', 'experience']),
-  "city": zod.string(),
-  "market": zod.string(),
-  "region": zod.string(),
-  "country": zod.string(),
-  "latitude": zod.number(),
-  "longitude": zod.number(),
-  "address": zod.string(),
-  "rating": zod.number(),
-  "crowdScore": zod.number().describe('0-100 crowd pressure score'),
-  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
-  "waitTimeMinutes": zod.number(),
-  "headcount": zod.number(),
-  "lineTrend": zod.enum(['rising', 'falling', 'steady']),
-  "seatingOdds": zod.string(),
-  "noiseLevel": zod.enum(['quiet', 'moderate', 'loud']),
-  "coverCost": zod.string(),
-  "bestTimeWindow": zod.string(),
-  "bestFor": zod.array(zod.string()),
-  "operatorGapNote": zod.string(),
-  "peakPressureWindow": zod.string(),
-  "reservationSignal": zod.string(),
-  "staffingSignal": zod.string(),
-  "dataSignalsTracked": zod.array(zod.string()),
-  "arrivalTips": zod.array(zod.string()),
-  "sourceLabel": zod.string().nullish(),
-  "sourceUrl": zod.string().nullish(),
-  "mapsUrl": zod.string().optional(),
-  "isWatchlisted": zod.boolean(),
-  "updatedAt": zod.coerce.date()
 })
 
 

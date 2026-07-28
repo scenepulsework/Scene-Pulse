@@ -20,6 +20,7 @@ import MarketDetail from "@/pages/market-detail";
 import Operators from "@/pages/operators";
 import OperatorDetail from "@/pages/operator-detail";
 import OperatorDashboard from "@/pages/operator-dashboard";
+import Profile from "@/pages/profile";
 import About from "@/pages/about";
 import Careers from "@/pages/careers";
 import Contact from "@/pages/contact";
@@ -168,6 +169,7 @@ function Router() {
       <Route path="/operators" component={Operators} />
       <Route path="/operator-dashboard" component={OperatorDashboard} />
       <Route path="/operators/:slug" component={OperatorDetail} />
+      <Route path="/profile" component={Profile} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
       <Route path="/about" component={About} />
@@ -192,13 +194,13 @@ function ClerkProviderWithRoutes() {
         signIn: {
           start: {
             title: "Welcome back",
-            subtitle: "Sign in to manage your venue",
+            subtitle: "Sign in to your saved spots and night-out history",
           },
         },
         signUp: {
           start: {
-            title: "Create your operator account",
-            subtitle: "Claim your venue and keep your listing fresh",
+            title: "Create your account",
+            subtitle: "Save favorite spots and track your nights out",
           },
         },
       }}

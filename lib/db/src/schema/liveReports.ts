@@ -6,6 +6,7 @@ import { venuesTable } from "./venues";
 export const liveReportsTable = pgTable("live_reports", {
   id: serial("id").primaryKey(),
   venueId: integer("venue_id").notNull().references(() => venuesTable.id, { onDelete: "cascade" }),
+  reporterId: text("reporter_id"),
   reporterName: text("reporter_name").notNull(),
   crowdLevel: text("crowd_level").notNull(),
   waitTimeMinutes: integer("wait_time_minutes").notNull(),

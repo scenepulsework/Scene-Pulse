@@ -22,3 +22,4 @@ export * from "./comments";
 export * from "./commentVotes";
 export * from "./liveReports";
 export * from "./venueClaims";
+export * from "./watchlist";

@@ -8,6 +8,7 @@ import {
   CreateVenueReportBody,
   CreateVenueReportResponse,
 } from "@workspace/api-zod";
+import { getAuth } from "@clerk/express";
 
 const router: IRouter = Router();
 
@@ -72,9 +73,13 @@ router.post("/venues/:venueId/reports", async (req, res): Promise<void> => {
   const clampedWait = Math.min(body.data.waitTimeMinutes, MAX_WAIT_MINUTES);
   const sanitizedBody = { ...body.data, waitTimeMinutes: clampedWait };
 
+  // Attribute the report to the signed-in user when a Clerk session exists.
+  const auth = getAuth(req);
+  const reporterId = ((auth?.sessionClaims?.["userId"] as string | undefined) || auth?.userId) ?? null;
+
   const [report] = await db
     .insert(liveReportsTable)
-    .values({ venueId: params.data.venueId, ...sanitizedBody })
+    .values({ venueId: params.data.venueId, ...sanitizedBody, reporterId })
     .returning();
 
   res.status(201).json(CreateVenueReportResponse.parse(report));

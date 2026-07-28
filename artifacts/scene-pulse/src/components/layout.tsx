@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Activity, Menu } from "lucide-react";
+import { Activity, Menu, User, LogOut } from "lucide-react";
+import { Show, useUser, useClerk } from "@clerk/react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,51 @@ const NAV_LINKS = [
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function AuthControls({ onNavigate }: { onNavigate?: () => void }) {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const displayName = user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0];
+
+  return (
+    <>
+      <Show when="signed-out">
+        <Link
+          href="/sign-in"
+          data-testid="link-nav-sign-in"
+          onClick={onNavigate}
+          className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-3 py-1.5 text-xs font-mono uppercase tracking-wider text-primary hover:bg-primary/10 transition-colors"
+        >
+          <User className="w-3.5 h-3.5" />
+          Sign in
+        </Link>
+      </Show>
+      <Show when="signed-in">
+        <Link
+          href="/profile"
+          data-testid="link-nav-profile"
+          onClick={onNavigate}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-mono uppercase tracking-wider hover:text-primary hover:border-primary/40 transition-colors"
+        >
+          <User className="w-3.5 h-3.5 text-primary" />
+          {displayName ?? "Profile"}
+        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          data-testid="button-sign-out"
+          aria-label="Sign out"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => signOut({ redirectUrl: basePath || "/" })}
+        >
+          <LogOut className="w-4 h-4" />
+        </Button>
+      </Show>
+    </>
+  );
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: health } = useHealthCheck();
@@ -47,6 +93,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className={`w-2 h-2 rounded-full ${health?.status === 'ok' ? 'bg-primary pulse-indicator' : 'bg-destructive'}`} />
               <span className="text-xs uppercase tracking-wider font-mono">Live</span>
             </div>
+            <div className="flex items-center gap-2">
+              <AuthControls />
+            </div>
           </nav>
 
           <div className="flex md:hidden items-center gap-3">
@@ -62,6 +111,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </SheetTrigger>
               <SheetContent side="right" className="w-72 bg-background border-border/40">
                 <nav className="flex flex-col gap-1 mt-10">
+                  <div className="flex items-center gap-2 pb-3 border-b border-border/40">
+                    <AuthControls onNavigate={() => setMobileNavOpen(false)} />
+                  </div>
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}

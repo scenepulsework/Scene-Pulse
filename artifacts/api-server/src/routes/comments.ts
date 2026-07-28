@@ -8,6 +8,7 @@ import {
   CreateVenueCommentBody,
   CreateVenueCommentResponse,
 } from "@workspace/api-zod";
+import { getAuth } from "@clerk/express";
 
 const router: IRouter = Router();
 
@@ -86,9 +87,13 @@ router.post("/venues/:venueId/comments", async (req, res): Promise<void> => {
     return;
   }
 
+  // Attribute the comment to the signed-in user when a Clerk session exists.
+  const auth = getAuth(req);
+  const authorId = ((auth?.sessionClaims?.["userId"] as string | undefined) || auth?.userId) ?? null;
+
   const [comment] = await db
     .insert(commentsTable)
-    .values({ venueId: params.data.venueId, ...body.data })
+    .values({ venueId: params.data.venueId, ...body.data, authorId })
     .returning();
   res.status(201).json(CreateVenueCommentResponse.parse(comment));
 });

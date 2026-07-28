@@ -18,6 +18,8 @@ tags:
     description: Live crowd/wait/vibe report submissions
   - name: markets
     description: Market metadata and coverage
+  - name: watchlist
+    description: Signed-in user's saved venues and activity
   - name: stats
     description: Dashboard and hero aggregates
 paths:
@@ -160,6 +162,74 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Venue"
+        "401":
+          description: Not authenticated
+
+  /watchlist:
+    get:
+      operationId: listWatchlist
+      tags: [watchlist]
+      summary: List the current user's watchlisted venues
+      responses:
+        "200":
+          description: Watchlisted venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Venue"
+        "401":
+          description: Not authenticated
+
+  /watchlist/{venueId}:
+    post:
+      operationId: addToWatchlist
+      tags: [watchlist]
+      summary: Add a venue to the current user's watchlist
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "201":
+          description: Added (idempotent — also returned if already present)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistEntry"
+        "401":
+          description: Not authenticated
+        "404":
+          description: Venue not found
+    delete:
+      operationId: removeFromWatchlist
+      tags: [watchlist]
+      summary: Remove a venue from the current user's watchlist
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Removed
+        "401":
+          description: Not authenticated
+
+  /me/activity:
+    get:
+      operationId: getMyActivity
+      tags: [watchlist]
+      summary: Current user's past reports and comments
+      responses:
+        "200":
+          description: The user's activity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyActivity"
         "401":
           description: Not authenticated
 
@@ -363,44 +433,6 @@ paths:
                 $ref: "#/components/schemas/Comment"
         "404":
           description: Not found
-
-  /venues/{venueId}/watchlist:
-    post:
-      operationId: addToWatchlist
-      tags: [venues]
-      summary: Add a venue to the watchlist
-      parameters:
-        - name: venueId
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Updated venue
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Venue"
-        "404":
-          description: Venue not found
-    delete:
-      operationId: removeFromWatchlist
-      tags: [venues]
-      summary: Remove a venue from the watchlist
-      parameters:
-        - name: venueId
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Updated venue
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Venue"
-        "404":
-          description: Venue not found
 
 components:
   schemas:
@@ -606,6 +638,44 @@ components:
         waitTimeMinutes: { type: integer }
         vibeNote: { type: string }
         createdAt: { type: string, format: date-time }
+
+    WatchlistEntry:
+      type: object
+      required: [id, userId, venueId, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: string }
+        venueId: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    MyActivity:
+      type: object
+      required: [reports, comments]
+      properties:
+        reports:
+          type: array
+          items:
+            $ref: "#/components/schemas/MyReport"
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/MyComment"
+
+    MyReport:
+      allOf:
+        - $ref: "#/components/schemas/LiveReport"
+        - type: object
+          required: [venueName]
+          properties:
+            venueName: { type: string }
+
+    MyComment:
+      allOf:
+        - $ref: "#/components/schemas/Comment"
+        - type: object
+          required: [venueName]
+          properties:
+            venueName: { type: string }
 
     LiveReportInput:
       type: object

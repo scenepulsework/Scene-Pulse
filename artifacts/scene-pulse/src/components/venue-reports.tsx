@@ -12,7 +12,8 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { getVoterId } from "@/lib/voter-id";
-import { useMemo, useState } from "react";
+import { useUser } from "@clerk/react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,6 +68,9 @@ type FeedItem = ReportItem | CommentItem;
 
 export function VenueReports({ venueId }: { venueId: number }) {
   const queryClient = useQueryClient();
+  const { user, isSignedIn } = useUser();
+  const displayName =
+    user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "";
   const { data: reports, isLoading: reportsLoading } = useListVenueReports(venueId, {
     query: { queryKey: getListVenueReportsQueryKey(venueId) },
   });
@@ -108,12 +112,30 @@ export function VenueReports({ venueId }: { venueId: number }) {
     defaultValues: { authorName: "", message: "" },
   });
 
+  // Signed-in users post under their account display name — no manual name entry.
+  useEffect(() => {
+    if (isSignedIn && displayName) {
+      reportForm.setValue("reporterName", displayName);
+      commentForm.setValue("authorName", displayName);
+      replyForm.setValue("authorName", displayName);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn, displayName]);
+
   const onSubmitReport = (values: z.infer<typeof reportSchema>) => {
+    const data = isSignedIn && displayName ? { ...values, reporterName: displayName } : values;
     createReport.mutate(
-      { venueId, data: values },
+      { venueId, data },
       {
         onSuccess: () => {
-          reportForm.reset();
+          // Preserve the signed-in display name across resets — the field is hidden
+          // for signed-in users, so clearing it would break repeat submissions.
+          reportForm.reset({
+            reporterName: isSignedIn && displayName ? displayName : "",
+            crowdLevel: "lively",
+            waitTimeMinutes: 0,
+            vibeNote: "",
+          });
           setIsFormOpen(false);
           toast.success("Live report submitted!");
           queryClient.invalidateQueries({ queryKey: getListVenueReportsQueryKey(venueId) });
@@ -125,11 +147,12 @@ export function VenueReports({ venueId }: { venueId: number }) {
   };
 
   const onSubmitComment = (values: z.infer<typeof commentSchema>) => {
+    const data = isSignedIn && displayName ? { ...values, authorName: displayName } : values;
     createComment.mutate(
-      { venueId, data: values },
+      { venueId, data },
       {
         onSuccess: () => {
-          commentForm.reset({ ...values, message: "" });
+          commentForm.reset({ ...data, message: "" });
           queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) });
         },
         onError: () => toast.error("Failed to post comment"),
@@ -138,11 +161,15 @@ export function VenueReports({ venueId }: { venueId: number }) {
   };
 
   const onSubmitReply = (parentId: number, values: z.infer<typeof commentSchema>) => {
+    const data = isSignedIn && displayName ? { ...values, authorName: displayName } : values;
     createComment.mutate(
-      { venueId, data: { ...values, parentCommentId: parentId } },
+      { venueId, data: { ...data, parentCommentId: parentId } },
       {
         onSuccess: () => {
-          replyForm.reset();
+          replyForm.reset({
+            authorName: isSignedIn && displayName ? displayName : "",
+            message: "",
+          });
           setReplyingToId(null);
           setExpandedReplies((prev) => new Set([...prev, parentId]));
           queryClient.invalidateQueries({ queryKey: getListVenueCommentsQueryKey(venueId) });
@@ -259,19 +286,26 @@ export function VenueReports({ venueId }: { venueId: number }) {
         <div className="p-4 border-b border-border/50 bg-background/50">
           <Form {...reportForm}>
             <form onSubmit={reportForm.handleSubmit(onSubmitReport)} className="space-y-4">
-              <FormField
-                control={reportForm.control}
-                name="reporterName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-mono uppercase text-muted-foreground">Your Handle</FormLabel>
-                    <FormControl>
-                      <Input placeholder="NightOwl99" {...field} className="h-8 font-mono text-sm bg-card" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isSignedIn && (
+                <FormField
+                  control={reportForm.control}
+                  name="reporterName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-mono uppercase text-muted-foreground">Your Handle</FormLabel>
+                      <FormControl>
+                        <Input placeholder="NightOwl99" {...field} className="h-8 font-mono text-sm bg-card" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              {isSignedIn && (
+                <p className="text-xs font-mono text-muted-foreground">
+                  Reporting as <span className="text-primary font-bold">{displayName}</span>
+                </p>
+              )}
               <FormField
                 control={reportForm.control}
                 name="crowdLevel"
@@ -425,17 +459,19 @@ export function VenueReports({ venueId }: { venueId: number }) {
                         onSubmit={replyForm.handleSubmit((vals) => onSubmitReply(item.numId, vals))}
                         className="flex gap-2"
                       >
-                        <FormField
-                          control={replyForm.control}
-                          name="authorName"
-                          render={({ field }) => (
-                            <FormItem className="w-1/3">
-                              <FormControl>
-                                <Input placeholder="Name" {...field} className="h-7 text-xs font-mono bg-card" />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                        {!isSignedIn && (
+                          <FormField
+                            control={replyForm.control}
+                            name="authorName"
+                            render={({ field }) => (
+                              <FormItem className="w-1/3">
+                                <FormControl>
+                                  <Input placeholder="Name" {...field} className="h-7 text-xs font-mono bg-card" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        )}
                         <FormField
                           control={replyForm.control}
                           name="message"
@@ -506,17 +542,19 @@ export function VenueReports({ venueId }: { venueId: number }) {
         <Form {...commentForm}>
           <form onSubmit={commentForm.handleSubmit(onSubmitComment)} className="flex flex-col gap-2">
             <div className="flex gap-2">
-              <FormField
-                control={commentForm.control}
-                name="authorName"
-                render={({ field }) => (
-                  <FormItem className="w-1/3">
-                    <FormControl>
-                      <Input placeholder="Name" {...field} className="h-8 text-xs font-mono bg-card" />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {!isSignedIn && (
+                <FormField
+                  control={commentForm.control}
+                  name="authorName"
+                  render={({ field }) => (
+                    <FormItem className="w-1/3">
+                      <FormControl>
+                        <Input placeholder="Name" {...field} className="h-8 text-xs font-mono bg-card" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={commentForm.control}
                 name="message"

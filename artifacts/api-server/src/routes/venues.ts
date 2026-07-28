@@ -190,12 +190,4 @@ router.get("/operator/venues", requireAuth, async (req: AuthedRequest, res): Pro
   res.json(ListOperatorVenuesResponse.parse(rows.map(presentVenue)));
 });
 
-router.post("/venues/:venueId/watchlist", (_req, res): void => {
-  res.status(405).json({ error: "Watchlist is managed client-side." });
-});
-
-router.delete("/venues/:venueId/watchlist", (_req, res): void => {
-  res.status(405).json({ error: "Watchlist is managed client-side." });
-});
-
 export default router;

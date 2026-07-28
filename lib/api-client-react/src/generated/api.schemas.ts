@@ -193,6 +193,26 @@ export interface LiveReport {
   createdAt: string;
 }
 
+export interface WatchlistEntry {
+  id: number;
+  userId: string;
+  venueId: number;
+  createdAt: string;
+}
+
+export type MyReport = LiveReport & {
+  venueName: string;
+};
+
+export type MyComment = Comment & {
+  venueName: string;
+};
+
+export interface MyActivity {
+  reports: MyReport[];
+  comments: MyComment[];
+}
+
 export type LiveReportInputCrowdLevel = typeof LiveReportInputCrowdLevel[keyof typeof LiveReportInputCrowdLevel];
 
 

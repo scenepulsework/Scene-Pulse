@@ -7,6 +7,7 @@ export const commentsTable = pgTable("comments", {
   id: serial("id").primaryKey(),
   venueId: integer("venue_id").notNull().references(() => venuesTable.id, { onDelete: "cascade" }),
   parentCommentId: integer("parent_comment_id"),
+  authorId: text("author_id"),
   authorName: text("author_name").notNull(),
   message: text("message").notNull(),
   likes: integer("likes").notNull().default(0),
