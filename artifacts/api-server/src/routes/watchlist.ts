@@ -11,6 +11,8 @@ import {
   ListWatchlistResponse,
   AddToWatchlistResponse,
   GetMyActivityResponse,
+  SetWatchlistAlertsBody,
+  SetWatchlistAlertsResponse,
 } from "@workspace/api-zod";
 import { presentVenue } from "../lib/venuePresenter";
 import { requireAuth, type AuthedRequest } from "../middlewares/requireAuth";
@@ -19,12 +21,12 @@ const router: IRouter = Router();
 
 router.get("/watchlist", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
   const rows = await db
-    .select({ venue: venuesTable })
+    .select({ venue: venuesTable, alertsEnabled: watchlistTable.alertsEnabled })
     .from(watchlistTable)
     .innerJoin(venuesTable, eq(watchlistTable.venueId, venuesTable.id))
     .where(eq(watchlistTable.userId, req.userId!))
     .orderBy(desc(watchlistTable.createdAt));
-  res.json(ListWatchlistResponse.parse(rows.map((r) => presentVenue(r.venue))));
+  res.json(ListWatchlistResponse.parse(rows.map((r) => ({ ...presentVenue(r.venue), alertsEnabled: r.alertsEnabled }))));
 });
 
 router.post("/watchlist/:venueId", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
@@ -64,6 +66,29 @@ router.delete("/watchlist/:venueId", requireAuth, async (req: AuthedRequest, res
     .delete(watchlistTable)
     .where(and(eq(watchlistTable.userId, req.userId!), eq(watchlistTable.venueId, venueId)));
   res.status(204).end();
+});
+
+router.put("/watchlist/:venueId/alerts", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
+  const venueId = Number(req.params["venueId"]);
+  if (!Number.isInteger(venueId) || venueId < 1) {
+    res.status(400).json({ error: "Invalid venue id" });
+    return;
+  }
+  const body = SetWatchlistAlertsBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+  const [updated] = await db
+    .update(watchlistTable)
+    .set({ alertsEnabled: body.data.alertsEnabled })
+    .where(and(eq(watchlistTable.userId, req.userId!), eq(watchlistTable.venueId, venueId)))
+    .returning();
+  if (!updated) {
+    res.status(404).json({ error: "Venue not in watchlist" });
+    return;
+  }
+  res.json(SetWatchlistAlertsResponse.parse(updated));
 });
 
 router.get("/me/activity", requireAuth, async (req: AuthedRequest, res): Promise<void> => {

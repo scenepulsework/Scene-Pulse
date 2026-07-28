@@ -6,6 +6,7 @@ import { useHealthCheck } from "@workspace/api-client-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { VENUE_TYPES } from "@/lib/venue-types";
+import NotificationBell from "@/components/notification-bell";
 
 const NAV_LINKS = [
   { href: "/", label: "Map" },
@@ -94,6 +95,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span className="text-xs uppercase tracking-wider font-mono">Live</span>
             </div>
             <div className="flex items-center gap-2">
+              <Show when="signed-in">
+                <NotificationBell />
+              </Show>
               <AuthControls />
             </div>
           </nav>
@@ -103,6 +107,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className={`w-2 h-2 rounded-full ${health?.status === 'ok' ? 'bg-primary pulse-indicator' : 'bg-destructive'}`} />
               <span className="text-xs uppercase tracking-wider font-mono">Live</span>
             </div>
+            <Show when="signed-in">
+              <NotificationBell />
+            </Show>
             <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" data-testid="button-mobile-menu" aria-label="Open menu">

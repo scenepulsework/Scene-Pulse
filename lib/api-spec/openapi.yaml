@@ -220,13 +220,13 @@ paths:
       summary: List the current user's watchlisted venues
       responses:
         "200":
-          description: Watchlisted venues
+          description: Watchlisted venues (includes alertsEnabled preference per entry)
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Venue"
+                  $ref: "#/components/schemas/WatchlistedVenue"
         "401":
           description: Not authenticated
 
@@ -265,6 +265,84 @@ paths:
           description: Removed
         "401":
           description: Not authenticated
+
+  /watchlist/{venueId}/alerts:
+    put:
+      operationId: setWatchlistAlerts
+      tags: [watchlist]
+      summary: Enable or disable crowd alerts for a watchlisted venue
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistAlertsInput"
+      responses:
+        "200":
+          description: Updated alert preference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistEntry"
+        "401":
+          description: Not authenticated
+        "404":
+          description: Venue not in watchlist
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [watchlist]
+      summary: List in-app notifications for the current user
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VenueNotification"
+        "401":
+          description: Not authenticated
+
+  /notifications/read-all:
+    put:
+      operationId: markAllNotificationsRead
+      tags: [watchlist]
+      summary: Mark all notifications as read
+      responses:
+        "204":
+          description: All marked read
+        "401":
+          description: Not authenticated
+
+  /notifications/{id}/read:
+    put:
+      operationId: markNotificationRead
+      tags: [watchlist]
+      summary: Mark a single notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VenueNotification"
+        "401":
+          description: Not authenticated
+        "404":
+          description: Not found
 
   /me/activity:
     get:
@@ -886,13 +964,44 @@ components:
         vibeNote: { type: string }
         createdAt: { type: string, format: date-time }
 
+    WatchlistedVenue:
+      allOf:
+        - $ref: "#/components/schemas/Venue"
+        - type: object
+          required: [alertsEnabled]
+          properties:
+            alertsEnabled: { type: boolean }
+
     WatchlistEntry:
       type: object
-      required: [id, userId, venueId, createdAt]
+      required: [id, userId, venueId, alertsEnabled, createdAt]
       properties:
         id: { type: integer }
         userId: { type: string }
         venueId: { type: integer }
+        alertsEnabled: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    WatchlistAlertsInput:
+      type: object
+      required: [alertsEnabled]
+      properties:
+        alertsEnabled: { type: boolean }
+
+    VenueNotification:
+      type: object
+      required: [id, userId, venueId, venueName, message, crowdLevel, waitTimeMinutes, isRead, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: string }
+        venueId: { type: integer }
+        venueName: { type: string }
+        message: { type: string }
+        crowdLevel:
+          type: string
+          enum: [open, lively, packed]
+        waitTimeMinutes: { type: integer }
+        isRead: { type: boolean }
         createdAt: { type: string, format: date-time }
 
     MyActivity:

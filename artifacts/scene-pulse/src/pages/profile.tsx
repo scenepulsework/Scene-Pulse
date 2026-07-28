@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, Redirect } from "wouter";
 import { Show, useUser } from "@clerk/react";
 import {
@@ -5,13 +6,52 @@ import {
   getListWatchlistQueryKey,
   useGetMyActivity,
   getGetMyActivityQueryKey,
+  useSetWatchlistAlerts,
 } from "@workspace/api-client-react";
 import { useWatchlist } from "@/hooks/use-watchlist";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { formatDistanceToNow } from "date-fns";
-import { Activity, BookmarkCheck, BookmarkX, Clock, MessageSquare, User } from "lucide-react";
+import { Activity, Bell, BellOff, BookmarkCheck, BookmarkX, Clock, MessageSquare, User } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+
+function AlertToggle({ venueId, alertsEnabled }: { venueId: number; alertsEnabled: boolean }) {
+  const queryClient = useQueryClient();
+  const [optimistic, setOptimistic] = useState(alertsEnabled);
+  const { mutate } = useSetWatchlistAlerts({
+    mutation: {
+      onMutate: ({ data }) => {
+        setOptimistic(data.alertsEnabled);
+      },
+      onError: () => {
+        setOptimistic(alertsEnabled);
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: getListWatchlistQueryKey() });
+      },
+    },
+  });
+
+  return (
+    <div className="flex items-center gap-1.5 shrink-0" title={optimistic ? "Alerts on — click to disable" : "Alerts off — click to enable"}>
+      {optimistic ? (
+        <Bell className="w-3.5 h-3.5 text-primary" />
+      ) : (
+        <BellOff className="w-3.5 h-3.5 text-muted-foreground" />
+      )}
+      <Switch
+        id={`alert-${venueId}`}
+        checked={optimistic}
+        onCheckedChange={(checked) => mutate({ venueId, data: { alertsEnabled: checked } })}
+        aria-label={`Toggle alerts for venue ${venueId}`}
+        data-testid={`switch-alert-${venueId}`}
+        className="scale-75"
+      />
+    </div>
+  );
+}
 
 function ProfileContent() {
   const { user } = useUser();
@@ -43,9 +83,14 @@ function ProfileContent() {
       </div>
 
       <section className="mb-12">
-        <h2 className="flex items-center gap-2 text-lg font-bold font-mono uppercase tracking-wider mb-4">
-          <BookmarkCheck className="w-5 h-5 text-primary" /> Saved venues
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold font-mono uppercase tracking-wider">
+            <BookmarkCheck className="w-5 h-5 text-primary" /> Saved venues
+          </h2>
+          <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
+            <Bell className="w-3 h-3" /> = alert on crowd change
+          </span>
+        </div>
         {watchlistLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-16 w-full" />
@@ -72,6 +117,10 @@ function ProfileContent() {
                 <Badge variant="outline" className="font-mono uppercase shrink-0">
                   {venue.crowdLevel}
                 </Badge>
+                <AlertToggle
+                  venueId={venue.id}
+                  alertsEnabled={venue.alertsEnabled}
+                />
                 <Button
                   variant="ghost"
                   size="icon"

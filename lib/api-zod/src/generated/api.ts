@@ -318,7 +318,7 @@ export const ListOperatorVenuesResponse = zod.array(ListOperatorVenuesResponseIt
 
 
 /**
- * @summary List the current user's watchlisted venues
+ * @summary List the current user's watchlisted venues (WatchlistedVenue = Venue + alertsEnabled)
  */
 export const ListWatchlistResponseItem = zod.object({
   "id": zod.number(),
@@ -362,7 +362,8 @@ export const ListWatchlistResponseItem = zod.object({
   "sourceUrl": zod.string().nullish(),
   "mapsUrl": zod.string().optional(),
   "isWatchlisted": zod.boolean(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "alertsEnabled": zod.boolean()
 })
 export const ListWatchlistResponse = zod.array(ListWatchlistResponseItem)
 
@@ -378,6 +379,7 @@ export const AddToWatchlistResponse = zod.object({
   "id": zod.number(),
   "userId": zod.string(),
   "venueId": zod.number(),
+  "alertsEnabled": zod.boolean(),
   "createdAt": zod.coerce.date()
 })
 
@@ -799,5 +801,68 @@ export const GetStorageObjectParams = zod.object({
 })
 
 export const GetStorageObjectResponse = zod.unknown()
+
+
+/**
+ * @summary Enable or disable crowd alerts for a watchlisted venue
+ */
+export const SetWatchlistAlertsParams = zod.object({
+  "venueId": zod.coerce.number()
+})
+
+export const SetWatchlistAlertsBody = zod.object({
+  "alertsEnabled": zod.boolean()
+})
+
+export const SetWatchlistAlertsResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "venueId": zod.number(),
+  "alertsEnabled": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List in-app notifications for the current user
+ */
+export const ListNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "venueId": zod.number(),
+  "venueName": zod.string(),
+  "message": zod.string(),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
+
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.void()
+
+
+/**
+ * @summary Mark a single notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "venueId": zod.number(),
+  "venueName": zod.string(),
+  "message": zod.string(),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
 
 

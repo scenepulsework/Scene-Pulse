@@ -280,10 +280,39 @@ export interface LiveReport {
   createdAt: string;
 }
 
+export type WatchlistedVenue = Venue & {
+  alertsEnabled: boolean;
+};
+
 export interface WatchlistEntry {
   id: number;
   userId: string;
   venueId: number;
+  alertsEnabled: boolean;
+  createdAt: string;
+}
+
+export interface WatchlistAlertsInput {
+  alertsEnabled: boolean;
+}
+
+export type VenueNotificationCrowdLevel = typeof VenueNotificationCrowdLevel[keyof typeof VenueNotificationCrowdLevel];
+
+export const VenueNotificationCrowdLevel = {
+  open: 'open',
+  lively: 'lively',
+  packed: 'packed',
+} as const;
+
+export interface VenueNotification {
+  id: number;
+  userId: string;
+  venueId: number;
+  venueName: string;
+  message: string;
+  crowdLevel: VenueNotificationCrowdLevel;
+  waitTimeMinutes: number;
+  isRead: boolean;
   createdAt: string;
 }
 
