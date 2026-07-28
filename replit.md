@@ -28,6 +28,7 @@ A Surfline-style "live conditions" dashboard for local venues (bars, restaurants
 - DB schema: `lib/db/src/schema/` (`venuesTable`, `commentsTable`, `liveReportsTable`)
 - API routes: `artifacts/api-server/src/routes/` (`venues.ts`, `comments.ts`, `reports.ts`, `markets.ts`, `marketGaps.ts`, `stats.ts`)
 - Venue presenter (computes `mapsUrl` dynamically): `artifacts/api-server/src/lib/venuePresenter.ts`
+- Object storage (venue photos): routes `artifacts/api-server/src/routes/storage.ts`, GCS wrapper `artifacts/api-server/src/lib/objectStorage.ts`, browser upload hook `lib/object-storage-web` (`useUpload`); photos are stored as `/objects/...` paths on `venues.photos` and served via `/api/storage/objects/*`
 - Seed script: `scripts/src/seedScenePulse.ts`
 - Frontend pages: `artifacts/scene-pulse/src/pages/` (`home.tsx`, `venue.tsx`)
 - Frontend components: `artifacts/scene-pulse/src/components/` (`scene-map.tsx`, `home-sections.tsx`, `layout.tsx`, `venue-card.tsx`, `venue-filters.tsx`, `venue-reports.tsx`)

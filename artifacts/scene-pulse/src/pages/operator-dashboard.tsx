@@ -14,7 +14,10 @@ import {
   type OperatorVenue,
   type Venue,
   type VenueUpdate,
+  type OpeningHours,
 } from "@workspace/api-client-react";
+import { useUpload } from "@workspace/object-storage-web";
+import { photoUrl } from "@/lib/photo-url";
 import { PageIntro } from "@/components/page-intro";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,10 +32,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, Clock, LogOut, MapPin, Pencil, ShieldCheck, X } from "lucide-react";
+import { Building2, Clock, ImagePlus, LogOut, MapPin, Pencil, ShieldCheck, Trash2, X } from "lucide-react";
+import { useRef } from "react";
 
 const CATEGORIES = ["bar", "restaurant", "retail", "cafe", "experience"] as const;
 const NOISE_LEVELS = ["quiet", "moderate", "loud"] as const;
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+const MAX_PHOTOS = 8;
+
+const EMPTY_HOURS: OpeningHours = {
+  monday: "", tuesday: "", wednesday: "", thursday: "", friday: "", saturday: "", sunday: "",
+};
+
 
 function ClaimForm() {
   const [venueId, setVenueId] = useState("");
@@ -96,7 +107,7 @@ function ClaimForm() {
 }
 
 function EditVenueForm({ venue, onClose }: { venue: Venue; onClose: () => void }) {
-  const [form, setForm] = useState<Required<VenueUpdate>>({
+  const [form, setForm] = useState<Required<Omit<VenueUpdate, "photos" | "openingHours">>>({
     name: venue.name,
     address: venue.address,
     category: venue.category,
@@ -105,7 +116,34 @@ function EditVenueForm({ venue, onClose }: { venue: Venue; onClose: () => void }
     noiseLevel: venue.noiseLevel,
   });
   const [tagsText, setTagsText] = useState(venue.bestFor.join(", "));
+  const [photos, setPhotos] = useState<string[]>(venue.photos ?? []);
+  const [hours, setHours] = useState<OpeningHours>({ ...EMPTY_HOURS, ...(venue.openingHours ?? {}) });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+
+  const upload = useUpload({
+    basePath: `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api/storage`,
+    onError: () => toast.error("Photo upload failed — try again"),
+  });
+
+  const handlePhotoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length === 0) return;
+    const room = MAX_PHOTOS - photos.length;
+    if (room <= 0) {
+      toast.error(`You can add up to ${MAX_PHOTOS} photos`);
+      return;
+    }
+    for (const file of files.slice(0, room)) {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        continue;
+      }
+      const res = await upload.uploadFile(file);
+      if (res) setPhotos((prev) => (prev.length < MAX_PHOTOS ? [...prev, res.objectPath] : prev));
+    }
+  };
 
   const updateMutation = useUpdateVenue({
     mutation: {
@@ -126,6 +164,10 @@ function EditVenueForm({ venue, onClose }: { venue: Venue; onClose: () => void }
       toast.error("Name, address, and cover cost are required");
       return;
     }
+    const trimmedHours = Object.fromEntries(
+      DAYS.map((d) => [d, hours[d].trim()]),
+    ) as unknown as OpeningHours;
+    const hasAnyHours = DAYS.some((d) => trimmedHours[d] !== "");
     updateMutation.mutate({
       id: venue.id,
       data: {
@@ -134,6 +176,8 @@ function EditVenueForm({ venue, onClose }: { venue: Venue; onClose: () => void }
         address: form.address.trim(),
         coverCost: form.coverCost.trim(),
         bestFor: tagsText.split(",").map((t) => t.trim()).filter(Boolean),
+        photos,
+        openingHours: hasAnyHours ? trimmedHours : null,
       },
     });
   };
@@ -176,6 +220,68 @@ function EditVenueForm({ venue, onClose }: { venue: Venue; onClose: () => void }
           <Input value={tagsText} onChange={(e) => setTagsText(e.target.value)} placeholder="date night, live music, patio" />
         </div>
       </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center">
+          <ImagePlus className="w-4 h-4 mr-2 text-primary" />
+          Photos <span className="text-muted-foreground font-normal ml-2">({photos.length}/{MAX_PHOTOS})</span>
+        </Label>
+        <div className="flex flex-wrap gap-3">
+          {photos.map((path) => (
+            <div key={path} className="relative group w-24 h-24 rounded-md overflow-hidden border border-border/50 bg-muted">
+              <img src={photoUrl(path)} alt="Venue photo" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                aria-label="Remove photo"
+                onClick={() => setPhotos((prev) => prev.filter((p) => p !== path))}
+                className="absolute top-1 right-1 bg-background/80 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+              </button>
+            </div>
+          ))}
+          {photos.length < MAX_PHOTOS && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={upload.isUploading}
+              className="w-24 h-24 rounded-md border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors text-xs font-mono uppercase tracking-wider"
+            >
+              <ImagePlus className="w-5 h-5 mb-1" />
+              {upload.isUploading ? "Uploading..." : "Add"}
+            </button>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handlePhotoPick}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center">
+          <Clock className="w-4 h-4 mr-2 text-secondary" />
+          Opening hours <span className="text-muted-foreground font-normal ml-2">(e.g. 5pm – 2am, or Closed)</span>
+        </Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+          {DAYS.map((day) => (
+            <div key={day} className="flex items-center gap-2">
+              <span className="w-24 shrink-0 text-xs font-mono uppercase tracking-wider text-muted-foreground capitalize">{day}</span>
+              <Input
+                value={hours[day]}
+                onChange={(e) => setHours({ ...hours, [day]: e.target.value })}
+                placeholder="5pm – 2am"
+                className="h-8 text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="flex gap-3">
         <Button type="submit" disabled={updateMutation.isPending} className="font-mono uppercase tracking-wider text-xs">
           {updateMutation.isPending ? "Saving..." : "Save changes"}

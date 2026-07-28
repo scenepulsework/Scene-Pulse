@@ -8,6 +8,7 @@
 
 export * from './comment';
 export * from './commentInput';
+export * from './errorEnvelope';
 export * from './getHotZonesParams';
 export * from './healthStatus';
 export * from './heroStats';
@@ -24,8 +25,11 @@ export * from './marketGap';
 export * from './myActivity';
 export * from './myComment';
 export * from './myReport';
+export * from './openingHours';
 export * from './operatorVenue';
 export * from './operatorVenueClaimStatus';
+export * from './uploadUrlRequest';
+export * from './uploadUrlResponse';
 export * from './venue';
 export * from './venueCategory';
 export * from './venueClaim';

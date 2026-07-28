@@ -1,6 +1,16 @@
-import { pgTable, serial, text, integer, real, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, real, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+
+export type OpeningHours = {
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
+};
 
 export const venuesTable = pgTable("venues", {
   id: serial("id").primaryKey(),
@@ -30,6 +40,8 @@ export const venuesTable = pgTable("venues", {
   staffingSignal: text("staffing_signal").notNull(),
   dataSignalsTracked: text("data_signals_tracked").array().notNull().default([]),
   arrivalTips: text("arrival_tips").array().notNull().default([]),
+  photos: text("photos").array().notNull().default([]),
+  openingHours: jsonb("opening_hours").$type<OpeningHours | null>(),
   sourceLabel: text("source_label"),
   sourceUrl: text("source_url"),
   isWatchlisted: boolean("is_watchlisted").notNull().default(false),
@@ -37,6 +49,18 @@ export const venuesTable = pgTable("venues", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
-export const insertVenueSchema = createInsertSchema(venuesTable).omit({ id: true, createdAt: true, updatedAt: true });
+export const openingHoursSchema = z.object({
+  monday: z.string(),
+  tuesday: z.string(),
+  wednesday: z.string(),
+  thursday: z.string(),
+  friday: z.string(),
+  saturday: z.string(),
+  sunday: z.string(),
+});
+
+export const insertVenueSchema = createInsertSchema(venuesTable, {
+  openingHours: openingHoursSchema.nullable().optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertVenue = z.infer<typeof insertVenueSchema>;
 export type Venue = typeof venuesTable.$inferSelect;

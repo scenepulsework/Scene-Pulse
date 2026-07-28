@@ -7,6 +7,7 @@ import marketsRouter from "./markets";
 import marketGapsRouter from "./marketGaps";
 import statsRouter from "./stats";
 import watchlistRouter from "./watchlist";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(marketsRouter);
 router.use(marketGapsRouter);
 router.use(statsRouter);
 router.use(watchlistRouter);
+router.use(storageRouter);
 
 export default router;

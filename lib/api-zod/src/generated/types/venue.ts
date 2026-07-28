@@ -5,6 +5,7 @@
  * ScenePulse API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { OpeningHours } from './openingHours';
 import type { VenueCategory } from './venueCategory';
 import type { VenueCrowdLevel } from './venueCrowdLevel';
 import type { VenueLineTrend } from './venueLineTrend';
@@ -39,6 +40,9 @@ export interface Venue {
   staffingSignal: string;
   dataSignalsTracked: string[];
   arrivalTips: string[];
+  /** Object storage paths (e.g. /objects/uploads/uuid) served via /api/storage */
+  photos: string[];
+  openingHours?: OpeningHours | null;
   /** @nullable */
   sourceLabel?: string | null;
   /** @nullable */

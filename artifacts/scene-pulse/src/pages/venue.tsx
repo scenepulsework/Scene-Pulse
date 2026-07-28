@@ -8,6 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, MapPin, Star, ExternalLink, BookmarkPlus, BookmarkCheck, Users, Clock, TrendingUp, TrendingDown, Minus, Volume2, DollarSign, Target, Briefcase, Zap, Compass, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { VenueReports } from "@/components/venue-reports";
+import { photoUrl } from "@/lib/photo-url";
+
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 
 export default function VenueDetail() {
   const params = useParams();
@@ -115,6 +118,25 @@ export default function VenueDetail() {
               </div>
             </div>
           </div>
+
+          {/* Photos */}
+          {venue.photos.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {venue.photos.map((path, i) => (
+                <div
+                  key={path}
+                  className={`rounded-lg overflow-hidden border border-border/50 bg-muted ${i === 0 ? "col-span-2 md:col-span-2 row-span-2" : ""}`}
+                >
+                  <img
+                    src={photoUrl(path)}
+                    alt={`${venue.name} photo ${i + 1}`}
+                    className="w-full h-full object-cover aspect-[4/3]"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Core Condition Panel */}
           <div className="bg-card border border-border/50 rounded-lg p-6 relative overflow-hidden">
@@ -260,6 +282,24 @@ export default function VenueDetail() {
 
         {/* Sidebar / Live Feed */}
         <div className="w-full md:w-[350px] shrink-0 space-y-8">
+          {venue.openingHours && (
+            <div className="bg-card border border-border/50 rounded-lg p-4">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3 flex items-center">
+                <Clock className="w-3.5 h-3.5 mr-1.5" /> Opening Hours
+              </h4>
+              <dl className="space-y-1.5">
+                {DAYS.map((day) => (
+                  <div key={day} className="flex items-baseline justify-between text-sm">
+                    <dt className="font-mono uppercase text-[11px] tracking-wider text-muted-foreground capitalize">{day}</dt>
+                    <dd className={`font-medium ${/closed/i.test(venue.openingHours![day]) ? "text-muted-foreground" : ""}`}>
+                      {venue.openingHours![day] || "—"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
           <VenueReports venueId={venue.id} />
 
           <div className="bg-card border border-border/50 rounded-lg p-4">

@@ -47,6 +47,19 @@ export const VenueNoiseLevel = {
   loud: 'loud',
 } as const;
 
+/**
+ * Per-day opening hours, free-text (e.g. "5pm – 2am" or "Closed")
+ */
+export interface OpeningHours {
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
+}
+
 export interface Venue {
   id: number;
   name: string;
@@ -76,6 +89,9 @@ export interface Venue {
   staffingSignal: string;
   dataSignalsTracked: string[];
   arrivalTips: string[];
+  /** Object storage paths (e.g. /objects/uploads/uuid) served via /api/storage */
+  photos: string[];
+  openingHours?: OpeningHours | null;
   /** @nullable */
   sourceLabel?: string | null;
   /** @nullable */
@@ -115,6 +131,42 @@ export interface VenueUpdate {
   /** @minLength 1 */
   coverCost?: string;
   noiseLevel?: VenueUpdateNoiseLevel;
+  /**
+     * Object storage paths (e.g. /objects/uploads/uuid)
+     * @maxItems 8
+     */
+  photos?: string[];
+  openingHours?: OpeningHours | null;
+}
+
+export interface UploadUrlRequest {
+  /**
+     * Original file name.
+     * @minLength 1
+     */
+  name: string;
+  /**
+     * File size in bytes.
+     * @minimum 1
+     */
+  size: number;
+  /**
+     * MIME type of the file (e.g. `image/jpeg`).
+     * @minLength 1
+     */
+  contentType: string;
+}
+
+export interface UploadUrlResponse {
+  /** Presigned GCS URL for PUT upload. */
+  uploadURL: string;
+  /** Normalized object path (e.g. `/objects/uploads/uuid`). Store this in your database. */
+  objectPath: string;
+  metadata?: UploadUrlRequest;
+}
+
+export interface ErrorEnvelope {
+  error: string;
 }
 
 export type VenueClaimStatus = typeof VenueClaimStatus[keyof typeof VenueClaimStatus];

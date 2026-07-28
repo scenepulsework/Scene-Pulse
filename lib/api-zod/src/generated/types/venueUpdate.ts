@@ -5,6 +5,7 @@
  * ScenePulse API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { OpeningHours } from './openingHours';
 import type { VenueUpdateCategory } from './venueUpdateCategory';
 import type { VenueUpdateNoiseLevel } from './venueUpdateNoiseLevel';
 
@@ -18,4 +19,10 @@ export interface VenueUpdate {
   /** @minLength 1 */
   coverCost?: string;
   noiseLevel?: VenueUpdateNoiseLevel;
+  /**
+     * Object storage paths (e.g. /objects/uploads/uuid)
+     * @maxItems 8
+     */
+  photos?: string[];
+  openingHours?: OpeningHours | null;
 }
