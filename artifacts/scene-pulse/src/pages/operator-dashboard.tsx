@@ -6,9 +6,12 @@ import {
   useListOperatorVenues,
   getListOperatorVenuesQueryKey,
   useClaimVenue,
+  useVerifyVenueClaim,
+  useCancelVenueClaim,
   useUpdateVenue,
   getGetVenueQueryKey,
   getListVenuesQueryKey,
+  type OperatorVenue,
   type Venue,
   type VenueUpdate,
 } from "@workspace/api-client-react";
@@ -26,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, LogOut, MapPin, Pencil, ShieldCheck, X } from "lucide-react";
+import { Building2, Clock, LogOut, MapPin, Pencil, ShieldCheck, X } from "lucide-react";
 
 const CATEGORIES = ["bar", "restaurant", "retail", "cafe", "experience"] as const;
 const NOISE_LEVELS = ["quiet", "moderate", "loud"] as const;
@@ -36,9 +39,16 @@ function ClaimForm() {
   const queryClient = useQueryClient();
   const claimMutation = useClaimVenue({
     mutation: {
-      onSuccess: () => {
-        toast.success("Venue claimed — it now appears in your dashboard");
+      onSuccess: (claim) => {
+        if (claim.status === "verified") {
+          toast.success("Venue claimed and verified — it now appears in your dashboard");
+        } else {
+          toast.success("Claim submitted — verify ownership with the confirmation code to unlock editing");
+        }
         setVenueId("");
+        if (claim.status === "pending" && claim.devVerificationCode) {
+          toast.info(`Dev mode — your confirmation code is ${claim.devVerificationCode}`, { duration: 20000 });
+        }
         queryClient.invalidateQueries({ queryKey: getListOperatorVenuesQueryKey() });
       },
       onError: (error: any) => {
@@ -67,7 +77,7 @@ function ClaimForm() {
         Claim your venue
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Enter your venue's ID (shown in the venue page URL, e.g. /venue/<span className="font-mono">12</span>) to claim it and manage its listing.
+        Enter your venue's ID (shown in the venue page URL, e.g. /venue/<span className="font-mono">12</span>) to claim it. A confirmation code is issued to the venue's business contact — enter it below to verify ownership and unlock editing.
       </p>
       <div className="flex gap-3">
         <Input
@@ -178,8 +188,75 @@ function EditVenueForm({ venue, onClose }: { venue: Venue; onClose: () => void }
   );
 }
 
-function ClaimedVenueCard({ venue }: { venue: Venue }) {
+function VerifyClaimForm({ venueId }: { venueId: number }) {
+  const [code, setCode] = useState("");
+  const queryClient = useQueryClient();
+  const cancelMutation = useCancelVenueClaim({
+    mutation: {
+      onSuccess: () => {
+        toast.success("Claim cancelled");
+        queryClient.invalidateQueries({ queryKey: getListOperatorVenuesQueryKey() });
+      },
+      onError: () => toast.error("Could not cancel claim — try again"),
+    },
+  });
+  const verifyMutation = useVerifyVenueClaim({
+    mutation: {
+      onSuccess: () => {
+        toast.success("Ownership verified — editing is now unlocked");
+        queryClient.invalidateQueries({ queryKey: getListOperatorVenuesQueryKey() });
+      },
+      onError: (error: any) => {
+        if (error?.status === 400) toast.error("Incorrect verification code");
+        else if (error?.status === 404) toast.error("No pending claim found for this venue");
+        else toast.error("Could not verify — try again");
+      },
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(code.trim())) {
+      toast.error("Enter the 6-digit confirmation code");
+      return;
+    }
+    verifyMutation.mutate({ id: venueId, data: { code: code.trim() } });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 pt-4 border-t border-border/50">
+      <p className="text-sm text-muted-foreground mb-3">
+        This claim is pending. Enter the 6-digit confirmation code issued to the venue's business contact to verify ownership and unlock editing. Codes expire after 24 hours — re-submit the claim above to get a fresh one.
+      </p>
+      <div className="flex gap-3">
+        <Input
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="6-digit code"
+          inputMode="numeric"
+          maxLength={6}
+          className="max-w-[160px] font-mono"
+        />
+        <Button type="submit" disabled={verifyMutation.isPending} className="font-mono uppercase tracking-wider text-xs">
+          {verifyMutation.isPending ? "Verifying..." : "Verify ownership"}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={cancelMutation.isPending}
+          onClick={() => cancelMutation.mutate({ id: venueId })}
+          className="font-mono uppercase tracking-wider text-xs text-muted-foreground"
+        >
+          {cancelMutation.isPending ? "Cancelling..." : "Cancel claim"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function ClaimedVenueCard({ venue }: { venue: OperatorVenue }) {
   const [editing, setEditing] = useState(false);
+  const isVerified = venue.claimStatus === "verified";
 
   return (
     <div className="bg-card border border-border/50 rounded-lg p-6">
@@ -187,7 +264,15 @@ function ClaimedVenueCard({ venue }: { venue: Venue }) {
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <Badge variant="secondary" className="font-mono uppercase tracking-wider">{venue.category}</Badge>
-            <Badge variant="outline" className="font-mono text-[10px] uppercase text-primary border-primary/40">Claimed</Badge>
+            {isVerified ? (
+              <Badge variant="outline" className="font-mono text-[10px] uppercase text-primary border-primary/40">
+                <ShieldCheck className="w-3 h-3 mr-1" />Verified
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="font-mono text-[10px] uppercase text-amber-500 border-amber-500/40">
+                <Clock className="w-3 h-3 mr-1" />Pending verification
+              </Badge>
+            )}
           </div>
           <h3 className="text-xl font-black uppercase tracking-tight">{venue.name}</h3>
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
@@ -207,17 +292,20 @@ function ClaimedVenueCard({ venue }: { venue: Venue }) {
           <Link href={`/venue/${venue.id}`}>
             <Button variant="outline" size="sm" className="font-mono uppercase tracking-wider text-xs">View</Button>
           </Link>
-          <Button
-            variant={editing ? "ghost" : "default"}
-            size="sm"
-            onClick={() => setEditing((v) => !v)}
-            className="font-mono uppercase tracking-wider text-xs"
-          >
-            {editing ? <><X className="w-3.5 h-3.5 mr-1" />Close</> : <><Pencil className="w-3.5 h-3.5 mr-1" />Edit details</>}
-          </Button>
+          {isVerified && (
+            <Button
+              variant={editing ? "ghost" : "default"}
+              size="sm"
+              onClick={() => setEditing((v) => !v)}
+              className="font-mono uppercase tracking-wider text-xs"
+            >
+              {editing ? <><X className="w-3.5 h-3.5 mr-1" />Close</> : <><Pencil className="w-3.5 h-3.5 mr-1" />Edit details</>}
+            </Button>
+          )}
         </div>
       </div>
-      {editing && <EditVenueForm venue={venue} onClose={() => setEditing(false)} />}
+      {!isVerified && <VerifyClaimForm venueId={venue.id} />}
+      {isVerified && editing && <EditVenueForm venue={venue} onClose={() => setEditing(false)} />}
     </div>
   );
 }

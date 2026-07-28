@@ -177,6 +177,48 @@ export const ClaimVenueResponse = zod.object({
   "id": zod.number(),
   "venueId": zod.number(),
   "operatorUserId": zod.string(),
+  "status": zod.enum(['pending', 'verified']),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "expiresAt": zod.coerce.date().nullish(),
+  "devVerificationCode": zod.string().optional().describe('Verification code, exposed only in development while no email provider is connected'),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Cancel your own pending claim on a venue
+ */
+export const CancelVenueClaimParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CancelVenueClaimResponse = zod.void()
+
+
+/**
+ * @summary Verify a pending venue claim with the confirmation code
+ */
+export const VerifyVenueClaimParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const verifyVenueClaimBodyCodeMin = 6;
+export const verifyVenueClaimBodyCodeMax = 6;
+
+
+
+export const VerifyVenueClaimBody = zod.object({
+  "code": zod.string().min(verifyVenueClaimBodyCodeMin).max(verifyVenueClaimBodyCodeMax)
+})
+
+export const VerifyVenueClaimResponse = zod.object({
+  "id": zod.number(),
+  "venueId": zod.number(),
+  "operatorUserId": zod.string(),
+  "status": zod.enum(['pending', 'verified']),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "expiresAt": zod.coerce.date().nullish(),
+  "devVerificationCode": zod.string().optional().describe('Verification code, exposed only in development while no email provider is connected'),
   "createdAt": zod.coerce.date()
 })
 
@@ -217,7 +259,9 @@ export const ListOperatorVenuesResponseItem = zod.object({
   "mapsUrl": zod.string().optional(),
   "isWatchlisted": zod.boolean(),
   "updatedAt": zod.coerce.date()
-})
+}).and(zod.object({
+  "claimStatus": zod.enum(['pending', 'verified'])
+}))
 export const ListOperatorVenuesResponse = zod.array(ListOperatorVenuesResponseItem)
 
 

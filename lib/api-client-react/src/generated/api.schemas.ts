@@ -117,12 +117,47 @@ export interface VenueUpdate {
   noiseLevel?: VenueUpdateNoiseLevel;
 }
 
+export type VenueClaimStatus = typeof VenueClaimStatus[keyof typeof VenueClaimStatus];
+
+
+export const VenueClaimStatus = {
+  pending: 'pending',
+  verified: 'verified',
+} as const;
+
 export interface VenueClaim {
   id: number;
   venueId: number;
   operatorUserId: string;
+  status: VenueClaimStatus;
+  /** @nullable */
+  verifiedAt?: string | null;
+  /** @nullable */
+  expiresAt?: string | null;
+  /** Verification code, exposed only in development while no email provider is connected */
+  devVerificationCode?: string;
   createdAt: string;
 }
+
+export interface VenueClaimVerification {
+  /**
+     * @minLength 6
+     * @maxLength 6
+     */
+  code: string;
+}
+
+export type OperatorVenueClaimStatus = typeof OperatorVenueClaimStatus[keyof typeof OperatorVenueClaimStatus];
+
+
+export const OperatorVenueClaimStatus = {
+  pending: 'pending',
+  verified: 'verified',
+} as const;
+
+export type OperatorVenue = Venue & {
+  claimStatus: OperatorVenueClaimStatus;
+};
 
 export interface Market {
   market: string;

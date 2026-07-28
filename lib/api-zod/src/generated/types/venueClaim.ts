@@ -5,10 +5,18 @@
  * ScenePulse API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { VenueClaimStatus } from './venueClaimStatus';
 
 export interface VenueClaim {
   id: number;
   venueId: number;
   operatorUserId: string;
+  status: VenueClaimStatus;
+  /** @nullable */
+  verifiedAt?: Date | null;
+  /** @nullable */
+  expiresAt?: Date | null;
+  /** Verification code, exposed only in development while no email provider is connected */
+  devVerificationCode?: string;
   createdAt: Date;
 }

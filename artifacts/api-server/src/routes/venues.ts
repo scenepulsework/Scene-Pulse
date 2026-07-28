@@ -11,12 +11,29 @@ import {
   UpdateVenueResponse,
   ClaimVenueParams,
   ClaimVenueResponse,
+  VerifyVenueClaimParams,
+  VerifyVenueClaimBody,
+  VerifyVenueClaimResponse,
+  CancelVenueClaimParams,
   ListOperatorVenuesResponse,
 } from "@workspace/api-zod";
 import { presentVenue } from "../lib/venuePresenter";
 import { requireAuth, type AuthedRequest } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
+
+type ClaimRow = typeof venueClaimsTable.$inferSelect;
+
+// No email provider is connected yet, so in development the code is surfaced
+// to the claimant directly instead of being emailed to the venue's contact.
+function presentClaim(claim: ClaimRow) {
+  const { verificationCode, ...rest } = claim;
+  const isDev = process.env.NODE_ENV !== "production";
+  return {
+    ...rest,
+    ...(isDev && claim.status === "pending" ? { devVerificationCode: verificationCode } : {}),
+  };
+}
 
 const INTENT_TAG_MATCH: Record<string, string[]> = {
   dateNight: ["date night"],
@@ -124,9 +141,18 @@ router.patch("/venues/:id", requireAuth, async (req: AuthedRequest, res): Promis
   const [claim] = await db
     .select()
     .from(venueClaimsTable)
-    .where(eq(venueClaimsTable.venueId, params.data.id));
-  if (!claim || claim.operatorUserId !== req.userId) {
+    .where(
+      and(
+        eq(venueClaimsTable.venueId, params.data.id),
+        eq(venueClaimsTable.operatorUserId, req.userId!),
+      ),
+    );
+  if (!claim) {
     res.status(403).json({ error: "You have not claimed this venue" });
+    return;
+  }
+  if (claim.status !== "verified") {
+    res.status(403).json({ error: "Your claim is pending verification — verify it before editing" });
     return;
   }
   const updates = Object.fromEntries(
@@ -144,6 +170,8 @@ router.patch("/venues/:id", requireAuth, async (req: AuthedRequest, res): Promis
   res.json(UpdateVenueResponse.parse(presentVenue(updated)));
 });
 
+const CLAIM_TTL_MS = 24 * 60 * 60 * 1000;
+
 router.post("/venues/:id/claim", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
   const params = ClaimVenueParams.safeParse(req.params);
   if (!params.success) {
@@ -155,23 +183,119 @@ router.post("/venues/:id/claim", requireAuth, async (req: AuthedRequest, res): P
     res.status(404).json({ error: "Venue not found" });
     return;
   }
-  const [existing] = await db
+  const claims = await db
     .select()
     .from(venueClaimsTable)
     .where(eq(venueClaimsTable.venueId, params.data.id));
-  if (existing) {
-    if (existing.operatorUserId === req.userId) {
-      res.status(201).json(ClaimVenueResponse.parse(existing));
+  // Only a VERIFIED claim blocks other operators; pending claims from others don't.
+  const verified = claims.find((c) => c.status === "verified");
+  if (verified) {
+    if (verified.operatorUserId === req.userId) {
+      res.status(201).json(ClaimVenueResponse.parse(presentClaim(verified)));
       return;
     }
-    res.status(409).json({ error: "Venue already claimed by another operator" });
+    res.status(409).json({ error: "Venue already claimed by a verified operator" });
+    return;
+  }
+  const verificationCode = String(Math.floor(100000 + Math.random() * 900000));
+  const expiresAt = new Date(Date.now() + CLAIM_TTL_MS);
+  const own = claims.find((c) => c.operatorUserId === req.userId);
+  if (own) {
+    // Re-claiming refreshes the code and expiry.
+    const [refreshed] = await db
+      .update(venueClaimsTable)
+      .set({ verificationCode, expiresAt })
+      .where(eq(venueClaimsTable.id, own.id))
+      .returning();
+    req.log.info({ venueId: refreshed.venueId }, "Venue claim refreshed, new verification code issued");
+    res.status(201).json(ClaimVenueResponse.parse(presentClaim(refreshed)));
     return;
   }
   const [claim] = await db
     .insert(venueClaimsTable)
-    .values({ venueId: params.data.id, operatorUserId: req.userId! })
+    .values({ venueId: params.data.id, operatorUserId: req.userId!, verificationCode, expiresAt })
     .returning();
-  res.status(201).json(ClaimVenueResponse.parse(claim));
+  req.log.info({ venueId: claim.venueId }, "Venue claim created, verification code issued");
+  res.status(201).json(ClaimVenueResponse.parse(presentClaim(claim)));
+});
+
+router.delete("/venues/:id/claim", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
+  const params = CancelVenueClaimParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const deleted = await db
+    .delete(venueClaimsTable)
+    .where(
+      and(
+        eq(venueClaimsTable.venueId, params.data.id),
+        eq(venueClaimsTable.operatorUserId, req.userId!),
+        eq(venueClaimsTable.status, "pending"),
+      ),
+    )
+    .returning();
+  if (deleted.length === 0) {
+    res.status(404).json({ error: "No pending claim by you for this venue" });
+    return;
+  }
+  res.status(204).end();
+});
+
+router.post("/venues/:id/claim/verify", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
+  const params = VerifyVenueClaimParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const body = VerifyVenueClaimBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+  const [claim] = await db
+    .select()
+    .from(venueClaimsTable)
+    .where(
+      and(
+        eq(venueClaimsTable.venueId, params.data.id),
+        eq(venueClaimsTable.operatorUserId, req.userId!),
+      ),
+    );
+  if (!claim || claim.status !== "pending") {
+    res.status(404).json({ error: "No pending claim by you for this venue" });
+    return;
+  }
+  if (claim.expiresAt && claim.expiresAt.getTime() < Date.now()) {
+    res.status(400).json({ error: "Verification code expired — re-submit the claim to get a new code" });
+    return;
+  }
+  if (body.data.code !== claim.verificationCode) {
+    res.status(400).json({ error: "Incorrect verification code" });
+    return;
+  }
+  const [alreadyVerified] = await db
+    .select()
+    .from(venueClaimsTable)
+    .where(
+      and(eq(venueClaimsTable.venueId, params.data.id), eq(venueClaimsTable.status, "verified")),
+    );
+  if (alreadyVerified) {
+    res.status(409).json({ error: "Venue already claimed by a verified operator" });
+    return;
+  }
+  const [verified] = await db
+    .update(venueClaimsTable)
+    .set({ status: "verified", verifiedAt: new Date() })
+    .where(eq(venueClaimsTable.id, claim.id))
+    .returning();
+  // Competing pending claims are now moot.
+  await db
+    .delete(venueClaimsTable)
+    .where(
+      and(eq(venueClaimsTable.venueId, params.data.id), eq(venueClaimsTable.status, "pending")),
+    );
+  res.json(VerifyVenueClaimResponse.parse(presentClaim(verified)));
 });
 
 router.get("/operator/venues", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
@@ -187,7 +311,12 @@ router.get("/operator/venues", requireAuth, async (req: AuthedRequest, res): Pro
     .select()
     .from(venuesTable)
     .where(inArray(venuesTable.id, claims.map((c) => c.venueId)));
-  res.json(ListOperatorVenuesResponse.parse(rows.map(presentVenue)));
+  const statusByVenue = new Map(claims.map((c) => [c.venueId, c.status]));
+  res.json(
+    ListOperatorVenuesResponse.parse(
+      rows.map((v) => ({ ...presentVenue(v), claimStatus: statusByVenue.get(v.id) })),
+    ),
+  );
 });
 
 export default router;

@@ -32,8 +32,10 @@ import type {
   Market,
   MarketGap,
   MyActivity,
+  OperatorVenue,
   Venue,
   VenueClaim,
+  VenueClaimVerification,
   VenueUpdate,
   WatchlistEntry
 } from './api.schemas';
@@ -448,6 +450,149 @@ export const useClaimVenue = <TError = ErrorType<void>,
       return useMutation(getClaimVenueMutationOptions(options));
     }
 
+export const getCancelVenueClaimUrl = (id: number,) => {
+
+
+
+
+  return `/api/venues/${id}/claim`
+}
+
+/**
+ * @summary Cancel your own pending claim on a venue
+ */
+export const cancelVenueClaim = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCancelVenueClaimUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getCancelVenueClaimMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelVenueClaim>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelVenueClaim>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['cancelVenueClaim'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelVenueClaim>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelVenueClaim(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelVenueClaimMutationResult = NonNullable<Awaited<ReturnType<typeof cancelVenueClaim>>>
+
+    export type CancelVenueClaimMutationError = ErrorType<void>
+
+    /**
+ * @summary Cancel your own pending claim on a venue
+ */
+export const useCancelVenueClaim = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelVenueClaim>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelVenueClaim>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCancelVenueClaimMutationOptions(options));
+    }
+
+export const getVerifyVenueClaimUrl = (id: number,) => {
+
+
+
+
+  return `/api/venues/${id}/claim/verify`
+}
+
+/**
+ * @summary Verify a pending venue claim with the confirmation code
+ */
+export const verifyVenueClaim = async (id: number,
+    venueClaimVerification: VenueClaimVerification, options?: RequestInit): Promise<VenueClaim> => {
+
+  return customFetch<VenueClaim>(getVerifyVenueClaimUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(venueClaimVerification)
+  }
+);}
+
+
+
+
+
+export const getVerifyVenueClaimMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyVenueClaim>>, TError,{id: number;data: BodyType<VenueClaimVerification>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyVenueClaim>>, TError,{id: number;data: BodyType<VenueClaimVerification>}, TContext> => {
+
+const mutationKey = ['verifyVenueClaim'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyVenueClaim>>, {id: number;data: BodyType<VenueClaimVerification>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  verifyVenueClaim(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyVenueClaimMutationResult = NonNullable<Awaited<ReturnType<typeof verifyVenueClaim>>>
+    export type VerifyVenueClaimMutationBody = BodyType<VenueClaimVerification>
+    export type VerifyVenueClaimMutationError = ErrorType<void>
+
+    /**
+ * @summary Verify a pending venue claim with the confirmation code
+ */
+export const useVerifyVenueClaim = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyVenueClaim>>, TError,{id: number;data: BodyType<VenueClaimVerification>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyVenueClaim>>,
+        TError,
+        {id: number;data: BodyType<VenueClaimVerification>},
+        TContext
+      > => {
+      return useMutation(getVerifyVenueClaimMutationOptions(options));
+    }
+
 export const getListOperatorVenuesUrl = () => {
 
 
@@ -459,9 +604,9 @@ export const getListOperatorVenuesUrl = () => {
 /**
  * @summary List venues claimed by the current operator
  */
-export const listOperatorVenues = async ( options?: RequestInit): Promise<Venue[]> => {
+export const listOperatorVenues = async ( options?: RequestInit): Promise<OperatorVenue[]> => {
 
-  return customFetch<Venue[]>(getListOperatorVenuesUrl(),
+  return customFetch<OperatorVenue[]>(getListOperatorVenuesUrl(),
   {
     ...options,
     method: 'GET'

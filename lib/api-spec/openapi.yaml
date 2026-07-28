@@ -147,6 +147,52 @@ paths:
           description: Venue not found
         "409":
           description: Venue already claimed by another operator
+    delete:
+      operationId: cancelVenueClaim
+      tags: [venues]
+      summary: Cancel your own pending claim on a venue
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Pending claim cancelled
+        "401":
+          description: Not authenticated
+        "404":
+          description: No pending claim by this operator for this venue
+
+  /venues/{id}/claim/verify:
+    post:
+      operationId: verifyVenueClaim
+      tags: [venues]
+      summary: Verify a pending venue claim with the confirmation code
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VenueClaimVerification"
+      responses:
+        "200":
+          description: Claim verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VenueClaim"
+        "400":
+          description: Incorrect verification code
+        "401":
+          description: Not authenticated
+        "404":
+          description: No pending claim by this operator for this venue
 
   /operator/venues:
     get:
@@ -161,7 +207,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Venue"
+                  $ref: "#/components/schemas/OperatorVenue"
         "401":
           description: Not authenticated
 
@@ -544,12 +590,36 @@ components:
 
     VenueClaim:
       type: object
-      required: [id, venueId, operatorUserId, createdAt]
+      required: [id, venueId, operatorUserId, status, createdAt]
       properties:
         id: { type: integer }
         venueId: { type: integer }
         operatorUserId: { type: string }
+        status:
+          type: string
+          enum: [pending, verified]
+        verifiedAt: { type: ["string", "null"], format: date-time }
+        expiresAt: { type: ["string", "null"], format: date-time }
+        devVerificationCode:
+          type: string
+          description: Verification code, exposed only in development while no email provider is connected
         createdAt: { type: string, format: date-time }
+
+    VenueClaimVerification:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, minLength: 6, maxLength: 6 }
+
+    OperatorVenue:
+      allOf:
+        - $ref: "#/components/schemas/Venue"
+        - type: object
+          required: [claimStatus]
+          properties:
+            claimStatus:
+              type: string
+              enum: [pending, verified]
 
     Market:
       type: object
