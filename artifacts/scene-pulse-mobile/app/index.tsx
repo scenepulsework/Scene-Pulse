@@ -25,6 +25,7 @@ import {
 } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { VenueCard } from '@/components/VenueCard';
+import { useAuth, useUser } from '@clerk/expo';
 
 const SORTS = [
   { key: 'crowdScore', label: 'Hottest' },
@@ -37,6 +38,8 @@ export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
   const [search, setSearch] = useState('');
   const [market, setMarket] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<(typeof SORTS)[number]['key']>('crowdScore');
@@ -113,6 +116,43 @@ export default function HomeScreen() {
                 >
                   <Feather name="map" size={18} color={colors.primary} />
                 </Pressable>
+                {isSignedIn ? (
+                  <Pressable
+                    testID="open-watchlist"
+                    onPress={() => router.push('/watchlist')}
+                    hitSlop={10}
+                    style={({ pressed }) => [
+                      styles.mapBtn,
+                      {
+                        backgroundColor: `${colors.primary}22`,
+                        borderColor: colors.primary,
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
+                  >
+                    <View style={styles.avatarBtn}>
+                      <Text style={[styles.avatarInitial, { color: colors.primary }]}>
+                        {(user?.fullName || user?.firstName || 'U').charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    testID="open-signin"
+                    onPress={() => router.push('/sign-in')}
+                    hitSlop={10}
+                    style={({ pressed }) => [
+                      styles.mapBtn,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: colors.border,
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
+                  >
+                    <Feather name="user" size={18} color={colors.mutedForeground} />
+                  </Pressable>
+                )}
               </View>
               {stats ? (
                 <Text style={[styles.subline, { color: colors.mutedForeground }]}>
@@ -313,4 +353,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarBtn: { alignItems: 'center', justifyContent: 'center' },
+  avatarInitial: { fontSize: 15, fontFamily: 'Inter_700Bold', lineHeight: 17 },
 });

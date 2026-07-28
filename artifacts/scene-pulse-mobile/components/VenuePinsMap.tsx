@@ -1,6 +1,12 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+// react-native-maps class-component types are incompatible with React 19 — suppress at usage
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import MapViewImport, { Marker as MarkerImport } from 'react-native-maps';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MapView = MapViewImport as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Marker = MarkerImport as any;
 import type { Venue } from '@workspace/api-client-react';
 import { crowdColor } from '@/lib/venue-ui';
 
@@ -35,7 +41,8 @@ const DARK_MAP_STYLE = [
 
 export const VenuePinsMap = forwardRef<VenuePinsMapHandle, VenuePinsMapProps>(
   function VenuePinsMap({ venues, selectedId, onSelect, showsUserLocation, initialRegion }, ref) {
-    const mapRef = useRef<MapView>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mapRef = useRef<any>(null);
 
     useImperativeHandle(ref, () => ({
       animateTo: (latitude, longitude) => {
@@ -65,7 +72,7 @@ export const VenuePinsMap = forwardRef<VenuePinsMapHandle, VenuePinsMapProps>(
             <Marker
               key={venue.id}
               coordinate={{ latitude: venue.latitude, longitude: venue.longitude }}
-              onPress={(e) => {
+              onPress={(e: { stopPropagation: () => void }) => {
                 e.stopPropagation();
                 onSelect(venue.id);
               }}

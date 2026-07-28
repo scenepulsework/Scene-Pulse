@@ -10,6 +10,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { useUser } from '@clerk/expo';
 import {
   Comment,
   getListVenueCommentsQueryKey,
@@ -25,6 +26,9 @@ import { getVoterId } from '@/lib/voter-id';
 export function VenueComments({ venueId }: { venueId: number }) {
   const colors = useColors();
   const queryClient = useQueryClient();
+  const { user } = useUser();
+
+  const userDisplayName = user?.fullName || user?.firstName || '';
 
   const [voterId, setVoterId] = useState<string | null>(null);
   useEffect(() => {
@@ -42,6 +46,13 @@ export function VenueComments({ venueId }: { venueId: number }) {
   const [authorName, setAuthorName] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill name from account when signed in
+  useEffect(() => {
+    if (userDisplayName && !authorName) {
+      setAuthorName(userDisplayName);
+    }
+  }, [userDisplayName]);
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
   const [dislikedIds, setDislikedIds] = useState<Set<number>>(new Set());
 
@@ -219,22 +230,29 @@ export function VenueComments({ venueId }: { venueId: number }) {
       </View>
 
       {/* Composer */}
-      <TextInput
-        testID="comment-name-input"
-        value={authorName}
-        onChangeText={setAuthorName}
-        placeholder="Your name"
-        placeholderTextColor={colors.mutedForeground}
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.background,
-            borderColor: colors.border,
-            color: colors.foreground,
-            borderRadius: colors.radius,
-          },
-        ]}
-      />
+      {userDisplayName ? (
+        <View style={[styles.nameDisplay, { backgroundColor: colors.background, borderColor: colors.border, borderRadius: colors.radius }]}>
+          <Feather name="user-check" size={13} color={colors.primary} />
+          <Text style={[styles.nameDisplayText, { color: colors.foreground }]}>{userDisplayName}</Text>
+        </View>
+      ) : (
+        <TextInput
+          testID="comment-name-input"
+          value={authorName}
+          onChangeText={setAuthorName}
+          placeholder="Your name"
+          placeholderTextColor={colors.mutedForeground}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.background,
+              borderColor: colors.border,
+              color: colors.foreground,
+              borderRadius: colors.radius,
+            },
+          ]}
+        />
+      )}
       <View style={styles.composerRow}>
         <TextInput
           testID="comment-message-input"
@@ -359,6 +377,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   error: { fontSize: 12, fontFamily: 'Inter_500Medium', marginTop: 8 },
+  nameDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 13,
+    marginBottom: 8,
+  },
+  nameDisplayText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   emptyText: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 14, lineHeight: 19 },
   commentRow: { paddingTop: 10, marginTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
   commentHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 },

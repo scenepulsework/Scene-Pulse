@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -14,6 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { useUser } from '@clerk/expo';
 import {
   getGetVenueQueryKey,
   getListVenueReportsQueryKey,
@@ -34,14 +35,24 @@ export default function ReportScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user } = useUser();
   const { id: idParam } = useLocalSearchParams<{ id: string }>();
   const venueId = Number(idParam);
+
+  const userDisplayName = user?.fullName || user?.firstName || '';
 
   const [reporterName, setReporterName] = useState('');
   const [crowdLevel, setCrowdLevel] = useState<'open' | 'lively' | 'packed'>('lively');
   const [waitTime, setWaitTime] = useState('10');
   const [vibeNote, setVibeNote] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill name from account when signed in
+  useEffect(() => {
+    if (userDisplayName && !reporterName) {
+      setReporterName(userDisplayName);
+    }
+  }, [userDisplayName]);
 
   const { mutate, isPending } = useCreateVenueReport({
     mutation: {
@@ -205,22 +216,29 @@ export default function ReportScreen() {
         />
 
         <Text style={[styles.label, { color: colors.mutedForeground }]}>YOUR NAME</Text>
-        <TextInput
-          testID="name-input"
-          value={reporterName}
-          onChangeText={setReporterName}
-          placeholder="Scene scout"
-          placeholderTextColor={colors.mutedForeground}
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              color: colors.foreground,
-              borderRadius: colors.radius,
-            },
-          ]}
-        />
+        {userDisplayName ? (
+          <View style={[styles.nameDisplay, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+            <Feather name="user-check" size={15} color={colors.primary} />
+            <Text style={[styles.nameDisplayText, { color: colors.foreground }]}>{userDisplayName}</Text>
+          </View>
+        ) : (
+          <TextInput
+            testID="name-input"
+            value={reporterName}
+            onChangeText={setReporterName}
+            placeholder="Scene scout"
+            placeholderTextColor={colors.mutedForeground}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                color: colors.foreground,
+                borderRadius: colors.radius,
+              },
+            ]}
+          />
+        )}
 
         {error && (
           <Text style={[styles.error, { color: colors.destructive }]} testID="report-error">
@@ -310,6 +328,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
   },
   vibeInput: { minHeight: 80, textAlignVertical: 'top' },
+  nameDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    marginHorizontal: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 14,
+  },
+  nameDisplayText: { fontSize: 14, fontFamily: 'Inter_500Medium' },
   error: {
     fontSize: 13,
     fontFamily: 'Inter_500Medium',

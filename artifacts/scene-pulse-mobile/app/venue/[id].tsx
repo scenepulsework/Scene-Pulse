@@ -13,11 +13,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@clerk/expo';
 import {
   getGetVenueQueryKey,
   getListVenueReportsQueryKey,
+  getListWatchlistQueryKey,
   useGetVenue,
   useListVenueReports,
+  useListWatchlist,
+  useAddToWatchlist,
+  useRemoveFromWatchlist,
 } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { CrowdDot } from '@/components/VenueCard';
@@ -28,6 +34,8 @@ export default function VenueDetailScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { isSignedIn } = useAuth();
   const { id: idParam } = useLocalSearchParams<{ id: string }>();
   const id = Number(idParam);
 
@@ -37,6 +45,44 @@ export default function VenueDetailScreen() {
   const { data: reports = [] } = useListVenueReports(id, {
     query: { enabled: !!id, queryKey: getListVenueReportsQueryKey(id) },
   });
+
+  const { data: watchlist = [] } = useListWatchlist({
+    query: {
+      enabled: !!isSignedIn,
+      queryKey: getListWatchlistQueryKey(),
+    },
+  });
+
+  const isWatchlisted = watchlist.some((w) => w.id === id);
+
+  const { mutate: addToWatchlist, isPending: addPending } = useAddToWatchlist({
+    mutation: {
+      onSuccess: () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        queryClient.invalidateQueries({ queryKey: getListWatchlistQueryKey() });
+      },
+    },
+  });
+
+  const { mutate: removeFromWatchlist, isPending: removePending } = useRemoveFromWatchlist({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListWatchlistQueryKey() });
+      },
+    },
+  });
+
+  const toggleWatchlist = () => {
+    if (!isSignedIn) {
+      router.push('/sign-in');
+      return;
+    }
+    if (isWatchlisted) {
+      removeFromWatchlist({ venueId: id });
+    } else {
+      addToWatchlist({ venueId: id });
+    }
+  };
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -85,25 +131,45 @@ export default function VenueDetailScreen() {
           >
             <Feather name="chevron-left" size={20} color={colors.foreground} />
           </Pressable>
-          {venue.mapsUrl ? (
+          <View style={styles.headerRight}>
+            {venue.mapsUrl ? (
+              <Pressable
+                testID="open-maps"
+                onPress={() => Linking.openURL(venue.mapsUrl!)}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.iconBtn,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Feather name="map-pin" size={18} color={colors.primary} />
+              </Pressable>
+            ) : null}
             <Pressable
-              testID="open-maps"
-              onPress={() => Linking.openURL(venue.mapsUrl!)}
+              testID="watchlist-toggle"
+              onPress={toggleWatchlist}
               hitSlop={10}
+              disabled={addPending || removePending}
               style={({ pressed }) => [
                 styles.iconBtn,
                 {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.7 : 1,
+                  backgroundColor: isWatchlisted ? `${colors.primary}22` : colors.card,
+                  borderColor: isWatchlisted ? colors.primary : colors.border,
+                  opacity: pressed || addPending || removePending ? 0.7 : 1,
                 },
               ]}
             >
-              <Feather name="map-pin" size={18} color={colors.primary} />
+              <Feather
+                name="bookmark"
+                size={18}
+                color={isWatchlisted ? colors.primary : colors.mutedForeground}
+              />
             </Pressable>
-          ) : (
-            <View />
-          )}
+          </View>
         </View>
 
         <View style={styles.titleBlock}>
@@ -326,9 +392,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     marginBottom: 10,
   },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconBtn: {
     width: 38,
     height: 38,

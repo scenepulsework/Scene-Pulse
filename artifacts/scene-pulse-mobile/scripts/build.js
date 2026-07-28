@@ -148,6 +148,15 @@ async function startMetro(expoPublicDomain, expoPublicReplId) {
     console.log(`Setting EXPO_PUBLIC_REPL_ID=${expoPublicReplId}`);
   }
 
+  const clerkProxyUrl = process.env.CLERK_PROXY_URL
+    ? `https://${expoPublicDomain}${process.env.CLERK_PROXY_URL}`
+    : '';
+
+  Object.assign(env, {
+    EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '',
+    EXPO_PUBLIC_CLERK_PROXY_URL: clerkProxyUrl,
+  });
+
   metroProcess = spawn(
     'pnpm',
     ['exec', 'expo', 'start', '--no-dev', '--minify', '--localhost'],
