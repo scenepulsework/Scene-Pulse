@@ -31,7 +31,9 @@ import type {
   LiveReportInput,
   Market,
   MarketGap,
-  Venue
+  Venue,
+  VenueClaim,
+  VenueUpdate
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -289,6 +291,226 @@ export function useGetVenue<TData = Awaited<ReturnType<typeof getVenue>>, TError
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetVenueQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateVenueUrl = (id: number,) => {
+
+
+
+
+  return `/api/venues/${id}`
+}
+
+/**
+ * @summary Update a claimed venue's details (operator only)
+ */
+export const updateVenue = async (id: number,
+    venueUpdate: VenueUpdate, options?: RequestInit): Promise<Venue> => {
+
+  return customFetch<Venue>(getUpdateVenueUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(venueUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateVenueMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVenue>>, TError,{id: number;data: BodyType<VenueUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateVenue>>, TError,{id: number;data: BodyType<VenueUpdate>}, TContext> => {
+
+const mutationKey = ['updateVenue'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateVenue>>, {id: number;data: BodyType<VenueUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateVenue(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateVenueMutationResult = NonNullable<Awaited<ReturnType<typeof updateVenue>>>
+    export type UpdateVenueMutationBody = BodyType<VenueUpdate>
+    export type UpdateVenueMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a claimed venue's details (operator only)
+ */
+export const useUpdateVenue = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVenue>>, TError,{id: number;data: BodyType<VenueUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateVenue>>,
+        TError,
+        {id: number;data: BodyType<VenueUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateVenueMutationOptions(options));
+    }
+
+export const getClaimVenueUrl = (id: number,) => {
+
+
+
+
+  return `/api/venues/${id}/claim`
+}
+
+/**
+ * @summary Claim a venue as its operator
+ */
+export const claimVenue = async (id: number, options?: RequestInit): Promise<VenueClaim> => {
+
+  return customFetch<VenueClaim>(getClaimVenueUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getClaimVenueMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimVenue>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof claimVenue>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['claimVenue'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof claimVenue>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  claimVenue(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClaimVenueMutationResult = NonNullable<Awaited<ReturnType<typeof claimVenue>>>
+
+    export type ClaimVenueMutationError = ErrorType<void>
+
+    /**
+ * @summary Claim a venue as its operator
+ */
+export const useClaimVenue = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimVenue>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof claimVenue>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getClaimVenueMutationOptions(options));
+    }
+
+export const getListOperatorVenuesUrl = () => {
+
+
+
+
+  return `/api/operator/venues`
+}
+
+/**
+ * @summary List venues claimed by the current operator
+ */
+export const listOperatorVenues = async ( options?: RequestInit): Promise<Venue[]> => {
+
+  return customFetch<Venue[]>(getListOperatorVenuesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOperatorVenuesQueryKey = () => {
+    return [
+    `/api/operator/venues`
+    ] as const;
+    }
+
+
+export const getListOperatorVenuesQueryOptions = <TData = Awaited<ReturnType<typeof listOperatorVenues>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOperatorVenues>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOperatorVenuesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOperatorVenues>>> = ({ signal }) => listOperatorVenues({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOperatorVenues>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOperatorVenuesQueryResult = NonNullable<Awaited<ReturnType<typeof listOperatorVenues>>>
+export type ListOperatorVenuesQueryError = ErrorType<void>
+
+
+/**
+ * @summary List venues claimed by the current operator
+ */
+
+export function useListOperatorVenues<TData = Awaited<ReturnType<typeof listOperatorVenues>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOperatorVenues>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOperatorVenuesQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

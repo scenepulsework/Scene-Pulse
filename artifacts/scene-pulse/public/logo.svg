@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="48" viewBox="0 0 220 48">
+  <g fill="none">
+    <circle cx="24" cy="24" r="14" stroke="#00cfff" stroke-width="3"/>
+    <circle cx="24" cy="24" r="6" fill="#ff33cc"/>
+    <path d="M24 4v6M24 38v6M4 24h6M38 24h6" stroke="#00cfff" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <text x="52" y="32" font-family="Inter, sans-serif" font-size="21" font-weight="900" letter-spacing="-0.5" fill="#f5f5f7">SCENE<tspan fill="#00cfff">PULSE</tspan></text>
+</svg>

@@ -93,6 +93,76 @@ paths:
         "404":
           description: Not found
 
+    patch:
+      operationId: updateVenue
+      tags: [venues]
+      summary: Update a claimed venue's details (operator only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VenueUpdate"
+      responses:
+        "200":
+          description: Updated venue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venue"
+        "401":
+          description: Not authenticated
+        "403":
+          description: Venue not claimed by this operator
+        "404":
+          description: Not found
+
+  /venues/{id}/claim:
+    post:
+      operationId: claimVenue
+      tags: [venues]
+      summary: Claim a venue as its operator
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "201":
+          description: Claim created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VenueClaim"
+        "401":
+          description: Not authenticated
+        "404":
+          description: Venue not found
+        "409":
+          description: Venue already claimed by another operator
+
+  /operator/venues:
+    get:
+      operationId: listOperatorVenues
+      tags: [venues]
+      summary: List venues claimed by the current operator
+      responses:
+        "200":
+          description: Claimed venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Venue"
+        "401":
+          description: Not authenticated
+
   /markets:
     get:
       operationId: listMarkets
@@ -423,6 +493,31 @@ components:
         mapsUrl: { type: string }
         isWatchlisted: { type: boolean }
         updatedAt: { type: string, format: date-time }
+
+    VenueUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        address: { type: string, minLength: 1 }
+        category:
+          type: string
+          enum: [bar, restaurant, retail, cafe, experience]
+        bestFor:
+          type: array
+          items: { type: string }
+        coverCost: { type: string, minLength: 1 }
+        noiseLevel:
+          type: string
+          enum: [quiet, moderate, loud]
+
+    VenueClaim:
+      type: object
+      required: [id, venueId, operatorUserId, createdAt]
+      properties:
+        id: { type: integer }
+        venueId: { type: integer }
+        operatorUserId: { type: string }
+        createdAt: { type: string, format: date-time }
 
     Market:
       type: object

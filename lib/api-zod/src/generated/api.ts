@@ -110,6 +110,118 @@ export const GetVenueResponse = zod.object({
 
 
 /**
+ * @summary Update a claimed venue's details (operator only)
+ */
+export const UpdateVenueParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+
+export const UpdateVenueBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "address": zod.string().min(1).optional(),
+  "category": zod.enum(['bar', 'restaurant', 'retail', 'cafe', 'experience']).optional(),
+  "bestFor": zod.array(zod.string()).optional(),
+  "coverCost": zod.string().min(1).optional(),
+  "noiseLevel": zod.enum(['quiet', 'moderate', 'loud']).optional()
+})
+
+export const UpdateVenueResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['bar', 'restaurant', 'retail', 'cafe', 'experience']),
+  "city": zod.string(),
+  "market": zod.string(),
+  "region": zod.string(),
+  "country": zod.string(),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "address": zod.string(),
+  "rating": zod.number(),
+  "crowdScore": zod.number().describe('0-100 crowd pressure score'),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "headcount": zod.number(),
+  "lineTrend": zod.enum(['rising', 'falling', 'steady']),
+  "seatingOdds": zod.string(),
+  "noiseLevel": zod.enum(['quiet', 'moderate', 'loud']),
+  "coverCost": zod.string(),
+  "bestTimeWindow": zod.string(),
+  "bestFor": zod.array(zod.string()),
+  "operatorGapNote": zod.string(),
+  "peakPressureWindow": zod.string(),
+  "reservationSignal": zod.string(),
+  "staffingSignal": zod.string(),
+  "dataSignalsTracked": zod.array(zod.string()),
+  "arrivalTips": zod.array(zod.string()),
+  "sourceLabel": zod.string().nullish(),
+  "sourceUrl": zod.string().nullish(),
+  "mapsUrl": zod.string().optional(),
+  "isWatchlisted": zod.boolean(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Claim a venue as its operator
+ */
+export const ClaimVenueParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ClaimVenueResponse = zod.object({
+  "id": zod.number(),
+  "venueId": zod.number(),
+  "operatorUserId": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List venues claimed by the current operator
+ */
+export const ListOperatorVenuesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['bar', 'restaurant', 'retail', 'cafe', 'experience']),
+  "city": zod.string(),
+  "market": zod.string(),
+  "region": zod.string(),
+  "country": zod.string(),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "address": zod.string(),
+  "rating": zod.number(),
+  "crowdScore": zod.number().describe('0-100 crowd pressure score'),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "headcount": zod.number(),
+  "lineTrend": zod.enum(['rising', 'falling', 'steady']),
+  "seatingOdds": zod.string(),
+  "noiseLevel": zod.enum(['quiet', 'moderate', 'loud']),
+  "coverCost": zod.string(),
+  "bestTimeWindow": zod.string(),
+  "bestFor": zod.array(zod.string()),
+  "operatorGapNote": zod.string(),
+  "peakPressureWindow": zod.string(),
+  "reservationSignal": zod.string(),
+  "staffingSignal": zod.string(),
+  "dataSignalsTracked": zod.array(zod.string()),
+  "arrivalTips": zod.array(zod.string()),
+  "sourceLabel": zod.string().nullish(),
+  "sourceUrl": zod.string().nullish(),
+  "mapsUrl": zod.string().optional(),
+  "isWatchlisted": zod.boolean(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListOperatorVenuesResponse = zod.array(ListOperatorVenuesResponseItem)
+
+
+/**
  * Distinct markets with venue counts
  * @summary List markets covered
  */

@@ -85,6 +85,45 @@ export interface Venue {
   updatedAt: string;
 }
 
+export type VenueUpdateCategory = typeof VenueUpdateCategory[keyof typeof VenueUpdateCategory];
+
+
+export const VenueUpdateCategory = {
+  bar: 'bar',
+  restaurant: 'restaurant',
+  retail: 'retail',
+  cafe: 'cafe',
+  experience: 'experience',
+} as const;
+
+export type VenueUpdateNoiseLevel = typeof VenueUpdateNoiseLevel[keyof typeof VenueUpdateNoiseLevel];
+
+
+export const VenueUpdateNoiseLevel = {
+  quiet: 'quiet',
+  moderate: 'moderate',
+  loud: 'loud',
+} as const;
+
+export interface VenueUpdate {
+  /** @minLength 1 */
+  name?: string;
+  /** @minLength 1 */
+  address?: string;
+  category?: VenueUpdateCategory;
+  bestFor?: string[];
+  /** @minLength 1 */
+  coverCost?: string;
+  noiseLevel?: VenueUpdateNoiseLevel;
+}
+
+export interface VenueClaim {
+  id: number;
+  venueId: number;
+  operatorUserId: string;
+  createdAt: string;
+}
+
 export interface Market {
   market: string;
   city: string;
