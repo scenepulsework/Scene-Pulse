@@ -12,6 +12,7 @@ import { crowdColor } from '@/lib/venue-ui';
 
 export type VenuePinsMapHandle = {
   animateTo: (latitude: number, longitude: number) => void;
+  fitToVenues: (venues: Venue[]) => void;
 };
 
 export type VenuePinsMapProps = {
@@ -50,6 +51,14 @@ export const VenuePinsMap = forwardRef<VenuePinsMapHandle, VenuePinsMapProps>(
           { latitude, longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 },
           600,
         );
+      },
+      fitToVenues: (venues) => {
+        if (!venues.length) return;
+        const coords = venues.map((v) => ({ latitude: v.latitude, longitude: v.longitude }));
+        mapRef.current?.fitToCoordinates(coords, {
+          edgePadding: { top: 120, right: 40, bottom: 160, left: 40 },
+          animated: true,
+        });
       },
     }));
 

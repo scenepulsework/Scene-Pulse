@@ -1,8 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -13,28 +14,15 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import {
+  getListMarketsQueryKey,
   getListVenuesQueryKey,
+  useListMarkets,
   useListVenues,
   type Venue,
 } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { crowdColor } from '@/lib/venue-ui';
 import { VenuePinsMap, type VenuePinsMapHandle } from '@/components/VenuePinsMap';
-
-function regionForVenues(venues: Venue[]) {
-  const lats = venues.map((v) => v.latitude);
-  const lngs = venues.map((v) => v.longitude);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
-  return {
-    latitude: (minLat + maxLat) / 2,
-    longitude: (minLng + maxLng) / 2,
-    latitudeDelta: Math.max((maxLat - minLat) * 1.4, 0.05),
-    longitudeDelta: Math.max((maxLng - minLng) * 1.4, 0.05),
-  };
-}
 
 export default function MapScreen() {
   const colors = useColors();
@@ -45,23 +33,48 @@ export default function MapScreen() {
   const [locating, setLocating] = useState(false);
   const [permission, requestPermission] = Location.useForegroundPermissions();
   const [showsUserLocation, setShowsUserLocation] = useState(false);
+  const [market, setMarket] = useState<string | undefined>(undefined);
 
-  const { data: venues = [], isLoading } = useListVenues(
-    {},
-    { query: { queryKey: getListVenuesQueryKey({}) } },
+  const params = useMemo(
+    () => ({ ...(market ? { market } : {}) }),
+    [market],
   );
+
+  const { data: markets = [] } = useListMarkets({
+    query: { queryKey: getListMarketsQueryKey() },
+  });
+
+  const { data: venues = [], isLoading } = useListVenues(params, {
+    query: { queryKey: getListVenuesQueryKey(params) },
+  });
 
   const mappable = useMemo(
     () => venues.filter((v) => Number.isFinite(v.latitude) && Number.isFinite(v.longitude)),
     [venues],
   );
   const selected = mappable.find((v) => v.id === selectedId) ?? null;
+
+  // Compute initial region once on first non-empty load.
   const initialRegion = useMemo(
-    () => (mappable.length ? regionForVenues(mappable) : undefined),
-    // Compute once from the first non-empty load; the map keeps its own camera after.
+    () =>
+      mappable.length
+        ? regionForVenues(mappable)
+        : undefined,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [mappable.length > 0],
   );
+
+  // Re-fit map bounds whenever the active filter produces a new venue set.
+  const isFirstFit = useRef(true);
+  useEffect(() => {
+    if (!mappable.length) return;
+    if (isFirstFit.current) {
+      // First load is handled by initialRegion; skip the programmatic fit.
+      isFirstFit.current = false;
+      return;
+    }
+    mapRef.current?.fitToVenues(mappable);
+  }, [mappable]);
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -91,6 +104,9 @@ export default function MapScreen() {
   const permissionBlocked =
     permission != null && !permission.granted && !permission.canAskAgain;
 
+  // Header row height + gap so the chip strip starts right below it.
+  const headerRowBottom = topInset + 8 + 38 + 8;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar style="light" />
@@ -119,7 +135,7 @@ export default function MapScreen() {
         />
       )}
 
-      {/* Header */}
+      {/* Header row: back · legend · locate */}
       <View style={[styles.header, { top: topInset + 8 }]}>
         <Pressable
           testID="map-back"
@@ -176,8 +192,39 @@ export default function MapScreen() {
         )}
       </View>
 
+      {/* Market filter chips */}
+      {markets.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={[styles.chipScroll, { top: headerRowBottom }]}
+          contentContainerStyle={styles.chipRow}
+        >
+          <Chip
+            label="All"
+            active={!market}
+            onPress={() => setMarket(undefined)}
+            testID="market-all"
+          />
+          {markets.map((m) => (
+            <Chip
+              key={m.market}
+              label={`${m.market} (${m.venueCount})`}
+              active={market === m.market}
+              onPress={() => setMarket(market === m.market ? undefined : m.market)}
+              testID={`market-${m.market}`}
+            />
+          ))}
+        </ScrollView>
+      )}
+
       {permissionBlocked && Platform.OS !== 'web' && (
-        <View style={[styles.permissionNote, { top: topInset + 58 }]}>
+        <View
+          style={[
+            styles.permissionNote,
+            { top: headerRowBottom + (markets.length > 0 ? 44 : 0) },
+          ]}
+        >
           <Text style={[styles.permissionText, { color: colors.mutedForeground }]}>
             Location is off — enable it in Settings to center on you.
           </Text>
@@ -226,6 +273,21 @@ export default function MapScreen() {
   );
 }
 
+function regionForVenues(venues: Venue[]) {
+  const lats = venues.map((v) => v.latitude);
+  const lngs = venues.map((v) => v.longitude);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  return {
+    latitude: (minLat + maxLat) / 2,
+    longitude: (minLng + maxLng) / 2,
+    latitudeDelta: Math.max((maxLat - minLat) * 1.4, 0.05),
+    longitudeDelta: Math.max((maxLng - minLng) * 1.4, 0.05),
+  };
+}
+
 function LegendDot({ color, label }: { color: string; label: string }) {
   const colors = useColors();
   return (
@@ -233,6 +295,44 @@ function LegendDot({ color, label }: { color: string; label: string }) {
       <View style={[styles.legendDot, { backgroundColor: color }]} />
       <Text style={[styles.legendLabel, { color: colors.mutedForeground }]}>{label}</Text>
     </View>
+  );
+}
+
+function Chip({
+  label,
+  active,
+  onPress,
+  testID,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  testID?: string;
+}) {
+  const colors = useColors();
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        {
+          backgroundColor: active ? colors.primary : colors.card,
+          borderColor: active ? colors.primary : colors.border,
+          opacity: pressed ? 0.8 : 1,
+        },
+      ]}
+    >
+      <Text
+        style={{
+          fontSize: 12,
+          fontFamily: 'Inter_600SemiBold',
+          color: active ? colors.background : colors.mutedForeground,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -273,6 +373,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  chipScroll: { position: 'absolute', left: 0, right: 0 },
+  chipRow: { gap: 8, paddingHorizontal: 16, paddingVertical: 6 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
   },
   permissionNote: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
   permissionText: { fontSize: 11, fontFamily: 'Inter_500Medium' },

@@ -15,7 +15,7 @@ export type { VenuePinsMapHandle, VenuePinsMapProps } from './VenuePinsMap';
 export const VenuePinsMap = forwardRef<VenuePinsMapHandle, VenuePinsMapProps>(
   function VenuePinsMapWeb({ venues, selectedId, onSelect }, ref) {
     const colors = useColors();
-    useImperativeHandle(ref, () => ({ animateTo: () => {} }));
+    useImperativeHandle(ref, () => ({ animateTo: () => {}, fitToVenues: () => {} }));
 
     const sorted = useMemo(
       () => [...venues].sort((a, b) => b.crowdScore - a.crowdScore),
