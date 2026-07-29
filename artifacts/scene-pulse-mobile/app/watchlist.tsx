@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Platform,
   Pressable,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,6 +37,10 @@ export default function WatchlistScreen() {
   const { user } = useUser();
   const { pushEnabled, togglePush } = usePushNotificationsContext();
 
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
+
   const { data: watchlist = [], isLoading } = useListWatchlist({
     query: {
       enabled: !!isSignedIn,
@@ -58,6 +64,39 @@ export default function WatchlistScreen() {
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
   const displayName = user?.fullName || user?.firstName || user?.primaryEmailAddress?.emailAddress || 'Your Account';
+  const hasRealName = !!(user?.fullName || user?.firstName);
+
+  const startEditingName = () => {
+    setNameInput(user?.fullName || user?.firstName || '');
+    setEditingName(true);
+  };
+
+  const cancelEditingName = () => {
+    setEditingName(false);
+    setNameInput('');
+  };
+
+  const saveDisplayName = async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) {
+      Alert.alert('Name required', 'Please enter a display name.');
+      return;
+    }
+    setNameSaving(true);
+    try {
+      // Store the whole value as firstName so it appears as fullName
+      const parts = trimmed.split(/\s+/);
+      const firstName = parts[0];
+      const lastName = parts.slice(1).join(' ') || undefined;
+      await user?.update({ firstName, lastName });
+      setEditingName(false);
+      setNameInput('');
+    } catch {
+      Alert.alert('Could not save', 'Please try again.');
+    } finally {
+      setNameSaving(false);
+    }
+  };
 
   if (!isSignedIn) {
     return (
@@ -118,9 +157,68 @@ export default function WatchlistScreen() {
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.accountName, { color: colors.foreground }]} numberOfLines={1}>
-                  {displayName}
-                </Text>
+                {editingName ? (
+                  <View style={styles.nameEditRow}>
+                    <TextInput
+                      testID="display-name-input"
+                      value={nameInput}
+                      onChangeText={setNameInput}
+                      placeholder="Display name"
+                      placeholderTextColor={colors.mutedForeground}
+                      autoFocus
+                      style={[
+                        styles.nameInput,
+                        {
+                          backgroundColor: colors.background,
+                          borderColor: colors.primary,
+                          color: colors.foreground,
+                          borderRadius: colors.radius,
+                        },
+                      ]}
+                    />
+                    <Pressable
+                      testID="save-display-name"
+                      onPress={() => void saveDisplayName()}
+                      disabled={nameSaving}
+                      hitSlop={8}
+                      style={({ pressed }) => ({ opacity: nameSaving || pressed ? 0.6 : 1, marginLeft: 6 })}
+                    >
+                      {nameSaving ? (
+                        <ActivityIndicator size="small" color={colors.primary} />
+                      ) : (
+                        <Feather name="check" size={18} color={colors.primary} />
+                      )}
+                    </Pressable>
+                    <Pressable
+                      testID="cancel-display-name"
+                      onPress={cancelEditingName}
+                      hitSlop={8}
+                      style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, marginLeft: 6 })}
+                    >
+                      <Feather name="x" size={18} color={colors.mutedForeground} />
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Pressable
+                    testID="edit-display-name"
+                    onPress={startEditingName}
+                    style={styles.nameDisplayRow}
+                  >
+                    {hasRealName ? (
+                      <>
+                        <Text style={[styles.accountName, { color: colors.foreground }]} numberOfLines={1}>
+                          {displayName}
+                        </Text>
+                        <Feather name="edit-2" size={12} color={colors.mutedForeground} style={{ marginLeft: 4 }} />
+                      </>
+                    ) : (
+                      <View style={[styles.addNamePrompt, { borderColor: colors.primary, borderRadius: colors.radius }]}>
+                        <Feather name="user-plus" size={12} color={colors.primary} />
+                        <Text style={[styles.addNameText, { color: colors.primary }]}>Add display name</Text>
+                      </View>
+                    )}
+                  </Pressable>
+                )}
                 <Text style={[styles.accountEmail, { color: colors.mutedForeground }]} numberOfLines={1}>
                   {user?.primaryEmailAddress?.emailAddress}
                 </Text>
@@ -401,6 +499,27 @@ const styles = StyleSheet.create({
   avatarText: { fontSize: 16, fontFamily: 'Inter_700Bold' },
   accountName: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   accountEmail: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 1 },
+  nameDisplayRow: { flexDirection: 'row', alignItems: 'center' },
+  nameEditRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  nameInput: {
+    flex: 1,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+  },
+  addNamePrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  addNameText: { fontSize: 12, fontFamily: 'Inter_500Medium' },
   sectionLabel: {
     fontSize: 10,
     fontFamily: 'Inter_600SemiBold',
