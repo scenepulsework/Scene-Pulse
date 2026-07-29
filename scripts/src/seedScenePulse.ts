@@ -1031,6 +1031,15 @@ kzoo({ city: "Holland", name: "Butch's Dry Dock", category: "restaurant", latitu
 kzoo({ city: "Battle Creek", name: "Arcadia Ales", category: "bar", latitude: 42.3242, longitude: -85.1788, address: "103 W Michigan Ave, Battle Creek, MI", bestFor: ["No Wait", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Arcadia+Ales+Battle+Creek" });
 kzoo({ city: "Battle Creek", name: "Lux Coffeebar", category: "cafe", latitude: 42.3229, longitude: -85.1793, address: "136 W Michigan Ave, Battle Creek, MI", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Lux+Coffeebar+Battle+Creek+MI" });
 
+// Richland & Gull Lake (northeast of Kalamazoo, ~15-20 mi)
+kzoo({ city: "Richland", name: "Bold", category: "restaurant", latitude: 42.3744, longitude: -85.4470, address: "9048 E D Ave, Richland, MI", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Bold+Restaurant+Richland+MI" });
+kzoo({ city: "Kalamazoo", name: "Maru Sushi and Grill", category: "restaurant", latitude: 42.2789, longitude: -85.5910, address: "5002 W Main St, Kalamazoo, MI", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Maru+Sushi+and+Grill+Kalamazoo" });
+kzoo({ city: "Richland", name: "Richland Alehouse", category: "bar", latitude: 42.3720, longitude: -85.4458, address: "9054 E D Ave, Richland, MI", bestFor: ["No Wait", "Late-Night Food"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Richland+Alehouse+MI" });
+kzoo({ city: "Richland", name: "Gull Lake Brewing Company", category: "bar", latitude: 42.3730, longitude: -85.4452, address: "9065 E D Ave, Richland, MI", bestFor: ["Patio Energy", "No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Gull+Lake+Brewing+Richland+MI" });
+kzoo({ city: "Richland", name: "The Village Grille", category: "restaurant", latitude: 42.3736, longitude: -85.4461, address: "9035 E D Ave, Richland, MI", bestFor: ["No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Village+Grille+Richland+MI" });
+kzoo({ city: "Gull Lake", name: "Gull Lake Bar & Grill", category: "bar", latitude: 42.4018, longitude: -85.4195, address: "10750 N 37th St, Gull Lake, MI", bestFor: ["Patio Energy", "Date Night"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Gull+Lake+Bar+Grill+MI" });
+kzoo({ city: "Gull Lake", name: "Prairieside Suites & Waterfront Restaurant", category: "restaurant", latitude: 42.3985, longitude: -85.4210, address: "4180 Lovers Ln, Delton, MI", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Prairieside+Suites+Waterfront+Gull+Lake" });
+
 // ---------- PAST-EXPERIENCE COMMENTS ("The Wire") ----------
 const AUTHORS = [
   "Maya R.", "Jordan T.", "Priya K.", "Devon S.", "Alexis M.", "Sam W.", "Nina P.", "Marcus L.",
