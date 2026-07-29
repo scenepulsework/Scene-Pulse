@@ -1183,16 +1183,6 @@ function AboutSection() {
         ))}
       </View>
 
-      {/* Team */}
-      <Text style={[aboutStyles.sectionLabel, { color: colors.mutedForeground }]}>TEAM</Text>
-      {ABOUT_TEAM.map((m, i) => (
-        <AboutTeamRow
-          key={m.id}
-          member={m}
-          accentColor={ACCENT_COLORS[i] ?? colors.primary}
-        />
-      ))}
-
       {/* Values */}
       <Text style={[aboutStyles.sectionLabel, { color: colors.mutedForeground }]}>VALUES</Text>
       <View style={aboutStyles.valuesGrid}>
@@ -1216,6 +1206,16 @@ function AboutSection() {
           />
         ))}
       </View>
+
+      {/* Team */}
+      <Text style={[aboutStyles.sectionLabel, { color: colors.mutedForeground }]}>TEAM</Text>
+      {ABOUT_TEAM.map((m, i) => (
+        <AboutTeamRow
+          key={m.id}
+          member={m}
+          accentColor={ACCENT_COLORS[i] ?? colors.primary}
+        />
+      ))}
 
       {/* Contact */}
       <View
