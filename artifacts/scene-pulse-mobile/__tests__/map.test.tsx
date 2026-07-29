@@ -107,7 +107,7 @@ jest.mock('@/hooks/useColors', () => ({
 }));
 
 jest.mock('@/hooks/useUserLocation', () => ({
-  useUserLocation: () => ({ coords: null, permissionGranted: false }),
+  useUserLocation: jest.fn(() => ({ coords: null, permissionGranted: false })),
 }));
 
 jest.mock('@/contexts/SidebarContext', () => ({
@@ -235,6 +235,12 @@ beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockRouterPush = (globalThis as any).__mockRouterPush;
   mockRouterPush?.mockClear();
+  // Reset useUserLocation to its default (no permission, no coords)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useUserLocation } = jest.requireMock('@/hooks/useUserLocation') as {
+    useUserLocation: jest.Mock;
+  };
+  useUserLocation.mockReturnValue({ coords: null, permissionGranted: false });
 });
 
 describe('MapScreen market filter chips', () => {
@@ -349,6 +355,67 @@ describe('MapScreen market filter chips', () => {
 
     // With coords === null (from useUserLocation mock), formatDistanceMi must not be called
     expect(formatDistanceMi).not.toHaveBeenCalled();
+  });
+
+  it('does not render the Nearest chip when location permission is not granted', async () => {
+    setupApiMocks({ all: ALL_VENUES });
+
+    const { queryByTestId } = await render(<MapScreen />);
+
+    expect(queryByTestId('sort-nearest')).toBeNull();
+  });
+
+  it('renders the Nearest chip when location permission is granted', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useUserLocation } = jest.requireMock('@/hooks/useUserLocation') as {
+      useUserLocation: jest.Mock;
+    };
+    useUserLocation.mockReturnValue({
+      coords: { latitude: 40.7, longitude: -74.0 },
+      permissionGranted: true,
+    });
+    setupApiMocks({ all: ALL_VENUES });
+
+    const { getByTestId } = await render(<MapScreen />);
+
+    expect(getByTestId('sort-nearest')).toBeTruthy();
+  });
+
+  it('sorts venues by distance when Nearest is selected', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useUserLocation } = jest.requireMock('@/hooks/useUserLocation') as {
+      useUserLocation: jest.Mock;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { haversineDistanceMi } = jest.requireMock('@/lib/haversine') as {
+      haversineDistanceMi: jest.Mock;
+    };
+    useUserLocation.mockReturnValue({
+      coords: { latitude: 40.7, longitude: -74.0 },
+      permissionGranted: true,
+    });
+    // Make venue 3 (LA) the closest and venue 1 the farthest
+    haversineDistanceMi.mockImplementation(
+      (_lat1: number, _lon1: number, lat2: number, _lon2: number) => {
+        if (lat2 === LA_VENUES[0].latitude) return 0.1;
+        if (lat2 === NYC_VENUES[0].latitude) return 5.0;
+        return 2.0;
+      },
+    );
+    setupApiMocks({ all: ALL_VENUES });
+
+    const { getByTestId } = await render(<MapScreen />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('sort-nearest'));
+    });
+
+    // The map should receive a re-fit call with venues sorted nearest-first
+    expect(mockFitToVenues).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: 3 })]),
+    );
+    const lastCall = mockFitToVenues.mock.calls[mockFitToVenues.mock.calls.length - 1][0] as Venue[];
+    expect(lastCall[0].id).toBe(3);
   });
 
   it('clears the selected pin card when it is no longer in the filtered set', async () => {

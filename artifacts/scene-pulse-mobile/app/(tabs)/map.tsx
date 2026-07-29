@@ -27,14 +27,17 @@ import { useUserLocation } from '@/hooks/useUserLocation';
 import { haversineDistanceMi, formatDistanceMi } from '@/lib/haversine';
 import { useSidebar } from '@/contexts/SidebarContext';
 
-const SORT_OPTIONS = [
+const BASE_SORT_OPTIONS = [
   { key: 'crowdScore', label: 'Hottest' },
   { key: 'waitTime', label: 'Shortest wait' },
   { key: 'rating', label: 'Top rated' },
   { key: 'updated', label: 'Just updated' },
 ] as const;
 
-type SortKey = (typeof SORT_OPTIONS)[number]['key'];
+const NEAREST_OPTION = { key: 'nearest', label: 'Nearest' } as const;
+
+type BaseSort = (typeof BASE_SORT_OPTIONS)[number]['key'];
+type SortKey = BaseSort | 'nearest';
 
 export default function MapScreen() {
   const colors = useColors();
@@ -49,9 +52,21 @@ export default function MapScreen() {
   const [market, setMarket] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<SortKey>('crowdScore');
 
+  const { coords, permissionGranted } = useUserLocation();
+
+  // Revert to Hottest if location permission is revoked while Nearest is active
+  useEffect(() => {
+    if (!permissionGranted && sort === 'nearest') {
+      setSort('crowdScore');
+    }
+  }, [permissionGranted, sort]);
+
+  const effectiveSort: SortKey = sort === 'nearest' && !permissionGranted ? 'crowdScore' : sort;
+  const apiSort: BaseSort = effectiveSort === 'nearest' ? 'crowdScore' : effectiveSort;
+
   const params = useMemo(
-    () => ({ ...(market ? { market } : {}), sort }),
-    [market, sort],
+    () => ({ ...(market ? { market } : {}), sort: apiSort }),
+    [market, apiSort],
   );
 
   const { data: markets = [] } = useListMarkets({
@@ -62,10 +77,18 @@ export default function MapScreen() {
     query: { queryKey: getListVenuesQueryKey(params) },
   });
 
-  const mappable = useMemo(
-    () => venues.filter((v) => Number.isFinite(v.latitude) && Number.isFinite(v.longitude)),
-    [venues],
-  );
+  const mappable = useMemo(() => {
+    const filtered = venues.filter((v) => Number.isFinite(v.latitude) && Number.isFinite(v.longitude));
+    if (effectiveSort === 'nearest' && coords) {
+      return [...filtered].sort((a, b) => {
+        const da = haversineDistanceMi(coords.latitude, coords.longitude, a.latitude, a.longitude);
+        const db = haversineDistanceMi(coords.latitude, coords.longitude, b.latitude, b.longitude);
+        return da - db;
+      });
+    }
+    return filtered;
+  }, [venues, effectiveSort, coords]);
+
   const selected = mappable.find((v) => v.id === selectedId) ?? null;
 
   const initialRegion = useMemo(
@@ -98,7 +121,6 @@ export default function MapScreen() {
   };
 
   const permissionBlocked = permission != null && !permission.granted && !permission.canAskAgain;
-  const { coords } = useUserLocation();
 
   const headerRowBottom = topInset + 8 + 38 + 8;
 
@@ -200,7 +222,7 @@ export default function MapScreen() {
         style={[styles.chipScroll, { top: headerRowBottom + (markets.length > 0 ? 44 : 0) }]}
         contentContainerStyle={styles.chipRow}
       >
-        {SORT_OPTIONS.map((s) => (
+        {BASE_SORT_OPTIONS.map((s) => (
           <Chip
             key={s.key}
             label={s.label}
@@ -210,6 +232,16 @@ export default function MapScreen() {
             testID={`sort-${s.key}`}
           />
         ))}
+        {permissionGranted && (
+          <Chip
+            key={NEAREST_OPTION.key}
+            label={NEAREST_OPTION.label}
+            active={sort === NEAREST_OPTION.key}
+            accent
+            onPress={() => setSort(NEAREST_OPTION.key)}
+            testID={`sort-${NEAREST_OPTION.key}`}
+          />
+        )}
       </ScrollView>
 
       {permissionBlocked && Platform.OS !== 'web' && (
