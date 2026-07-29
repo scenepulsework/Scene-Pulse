@@ -200,4 +200,44 @@ describe('WatchlistBadgeContext', () => {
     // Badge must be raised again.
     expect(getByTestId('badge-status').props.children).toBe('visible');
   });
+
+  it('clears badge when the only packed venue is removed from the watchlist', async () => {
+    // Start with one packed venue — badge is raised.
+    apiState.watchlist = [{ id: 1, crowdScore: 85 }];
+    const { useListWatchlist } = getApiMocks();
+
+    const { getByTestId, rerender } = await render(
+      <WatchlistBadgeProvider>
+        <BadgeConsumer />
+      </WatchlistBadgeProvider>,
+    );
+
+    expect(getByTestId('badge-status').props.children).toBe('visible');
+
+    // Remove the only packed venue from the watchlist.
+    apiState.watchlist = [];
+    useListWatchlist.mockImplementation(() => ({ data: apiState.watchlist }));
+    await act(async () => {
+      rerender(
+        <WatchlistBadgeProvider>
+          <BadgeConsumer />
+        </WatchlistBadgeProvider>,
+      );
+    });
+
+    // Badge must clear immediately — no packed venues remain.
+    expect(getByTestId('badge-status').props.children).toBe('hidden');
+  });
+
+  it('does not show badge when the watchlist is empty', async () => {
+    apiState.watchlist = [];
+
+    const { getByTestId } = await render(
+      <WatchlistBadgeProvider>
+        <BadgeConsumer />
+      </WatchlistBadgeProvider>,
+    );
+
+    expect(getByTestId('badge-status').props.children).toBe('hidden');
+  });
 });
