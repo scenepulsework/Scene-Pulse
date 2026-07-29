@@ -30,6 +30,8 @@ import { useColors } from '@/hooks/useColors';
 import { CrowdDot } from '@/components/VenueCard';
 import { VenueComments } from '@/components/VenueComments';
 import { crowdColor, timeAgo, trendLabel } from '@/lib/venue-ui';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { haversineDistanceMi, formatDistanceMi } from '@/lib/haversine';
 
 export default function VenueDetailScreen() {
   const colors = useColors();
@@ -84,6 +86,13 @@ export default function VenueDetailScreen() {
       addToWatchlist({ venueId: id });
     }
   };
+
+  const { coords } = useUserLocation();
+
+  const distanceMi =
+    coords && venue
+      ? haversineDistanceMi(coords.latitude, coords.longitude, venue.latitude, venue.longitude)
+      : null;
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -186,6 +195,14 @@ export default function VenueDetailScreen() {
           <Text style={[styles.address, { color: colors.mutedForeground }]}>
             {venue.address}, {venue.city} · ★ {venue.rating.toFixed(1)}
           </Text>
+          {distanceMi != null && (
+            <View style={styles.distanceRow}>
+              <Feather name="navigation" size={11} color={colors.primary} />
+              <Text style={[styles.distanceText, { color: colors.primary }]}>
+                {formatDistanceMi(distanceMi)} away
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Photo gallery */}
@@ -475,6 +492,8 @@ const styles = StyleSheet.create({
   category: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4, marginBottom: 4 },
   name: { fontSize: 26, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 },
   address: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 4 },
+  distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+  distanceText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   panel: { borderWidth: 1, padding: 14, marginHorizontal: 16, marginBottom: 12 },
   panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
   panelTitle: { fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 1.2, flex: 1 },
