@@ -24,6 +24,8 @@ tags:
     description: Dashboard and hero aggregates
   - name: Storage
     description: Object storage upload and serving endpoints.
+  - name: rewards
+    description: User points, levels, and referral codes
 paths:
   /healthz:
     get:
@@ -669,6 +671,64 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
 
+  /me/rewards:
+    get:
+      operationId: getMyRewards
+      tags: [rewards]
+      summary: Get my rewards
+      description: Returns the signed-in user's points, level, and recent point transactions.
+      responses:
+        "200":
+          description: Rewards data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserRewards"
+        "401":
+          description: Not signed in
+
+  /me/referral-code:
+    get:
+      operationId: getMyReferralCode
+      tags: [rewards]
+      summary: Get or create my referral code
+      description: Lazily creates and returns the user's personal referral code.
+      responses:
+        "200":
+          description: Referral code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralCode"
+        "401":
+          description: Not signed in
+
+  /me/referral/redeem:
+    post:
+      operationId: redeemReferral
+      tags: [rewards]
+      summary: Redeem a referral code
+      description: Awards points to both the referrer and the new user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedeemReferralInput"
+      responses:
+        "200":
+          description: Redemption result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedeemReferralResult"
+        "400":
+          description: Invalid request or self-referral
+        "401":
+          description: Not signed in
+        "404":
+          description: Code not found
+
 components:
   schemas:
     HealthStatus:
@@ -1049,3 +1109,46 @@ components:
           enum: [open, lively, packed]
         waitTimeMinutes: { type: integer, minimum: 0 }
         vibeNote: { type: string, minLength: 1 }
+
+    UserRewards:
+      type: object
+      required: [points, level, transactions]
+      properties:
+        points: { type: integer }
+        level: { type: string }
+        nextLevel: { type: [string, "null"] }
+        pointsToNextLevel: { type: [integer, "null"] }
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PointTransaction"
+
+    PointTransaction:
+      type: object
+      required: [id, points, reason, createdAt]
+      properties:
+        id: { type: integer }
+        points: { type: integer }
+        reason: { type: string }
+        referenceId: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+
+    ReferralCode:
+      type: object
+      required: [code, usesCount]
+      properties:
+        code: { type: string }
+        usesCount: { type: integer }
+
+    RedeemReferralInput:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, minLength: 1 }
+
+    RedeemReferralResult:
+      type: object
+      required: [success, pointsEarned]
+      properties:
+        success: { type: boolean }
+        pointsEarned: { type: integer }

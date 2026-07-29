@@ -354,6 +354,40 @@ export interface LiveReportInput {
   vibeNote: string;
 }
 
+export interface PointTransaction {
+  id: number;
+  points: number;
+  reason: string;
+  /** @nullable */
+  referenceId?: string | null;
+  createdAt: string;
+}
+
+export interface UserRewards {
+  points: number;
+  level: string;
+  /** @nullable */
+  nextLevel?: string | null;
+  /** @nullable */
+  pointsToNextLevel?: number | null;
+  transactions: PointTransaction[];
+}
+
+export interface ReferralCode {
+  code: string;
+  usesCount: number;
+}
+
+export interface RedeemReferralInput {
+  /** @minLength 1 */
+  code: string;
+}
+
+export interface RedeemReferralResult {
+  success: boolean;
+  pointsEarned: number;
+}
+
 export type ListVenuesParams = {
 market?: string;
 category?: string;

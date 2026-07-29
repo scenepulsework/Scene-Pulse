@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { getAuth } from "@clerk/express";
 import { Expo, type ExpoPushMessage } from "expo-server-sdk";
+import { awardPoints } from "./rewards";
 
 const router: IRouter = Router();
 
@@ -92,6 +93,11 @@ router.post("/venues/:venueId/reports", async (req, res): Promise<void> => {
     .returning();
 
   res.status(201).json(CreateVenueReportResponse.parse(report));
+
+  // Award points fire-and-forget — never blocks the response.
+  if (reporterId) {
+    void awardPoints(reporterId, 10, "report", String(report.id));
+  }
 
   // Fire notifications asynchronously — do not block the response.
   // Only fires when there is a prior report to compare against, preventing false positives.

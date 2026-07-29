@@ -16,6 +16,7 @@ import {
 } from "@workspace/api-zod";
 import { presentVenue } from "../lib/venuePresenter";
 import { requireAuth, type AuthedRequest } from "../middlewares/requireAuth";
+import { awardPoints } from "./rewards";
 
 const router: IRouter = Router();
 
@@ -46,6 +47,8 @@ router.post("/watchlist/:venueId", requireAuth, async (req: AuthedRequest, res):
     .onConflictDoNothing()
     .returning();
   if (inserted) {
+    // Award points fire-and-forget for new watchlist adds.
+    void awardPoints(req.userId!, 5, "watchlist", String(venueId));
     res.status(201).json(AddToWatchlistResponse.parse(inserted));
     return;
   }

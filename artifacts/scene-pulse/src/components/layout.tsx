@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: "/markets", label: "Markets" },
   { href: "/operators", label: "Operators" },
   { href: "/about", label: "About" },
+  { href: "/rewards", label: "Rewards" },
   { href: "/contact", label: "Contact" },
 ];
 

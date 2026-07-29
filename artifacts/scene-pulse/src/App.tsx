@@ -24,6 +24,7 @@ import Profile from "@/pages/profile";
 import About from "@/pages/about";
 import Careers from "@/pages/careers";
 import Contact from "@/pages/contact";
+import Rewards from "@/pages/rewards";
 import Layout from "@/components/layout";
 import { SpeakeasyProvider } from "@/components/speakeasy-context";
 
@@ -175,6 +176,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/careers" component={Careers} />
       <Route path="/contact" component={Contact} />
+      <Route path="/rewards" component={Rewards} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -25,3 +25,6 @@ export * from "./venueClaims";
 export * from "./watchlist";
 export * from "./notifications";
 export * from "./devicePushTokens";
+export * from "./userPoints";
+export * from "./pointTransactions";
+export * from "./referralCodes";

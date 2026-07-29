@@ -9,6 +9,7 @@ import {
   CreateVenueCommentResponse,
 } from "@workspace/api-zod";
 import { getAuth } from "@clerk/express";
+import { awardPoints } from "./rewards";
 
 const router: IRouter = Router();
 
@@ -96,6 +97,11 @@ router.post("/venues/:venueId/comments", async (req, res): Promise<void> => {
     .values({ venueId: params.data.venueId, ...body.data, authorId })
     .returning();
   res.status(201).json(CreateVenueCommentResponse.parse(comment));
+
+  // Award points fire-and-forget.
+  if (authorId) {
+    void awardPoints(authorId, 5, "comment", String(comment.id));
+  }
 });
 
 router.post("/venues/:venueId/comments/:commentId/like", async (req, res): Promise<void> => {

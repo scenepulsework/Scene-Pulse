@@ -868,3 +868,49 @@ export const GetStorageObjectParams = zod.object({
 export const GetStorageObjectResponse = zod.unknown()
 
 
+/**
+ * Returns the signed-in user's points, level, and recent point transactions.
+ * @summary Get my rewards
+ */
+export const GetMyRewardsResponse = zod.object({
+  "points": zod.number(),
+  "level": zod.string(),
+  "nextLevel": zod.string().nullish(),
+  "pointsToNextLevel": zod.number().nullish(),
+  "transactions": zod.array(zod.object({
+  "id": zod.number(),
+  "points": zod.number(),
+  "reason": zod.string(),
+  "referenceId": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * Lazily creates and returns the user's personal referral code.
+ * @summary Get or create my referral code
+ */
+export const GetMyReferralCodeResponse = zod.object({
+  "code": zod.string(),
+  "usesCount": zod.number()
+})
+
+
+/**
+ * Awards points to both the referrer and the new user.
+ * @summary Redeem a referral code
+ */
+
+
+
+export const RedeemReferralBody = zod.object({
+  "code": zod.string().min(1)
+})
+
+export const RedeemReferralResponse = zod.object({
+  "success": zod.boolean(),
+  "pointsEarned": zod.number()
+})
+
+

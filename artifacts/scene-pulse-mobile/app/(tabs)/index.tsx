@@ -22,9 +22,11 @@ import {
   useGetHeroStats,
   useListMarkets,
   useListVenues,
+  type Venue,
 } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { VenueCard } from '@/components/VenueCard';
+import { VenuePinsMap } from '@/components/VenuePinsMap';
 import { useAuth, useUser } from '@clerk/expo';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { haversineDistanceMi } from '@/lib/haversine';
@@ -280,6 +282,7 @@ export default function HomeScreen() {
             isLoading={isLoading}
             isError={isError}
             venueCount={venues?.length ?? 0}
+            mapVenues={allRawVenues ?? []}
           />
         }
         ListFooterComponent={
@@ -305,12 +308,63 @@ export default function HomeScreen() {
   );
 }
 
+// ─── Live Pulse Map section ───────────────────────────────────────────────────
+
+function LivePulseMapSection({ venues }: { venues: Venue[] }) {
+  const colors = useColors();
+  const router = useRouter();
+  const mapVenues = venues.filter(
+    (v) => Number.isFinite(v.latitude) && Number.isFinite(v.longitude),
+  );
+  if (mapVenues.length === 0) return null;
+  return (
+    <View style={styles.section}>
+      <SectionTitle label="Live Pulse" icon="map" />
+      <View
+        style={[
+          styles.mapPreviewContainer,
+          {
+            borderColor: colors.border,
+            borderRadius: colors.radius,
+            overflow: 'hidden',
+          },
+        ]}
+      >
+        <VenuePinsMap
+          venues={mapVenues}
+          selectedId={null}
+          onSelect={(id) => {
+            if (id != null) router.push(`/venue/${id}`);
+          }}
+          showsUserLocation={false}
+        />
+      </View>
+      <Pressable
+        onPress={() => router.push('/map')}
+        style={({ pressed }) => [
+          styles.mapCTABtn,
+          {
+            backgroundColor: `${colors.primary}0d`,
+            borderColor: `${colors.primary}30`,
+            borderRadius: colors.radius,
+            opacity: pressed ? 0.75 : 1,
+          },
+        ]}
+      >
+        <Feather name="map" size={13} color={colors.primary} />
+        <Text style={[styles.mapCTAText, { color: colors.primary }]}>See full map</Text>
+        <Feather name="arrow-right" size={13} color={colors.primary} />
+      </Pressable>
+    </View>
+  );
+}
+
 // ─── ListHeader ──────────────────────────────────────────────────────────────
 
 function ListHeader({
   stats, markets, market, setMarket, sort, setSort, effectiveSort, search, setSearch,
   category, setCategory, categoryCounts, permissionGranted, canAskPermission, requestPermission,
-  hotScenes, packedNow, isFiltered, isLoading, isError, venueCount,
+  hotScenes, packedNow, mapVenues, isFiltered, isLoading, isError, venueCount,
 }: any) {
   const colors = useColors();
   const router = useRouter();
@@ -567,6 +621,9 @@ function ListHeader({
               </ScrollView>
             </View>
           )}
+
+          {/* ── Live Pulse Map ────────────────────────────────── */}
+          <LivePulseMapSection venues={mapVenues} />
         </>
       )}
 
@@ -869,4 +926,22 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   loadMoreText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
+
+  // Live Pulse Map section
+  mapPreviewContainer: {
+    height: 220,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  mapCTABtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderWidth: 1,
+    marginHorizontal: 16,
+  },
+  mapCTAText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
 });

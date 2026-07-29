@@ -3,3 +3,4 @@
 - [Leaflet map e2e testing quirk](leaflet-map-e2e-testing.md) — clicking dense Leaflet canvas pins is unreliable in automated tests; use list/button alternatives (e.g. "hottest" rows) instead.
 - [Duplicate @types/react fix](monorepo-types-react-pinning.md) — root pnpm.overrides pins @types/react(-dom) to one version; otherwise hidden-hoisted dual copies break JSX typechecks.
 - [Orval vs zod v3](orval-zod-format-uri.md) — never use `format: uri` in openapi.yaml; orval emits z.url() which zod v3 lacks.
+- [React Compiler + Metro forward refs](react-compiler-metro-forward-refs.md) — React Compiler transforms functions into closures; module-level function declarations used before their source position fail at runtime. Always define helper components BEFORE the component that uses them.
