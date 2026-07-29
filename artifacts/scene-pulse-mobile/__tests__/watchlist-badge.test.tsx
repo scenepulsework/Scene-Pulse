@@ -44,17 +44,18 @@ function getApiMocks() {
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { WatchlistBadgeProvider, useWatchlistBadge } = require('../contexts/WatchlistBadgeContext') as {
   WatchlistBadgeProvider: React.FC<{ children: React.ReactNode }>;
-  useWatchlistBadge: () => { hasPackedBadge: boolean; clearBadge: () => void };
+  useWatchlistBadge: () => { hasPackedBadge: boolean; newlyPackedIds: number[]; clearBadge: () => void };
 };
 
 // ---------------------------------------------------------------------------
 // Minimal consumer that renders testable output driven by the context value.
 // ---------------------------------------------------------------------------
 function BadgeConsumer() {
-  const { hasPackedBadge, clearBadge } = useWatchlistBadge();
+  const { hasPackedBadge, newlyPackedIds, clearBadge } = useWatchlistBadge();
   return (
     <>
       <Text testID="badge-status">{hasPackedBadge ? 'visible' : 'hidden'}</Text>
+      <Text testID="newly-packed-ids">{JSON.stringify(newlyPackedIds)}</Text>
       <Pressable testID="clear-badge" onPress={clearBadge}>
         <Text>Clear</Text>
       </Pressable>
@@ -227,6 +228,34 @@ describe('WatchlistBadgeContext', () => {
 
     // Badge must clear immediately — no packed venues remain.
     expect(getByTestId('badge-status').props.children).toBe('hidden');
+  });
+
+  it('resets newlyPackedIds to [] when the last packed venue is removed', async () => {
+    // Start with one packed venue — newlyPackedIds is seeded.
+    apiState.watchlist = [{ id: 1, crowdScore: 85 }];
+    const { useListWatchlist } = getApiMocks();
+
+    const { getByTestId, rerender } = await render(
+      <WatchlistBadgeProvider>
+        <BadgeConsumer />
+      </WatchlistBadgeProvider>,
+    );
+
+    expect(JSON.parse(getByTestId('newly-packed-ids').props.children)).toEqual([1]);
+
+    // Remove the only packed venue from the watchlist.
+    apiState.watchlist = [];
+    useListWatchlist.mockImplementation(() => ({ data: apiState.watchlist }));
+    await act(async () => {
+      rerender(
+        <WatchlistBadgeProvider>
+          <BadgeConsumer />
+        </WatchlistBadgeProvider>,
+      );
+    });
+
+    // newlyPackedIds must be empty — no stale IDs remain.
+    expect(JSON.parse(getByTestId('newly-packed-ids').props.children)).toEqual([]);
   });
 
   it('does not show badge when the watchlist is empty', async () => {

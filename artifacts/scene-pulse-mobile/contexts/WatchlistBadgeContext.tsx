@@ -48,6 +48,9 @@ export function WatchlistBadgeProvider({ children }: { children: React.ReactNode
           .filter((v) => v.crowdScore >= PACKED_THRESHOLD)
           .map((v) => v.id),
       );
+    } else if (!hasPacked && prevHadPacked.current) {
+      // No packed venues remain — clear stale highlight IDs.
+      setNewlyPackedIds([]);
     }
     prevHadPacked.current = hasPacked;
   }, [hasPacked, watchlist]);
