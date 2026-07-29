@@ -25,6 +25,7 @@ import { crowdColor } from '@/lib/venue-ui';
 import { VenuePinsMap, type VenuePinsMapHandle } from '@/components/VenuePinsMap';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { haversineDistanceMi, formatDistanceMi } from '@/lib/haversine';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 const SORT_OPTIONS = [
   { key: 'crowdScore', label: 'Hottest' },
@@ -39,6 +40,7 @@ export default function MapScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { open: openSidebar } = useSidebar();
   const mapRef = useRef<VenuePinsMapHandle>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [locating, setLocating] = useState(false);
@@ -66,25 +68,16 @@ export default function MapScreen() {
   );
   const selected = mappable.find((v) => v.id === selectedId) ?? null;
 
-  // Compute initial region once on first non-empty load.
   const initialRegion = useMemo(
-    () =>
-      mappable.length
-        ? regionForVenues(mappable)
-        : undefined,
+    () => (mappable.length ? regionForVenues(mappable) : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [mappable.length > 0],
   );
 
-  // Re-fit map bounds whenever the active filter produces a new venue set.
   const isFirstFit = useRef(true);
   useEffect(() => {
     if (!mappable.length) return;
-    if (isFirstFit.current) {
-      // First load is handled by initialRegion; skip the programmatic fit.
-      isFirstFit.current = false;
-      return;
-    }
+    if (isFirstFit.current) { isFirstFit.current = false; return; }
     mapRef.current?.fitToVenues(mappable);
   }, [mappable]);
 
@@ -96,29 +89,17 @@ export default function MapScreen() {
     try {
       setLocating(true);
       let granted = permission?.granted ?? false;
-      if (!granted) {
-        const res = await requestPermission();
-        granted = res.granted;
-      }
+      if (!granted) { const res = await requestPermission(); granted = res.granted; }
       if (!granted) return;
       setShowsUserLocation(true);
-      const pos = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       mapRef.current?.animateTo(pos.coords.latitude, pos.coords.longitude);
-    } catch {
-      // Location unavailable — keep the current camera.
-    } finally {
-      setLocating(false);
-    }
+    } catch { /* Location unavailable */ } finally { setLocating(false); }
   };
 
-  const permissionBlocked =
-    permission != null && !permission.granted && !permission.canAskAgain;
-
+  const permissionBlocked = permission != null && !permission.granted && !permission.canAskAgain;
   const { coords } = useUserLocation();
 
-  // Header row height + gap so the chip strip starts right below it.
   const headerRowBottom = topInset + 8 + 38 + 8;
 
   return (
@@ -127,16 +108,12 @@ export default function MapScreen() {
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} />
-          <Text style={[styles.mutedText, { color: colors.mutedForeground }]}>
-            Loading the pulse map…
-          </Text>
+          <Text style={[styles.mutedText, { color: colors.mutedForeground }]}>Loading the pulse map…</Text>
         </View>
       ) : mappable.length === 0 ? (
         <View style={styles.center}>
           <Feather name="map" size={24} color={colors.mutedForeground} />
-          <Text style={[styles.mutedText, { color: colors.mutedForeground }]}>
-            No venues to map right now.
-          </Text>
+          <Text style={[styles.mutedText, { color: colors.mutedForeground }]}>No venues to map right now.</Text>
         </View>
       ) : (
         <VenuePinsMap
@@ -149,33 +126,26 @@ export default function MapScreen() {
         />
       )}
 
-      {/* Header row: back · legend · locate */}
+      {/* Header row: menu · title + legend · locate */}
       <View style={[styles.header, { top: topInset + 8 }]}>
         <Pressable
-          testID="map-back"
-          onPress={() => router.back()}
+          testID="map-menu"
+          onPress={openSidebar}
           hitSlop={10}
           style={({ pressed }) => [
             styles.iconBtn,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              opacity: pressed ? 0.7 : 1,
-            },
+            { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 },
           ]}
         >
-          <Feather name="chevron-left" size={20} color={colors.foreground} />
+          <Feather name="menu" size={18} color={colors.foreground} />
         </Pressable>
-        <View
-          style={[
-            styles.legend,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
+
+        <View style={[styles.legend, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <LegendDot color={crowdColor('open')} label="Open" />
           <LegendDot color={crowdColor('lively')} label="Lively" />
           <LegendDot color={crowdColor('packed')} label="Packed" />
         </View>
+
         {Platform.OS !== 'web' ? (
           <Pressable
             testID="locate-me"
@@ -194,11 +164,7 @@ export default function MapScreen() {
             {locating ? (
               <ActivityIndicator size="small" color={colors.primary} />
             ) : (
-              <Feather
-                name="crosshair"
-                size={18}
-                color={permissionBlocked ? colors.mutedForeground : colors.primary}
-              />
+              <Feather name="crosshair" size={18} color={permissionBlocked ? colors.mutedForeground : colors.primary} />
             )}
           </Pressable>
         ) : (
@@ -214,12 +180,7 @@ export default function MapScreen() {
           style={[styles.chipScroll, { top: headerRowBottom }]}
           contentContainerStyle={styles.chipRow}
         >
-          <Chip
-            label="All"
-            active={!market}
-            onPress={() => setMarket(undefined)}
-            testID="market-all"
-          />
+          <Chip label="All" active={!market} onPress={() => setMarket(undefined)} testID="market-all" />
           {markets.map((m) => (
             <Chip
               key={m.market}
@@ -252,12 +213,7 @@ export default function MapScreen() {
       </ScrollView>
 
       {permissionBlocked && Platform.OS !== 'web' && (
-        <View
-          style={[
-            styles.permissionNote,
-            { top: headerRowBottom + (markets.length > 0 ? 44 : 0) + 44 },
-          ]}
-        >
+        <View style={[styles.permissionNote, { top: headerRowBottom + (markets.length > 0 ? 44 : 0) + 44 }]}>
           <Text style={[styles.permissionText, { color: colors.mutedForeground }]}>
             Location is off — enable it in Settings to center on you.
           </Text>
@@ -292,24 +248,12 @@ export default function MapScreen() {
               <Text style={{ color: crowdColor(selected.crowdLevel) }}>
                 {selected.crowdLevel.toUpperCase()}
               </Text>
-              {coords &&
-                Number.isFinite(selected.latitude) &&
-                Number.isFinite(selected.longitude) && (
-                  <>
-                    {' · '}
-                    {formatDistanceMi(
-                      haversineDistanceMi(
-                        coords.latitude,
-                        coords.longitude,
-                        selected.latitude,
-                        selected.longitude,
-                      ),
-                    )}
-                  </>
-                )}
+              {coords && Number.isFinite(selected.latitude) && Number.isFinite(selected.longitude) && (
+                <> · {formatDistanceMi(haversineDistanceMi(coords.latitude, coords.longitude, selected.latitude, selected.longitude))}</>
+              )}
             </Text>
           </View>
-          <View style={styles.cardScore}>
+          <View style={styles.cardRight}>
             <Text style={[styles.scoreValue, { color: crowdColor(selected.crowdLevel) }]}>
               {selected.crowdScore}
             </Text>
@@ -324,10 +268,8 @@ export default function MapScreen() {
 function regionForVenues(venues: Venue[]) {
   const lats = venues.map((v) => v.latitude);
   const lngs = venues.map((v) => v.longitude);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
   return {
     latitude: (minLat + maxLat) / 2,
     longitude: (minLng + maxLng) / 2,
@@ -346,18 +288,8 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function Chip({
-  label,
-  active,
-  onPress,
-  accent,
-  testID,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  accent?: boolean;
-  testID?: string;
+function Chip({ label, active, onPress, accent, testID }: {
+  label: string; active: boolean; onPress: () => void; accent?: boolean; testID?: string;
 }) {
   const colors = useColors();
   const activeColor = accent ? colors.secondary : colors.primary;
@@ -367,20 +299,10 @@ function Chip({
       onPress={onPress}
       style={({ pressed }) => [
         styles.chip,
-        {
-          backgroundColor: active ? activeColor : colors.card,
-          borderColor: active ? activeColor : colors.border,
-          opacity: pressed ? 0.8 : 1,
-        },
+        { backgroundColor: active ? activeColor : colors.card, borderColor: active ? activeColor : colors.border, opacity: pressed ? 0.8 : 1 },
       ]}
     >
-      <Text
-        style={{
-          fontSize: 12,
-          fontFamily: 'Inter_600SemiBold',
-          color: active ? colors.background : colors.mutedForeground,
-        }}
-      >
+      <Text style={{ fontSize: 12, fontFamily: 'Inter_600SemiBold', color: active ? colors.background : colors.mutedForeground }}>
         {label}
       </Text>
     </Pressable>
@@ -391,68 +313,21 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
   mutedText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
-  header: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  legend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    height: 32,
-  },
+  header: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  iconBtn: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  legend: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, height: 32 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: {
-    fontSize: 10,
-    fontFamily: 'Inter_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+  legendLabel: { fontSize: 10, fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase', letterSpacing: 0.5 },
   chipScroll: { position: 'absolute', left: 0, right: 0 },
   chipRow: { gap: 8, paddingHorizontal: 16, paddingVertical: 6 },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1 },
   permissionNote: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
   permissionText: { fontSize: 11, fontFamily: 'Inter_500Medium' },
-  card: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    borderWidth: 1,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  cardCategory: {
-    fontSize: 10,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
+  card: { position: 'absolute', left: 16, right: 16, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cardCategory: { fontSize: 10, fontFamily: 'Inter_600SemiBold', letterSpacing: 1, marginBottom: 2 },
   cardName: { fontSize: 17, fontFamily: 'Inter_700Bold' },
   cardMeta: { fontSize: 12, fontFamily: 'Inter_500Medium', marginTop: 2 },
-  cardScore: { alignItems: 'center', gap: 2 },
+  cardRight: { alignItems: 'center', gap: 2 },
   scoreValue: { fontSize: 24, fontFamily: 'Inter_700Bold' },
 });

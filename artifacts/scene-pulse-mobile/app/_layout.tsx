@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -17,64 +18,54 @@ import * as SplashScreen from 'expo-splash-screen';
 import { ClerkProvider, useAuth } from '@clerk/expo';
 import * as SecureStore from 'expo-secure-store';
 import { PushNotificationsProvider } from '@/contexts/PushNotificationsContext';
+import { SidebarProvider } from '@/contexts/SidebarContext';
+import { Sidebar } from '@/components/Sidebar';
 
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
 const tokenCache = {
   async getToken(key: string): Promise<string | null> {
-    try {
-      return await SecureStore.getItemAsync(key);
-    } catch {
-      await SecureStore.deleteItemAsync(key).catch(() => {});
-      return null;
-    }
+    try { return await SecureStore.getItemAsync(key); }
+    catch { await SecureStore.deleteItemAsync(key).catch(() => {}); return null; }
   },
   async saveToken(key: string, value: string): Promise<void> {
-    try {
-      await SecureStore.setItemAsync(key, value);
-    } catch {}
+    try { await SecureStore.setItemAsync(key, value); } catch {}
   },
   async clearToken(key: string): Promise<void> {
-    try {
-      await SecureStore.deleteItemAsync(key);
-    } catch {}
+    try { await SecureStore.deleteItemAsync(key); } catch {}
   },
 };
 
-/**
- * Bridges Clerk's getToken into the API client's bearer-token transport.
- * Must be a child of ClerkProvider so it can call useAuth().
- */
 function ClerkAuthBridge() {
   const { getToken } = useAuth();
-  // Keep a stable ref so the getter always calls the latest getToken
   const getTokenRef = useRef(getToken);
   getTokenRef.current = getToken;
-
   useEffect(() => {
     setAuthTokenGetter(() => getTokenRef.current());
     return () => setAuthTokenGetter(null);
   }, []);
-
   return null;
 }
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0a0a0b' } }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="venue/[id]" />
-      <Stack.Screen name="map" />
-      <Stack.Screen name="report/[id]" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="sign-up" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="watchlist" />
-    </Stack>
+    <SidebarProvider>
+      <View style={{ flex: 1 }}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0a0a0b' } }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="venue/[id]" />
+          <Stack.Screen name="report/[id]" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="sign-up" options={{ presentation: 'modal' }} />
+        </Stack>
+        {/* Sidebar overlay — renders on top of everything via absolute positioning */}
+        <Sidebar />
+      </View>
+    </SidebarProvider>
   );
 }
 
@@ -87,9 +78,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded || fontError) SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) return null;
