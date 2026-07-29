@@ -244,10 +244,12 @@ export default function MapScreen() {
               {selected.name}
             </Text>
             <Text style={[styles.cardMeta, { color: colors.mutedForeground }]}>
-              {selected.waitTimeMinutes}m wait ·{' '}
-              <Text style={{ color: crowdColor(selected.crowdLevel) }}>
-                {selected.crowdLevel.toUpperCase()}
-              </Text>
+              {selected.waitTimeMinutes != null ? `${selected.waitTimeMinutes}m wait · ` : ''}
+              {selected.crowdLevel ? (
+                <Text style={{ color: crowdColor(selected.crowdLevel) }}>
+                  {selected.crowdLevel.toUpperCase()}
+                </Text>
+              ) : null}
               {coords && Number.isFinite(selected.latitude) && Number.isFinite(selected.longitude) && (
                 <> · {formatDistanceMi(haversineDistanceMi(coords.latitude, coords.longitude, selected.latitude, selected.longitude))}</>
               )}

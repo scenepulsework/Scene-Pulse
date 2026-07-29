@@ -18,6 +18,8 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 // ---------------------------------------------------------------------------
 // eslint-disable-next-line no-var, prefer-const
 var mockFitToVenues: jest.Mock;
+// eslint-disable-next-line no-var, prefer-const
+var mockRouterPush: jest.Mock;
 
 // ---------------------------------------------------------------------------
 // VenuePinsMap mock — exposes fitToVenues on the imperative handle and
@@ -71,9 +73,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: jest.fn(), push: jest.fn() }),
-}));
+jest.mock('expo-router', () => {
+  const fn = jest.fn();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).__mockRouterPush = fn;
+  return { useRouter: () => ({ back: jest.fn(), push: fn }) };
+});
 
 jest.mock('expo-location', () => ({
   useForegroundPermissions: () => [{ granted: false, canAskAgain: true }, jest.fn()],
@@ -105,6 +110,10 @@ jest.mock('@/hooks/useUserLocation', () => ({
   useUserLocation: () => ({ coords: null, permissionGranted: false }),
 }));
 
+jest.mock('@/contexts/SidebarContext', () => ({
+  useSidebar: () => ({ open: jest.fn() }),
+}));
+
 jest.mock('@/lib/venue-ui', () => ({
   crowdColor: (level: string) => {
     if (level === 'packed') return '#e74c3c';
@@ -129,9 +138,9 @@ type Venue = {
   market: string;
   latitude: number;
   longitude: number;
-  crowdLevel: string;
+  crowdLevel: string | null | undefined;
   crowdScore: number;
-  waitTimeMinutes: number;
+  waitTimeMinutes: number | null | undefined;
   lineTrend: string;
   noiseLevel: string;
   photos: never[];
@@ -150,6 +159,27 @@ function makeVenue(id: number, market: string, lat = 40.7, lng = -74.0): Venue {
     crowdLevel: 'open',
     crowdScore: 50,
     waitTimeMinutes: 5,
+    lineTrend: 'steady',
+    noiseLevel: 'moderate',
+    photos: [],
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
+/** Venue with all optional crowd/distance fields absent */
+function makePartialVenue(id: number, market: string): Venue {
+  return {
+    id,
+    name: `Partial Venue ${id}`,
+    category: 'bar',
+    city: market,
+    market,
+    // lat/lng present so it appears on the map (mappable), but crowd data missing
+    latitude: 40.7,
+    longitude: -74.0,
+    crowdLevel: null,
+    crowdScore: 0,
+    waitTimeMinutes: null,
     lineTrend: 'steady',
     noiseLevel: 'moderate',
     photos: [],
@@ -190,7 +220,7 @@ function setupApiMocks(venuesByKey: Record<string, Venue[]>) {
 
 // Import the component under test (after all mocks are registered)
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const MapScreen = require('../app/map').default;
+const MapScreen = require('../app/(tabs)/map').default;
 
 // ---------------------------------------------------------------------------
 // Test suite
@@ -201,6 +231,10 @@ beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockFitToVenues = (globalThis as any).__mockFitToVenues;
   mockFitToVenues?.mockClear();
+  // Re-attach the router push fn from globalThis (set in the factory)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mockRouterPush = (globalThis as any).__mockRouterPush;
+  mockRouterPush?.mockClear();
 });
 
 describe('MapScreen market filter chips', () => {
@@ -259,6 +293,62 @@ describe('MapScreen market filter chips', () => {
     const calls = useListVenues.mock.calls as Array<[{ market?: string }?]>;
     const allCall = calls.find(([params]) => !params?.market);
     expect(allCall).toBeDefined();
+  });
+
+  it('renders the venue card when crowdLevel and waitTimeMinutes are missing', async () => {
+    const partial = makePartialVenue(99, 'NYC');
+    setupApiMocks({ all: [partial] });
+
+    const { getByTestId } = await render(<MapScreen />);
+
+    // Select the venue via its map pin
+    await act(async () => {
+      fireEvent.press(getByTestId('mock-pin-99'));
+    });
+
+    // Card must still be visible even with null crowd data
+    expect(getByTestId('map-card-99')).toBeTruthy();
+  });
+
+  it('fires the navigation handler when the card is pressed with missing crowd data', async () => {
+    const partial = makePartialVenue(99, 'NYC');
+    setupApiMocks({ all: [partial] });
+
+    const { getByTestId } = await render(<MapScreen />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('mock-pin-99'));
+    });
+
+    // Press the card itself to trigger navigation
+    await act(async () => {
+      fireEvent.press(getByTestId('map-card-99'));
+    });
+
+    // Router.push must have been called with the venue detail route
+    expect(mockRouterPush).toHaveBeenCalledWith('/venue/99');
+  });
+
+  it('does not call formatDistanceMi when venue coords are absent', async () => {
+    // Venue without lat/lng — won't be mappable, so use a venue WITH coords but
+    // simulate the no-user-location path (coords from useUserLocation is null by default)
+    const partial = makePartialVenue(99, 'NYC');
+    setupApiMocks({ all: [partial] });
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { formatDistanceMi } = jest.requireMock('@/lib/haversine') as {
+      formatDistanceMi: jest.Mock;
+    };
+    formatDistanceMi.mockClear();
+
+    const { getByTestId } = await render(<MapScreen />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('mock-pin-99'));
+    });
+
+    // With coords === null (from useUserLocation mock), formatDistanceMi must not be called
+    expect(formatDistanceMi).not.toHaveBeenCalled();
   });
 
   it('clears the selected pin card when it is no longer in the filtered set', async () => {
