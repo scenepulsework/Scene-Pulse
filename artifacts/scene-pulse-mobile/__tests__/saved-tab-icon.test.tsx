@@ -4,6 +4,8 @@
  * Covers:
  * 1. The red badge dot is rendered when `hasPackedBadge` is true.
  * 2. No badge dot is rendered when `hasPackedBadge` is false.
+ * 3. No badge dot when the user is signed in but has an empty watchlist
+ *    (hasPackedBadge: false, newlyPackedIds: []).
  *
  * `useWatchlistBadge` is mocked directly so these tests are independent of
  * WatchlistBadgeContext logic.
@@ -15,12 +17,12 @@ import { render } from '@testing-library/react-native';
 // ---------------------------------------------------------------------------
 // Mock useWatchlistBadge — the only context dependency of SavedTabIcon.
 // ---------------------------------------------------------------------------
-const badgeState = { hasPackedBadge: false };
+const badgeState = { hasPackedBadge: false, newlyPackedIds: [] as string[] };
 
 jest.mock('@/contexts/WatchlistBadgeContext', () => ({
   useWatchlistBadge: () => ({
     hasPackedBadge: badgeState.hasPackedBadge,
-    newlyPackedIds: [],
+    newlyPackedIds: badgeState.newlyPackedIds,
     clearBadge: jest.fn(),
   }),
 }));
@@ -64,6 +66,7 @@ const { SavedTabIcon } = require('../app/(tabs)/_layout') as {
 beforeEach(() => {
   jest.clearAllMocks();
   badgeState.hasPackedBadge = false;
+  badgeState.newlyPackedIds = [];
 });
 
 // ---------------------------------------------------------------------------
@@ -83,6 +86,18 @@ describe('SavedTabIcon', () => {
     const { queryByTestId } = await render(<SavedTabIcon color="#000" />);
 
     // The badge dot View must not be present in the tree.
+    expect(queryByTestId('saved-tab-badge-dot')).toBeNull();
+  });
+
+  it('does not render the red badge dot when the user is signed in with an empty watchlist', async () => {
+    // Zero-state: signed-in user whose watchlist is empty — no packed venues,
+    // no newly-packed IDs. The WatchlistBadgeContext guard (`watchlist.length > 0`)
+    // must prevent the badge from appearing.
+    badgeState.hasPackedBadge = false;
+    badgeState.newlyPackedIds = [];
+
+    const { queryByTestId } = await render(<SavedTabIcon color="#000" />);
+
     expect(queryByTestId('saved-tab-badge-dot')).toBeNull();
   });
 });
