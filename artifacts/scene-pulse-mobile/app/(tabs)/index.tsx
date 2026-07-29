@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -32,6 +32,9 @@ import { useUserLocation } from '@/hooks/useUserLocation';
 import { haversineDistanceMi } from '@/lib/haversine';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { crowdColor } from '@/lib/venue-ui';
+import { useAppForeground } from '@/hooks/useAppForeground';
+
+const POLL_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 
 const PAGE_SIZE = 12;
 
@@ -67,6 +70,7 @@ export default function HomeScreen() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const { coords, permissionGranted, canAskPermission, requestPermission, promptDismissed, dismissPrompt } = useUserLocation();
+  const isForegrounded = useAppForeground();
 
   const effectiveSort = sort === 'nearest' && !permissionGranted ? 'crowdScore' : sort;
   const apiSort: BaseSort = effectiveSort === 'nearest' ? 'crowdScore' : effectiveSort;
@@ -86,11 +90,19 @@ export default function HomeScreen() {
     setVisibleCount(PAGE_SIZE);
   }, [search, market, category, sort]);
 
+  // Track manual pull-to-refresh so auto-polls show the banner but manual ones don't
+  const isManualRefetchRef = useRef(false);
+  const [showUpdatedBanner, setShowUpdatedBanner] = useState(false);
+
   const { data: markets = [] } = useListMarkets({
     query: { queryKey: getListMarketsQueryKey() },
   });
   const { data: stats } = useGetHeroStats({
-    query: { queryKey: getGetHeroStatsQueryKey() },
+    query: {
+      queryKey: getGetHeroStatsQueryKey(),
+      refetchInterval: isForegrounded ? POLL_INTERVAL_MS : false,
+      refetchIntervalInBackground: false,
+    },
   });
   const {
     data: rawVenues,
@@ -98,18 +110,45 @@ export default function HomeScreen() {
     isError,
     refetch,
     isRefetching,
+    dataUpdatedAt,
   } = useListVenues(params, {
     query: {
       queryKey: getListVenuesQueryKey(params),
       placeholderData: (prev: any) => prev,
+      refetchInterval: isForegrounded ? POLL_INTERVAL_MS : false,
+      refetchIntervalInBackground: false,
     },
   });
 
   // All venues (unfiltered) for Browse by Type counts + Packed Now
   const { data: allRawVenues } = useListVenues(
     { sort: 'crowdScore' },
-    { query: { queryKey: getListVenuesQueryKey({ sort: 'crowdScore' }) } },
+    {
+      query: {
+        queryKey: getListVenuesQueryKey({ sort: 'crowdScore' }),
+        refetchInterval: isForegrounded ? POLL_INTERVAL_MS : false,
+        refetchIntervalInBackground: false,
+      },
+    },
   );
+
+  // Show "Updated just now" banner after auto-polls (not manual pulls)
+  const prevDataUpdatedAt = useRef(dataUpdatedAt);
+  useEffect(() => {
+    if (dataUpdatedAt && dataUpdatedAt !== prevDataUpdatedAt.current) {
+      prevDataUpdatedAt.current = dataUpdatedAt;
+      if (!isManualRefetchRef.current) {
+        setShowUpdatedBanner(true);
+        const t = setTimeout(() => setShowUpdatedBanner(false), 4000);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [dataUpdatedAt]);
+
+  const handleManualRefetch = useCallback(() => {
+    isManualRefetchRef.current = true;
+    refetch().finally(() => { isManualRefetchRef.current = false; });
+  }, [refetch]);
 
   const venues = useMemo(() => {
     if (!rawVenues) return rawVenues;
@@ -183,6 +222,12 @@ export default function HomeScreen() {
           },
         ]}
       >
+        {showUpdatedBanner && (
+          <View style={[styles.updatedBanner, { backgroundColor: `${colors.success}18`, borderColor: `${colors.success}40` }]}>
+            <View style={[styles.updatedDot, { backgroundColor: colors.success }]} />
+            <Text style={[styles.updatedText, { color: colors.success }]}>Updated just now</Text>
+          </View>
+        )}
         <View style={styles.headerBar}>
           <Pressable
             testID="open-sidebar"
@@ -254,7 +299,7 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching && !isLoading}
-            onRefresh={refetch}
+            onRefresh={handleManualRefetch}
             tintColor={colors.primary}
           />
         }
@@ -1196,6 +1241,22 @@ function AboutSection() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  // "Updated just now" banner
+  updatedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginHorizontal: 16,
+    marginTop: 6,
+    marginBottom: 2,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  updatedDot: { width: 6, height: 6, borderRadius: 3 },
+  updatedText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.3 },
 
   // Sticky header
   stickyHeader: {

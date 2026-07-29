@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -26,6 +26,9 @@ import { VenuePinsMap, type VenuePinsMapHandle } from '@/components/VenuePinsMap
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { haversineDistanceMi, formatDistanceMi } from '@/lib/haversine';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useAppForeground } from '@/hooks/useAppForeground';
+
+const POLL_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 
 const BASE_SORT_OPTIONS = [
   { key: 'crowdScore', label: 'Hottest' },
@@ -53,6 +56,11 @@ export default function MapScreen() {
   const [sort, setSort] = useState<SortKey>('crowdScore');
 
   const { coords, permissionGranted } = useUserLocation();
+  const isForegrounded = useAppForeground();
+
+  // "Updated just now" banner
+  const isManualRefetchRef = useRef(false);
+  const [showUpdatedBanner, setShowUpdatedBanner] = useState(false);
 
   // Revert to Hottest if location permission is revoked while Nearest is active
   useEffect(() => {
@@ -73,9 +81,26 @@ export default function MapScreen() {
     query: { queryKey: getListMarketsQueryKey() },
   });
 
-  const { data: venues = [], isLoading } = useListVenues(params, {
-    query: { queryKey: getListVenuesQueryKey(params) },
+  const { data: venues = [], isLoading, dataUpdatedAt } = useListVenues(params, {
+    query: {
+      queryKey: getListVenuesQueryKey(params),
+      refetchInterval: isForegrounded ? POLL_INTERVAL_MS : false,
+      refetchIntervalInBackground: false,
+    },
   });
+
+  // Show banner after auto-polls (not manual)
+  const prevDataUpdatedAt = useRef(dataUpdatedAt);
+  useEffect(() => {
+    if (dataUpdatedAt && dataUpdatedAt !== prevDataUpdatedAt.current) {
+      prevDataUpdatedAt.current = dataUpdatedAt;
+      if (!isManualRefetchRef.current) {
+        setShowUpdatedBanner(true);
+        const t = setTimeout(() => setShowUpdatedBanner(false), 4000);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [dataUpdatedAt]);
 
   const mappable = useMemo(() => {
     const filtered = venues.filter((v) => Number.isFinite(v.latitude) && Number.isFinite(v.longitude));
@@ -146,6 +171,23 @@ export default function MapScreen() {
           showsUserLocation={showsUserLocation}
           initialRegion={initialRegion}
         />
+      )}
+
+      {/* "Updated just now" banner */}
+      {showUpdatedBanner && (
+        <View
+          style={[
+            styles.updatedBanner,
+            {
+              top: topInset + 8 + 38 + 10,
+              backgroundColor: `${colors.success}18`,
+              borderColor: `${colors.success}40`,
+            },
+          ]}
+        >
+          <View style={[styles.updatedDot, { backgroundColor: colors.success }]} />
+          <Text style={[styles.updatedText, { color: colors.success }]}>Updated just now</Text>
+        </View>
       )}
 
       {/* Header row: menu · title + legend · locate */}
@@ -356,6 +398,9 @@ const styles = StyleSheet.create({
   chipScroll: { position: 'absolute', left: 0, right: 0 },
   chipRow: { gap: 8, paddingHorizontal: 16, paddingVertical: 6 },
   chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1 },
+  updatedBanner: { position: 'absolute', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 999, borderWidth: 1 },
+  updatedDot: { width: 6, height: 6, borderRadius: 3 },
+  updatedText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.3 },
   permissionNote: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
   permissionText: { fontSize: 11, fontFamily: 'Inter_500Medium' },
   card: { position: 'absolute', left: 16, right: 16, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
