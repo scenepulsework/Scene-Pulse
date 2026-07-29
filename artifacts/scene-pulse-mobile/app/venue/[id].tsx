@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Image,
   Linking,
   Platform,
   Pressable,
@@ -111,6 +112,11 @@ export default function VenueDetailScreen() {
 
   const levelColor = crowdColor(venue.crowdLevel);
 
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  const storageBase = `https://${domain}/api/storage`;
+
+  const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={{ paddingBottom: bottomInset + 100 }}>
@@ -181,6 +187,26 @@ export default function VenueDetailScreen() {
             {venue.address}, {venue.city} · ★ {venue.rating.toFixed(1)}
           </Text>
         </View>
+
+        {/* Photo gallery */}
+        {venue.photos.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.photoGallery}
+            style={{ marginBottom: 14 }}
+          >
+            {venue.photos.map((objectPath, i) => (
+              <Image
+                key={i}
+                source={{ uri: `${storageBase}${objectPath}` }}
+                style={[styles.photo, { borderRadius: colors.radius, borderColor: colors.border }]}
+                resizeMode="cover"
+                accessibilityLabel={`${venue.name} photo ${i + 1}`}
+              />
+            ))}
+          </ScrollView>
+        )}
 
         {/* Live pulse panel */}
         <View
@@ -276,6 +302,46 @@ export default function VenueDetailScreen() {
             {venue.reservationSignal}
           </Text>
         </View>
+
+        {/* Opening hours */}
+        {venue.openingHours && (
+          <View
+            style={[
+              styles.panel,
+              { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius },
+            ]}
+          >
+            <View style={styles.panelHeader}>
+              <Feather name="clock" size={14} color={colors.accent} />
+              <Text style={[styles.panelTitle, { color: colors.mutedForeground }]}>OPENING HOURS</Text>
+            </View>
+            {DAYS.map((day, i) => {
+              const value = venue.openingHours![day];
+              const isClosed = /closed/i.test(value ?? '');
+              return (
+                <View
+                  key={day}
+                  style={[
+                    styles.hoursRow,
+                    i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+                  ]}
+                >
+                  <Text style={[styles.hoursDay, { color: colors.mutedForeground }]}>
+                    {day.slice(0, 3).toUpperCase()}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.hoursValue,
+                      { color: isClosed ? colors.mutedForeground : colors.foreground },
+                    ]}
+                  >
+                    {value || '—'}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {/* Arrival tips */}
         {venue.arrivalTips.length > 0 && (
@@ -454,4 +520,14 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   fabText: { fontSize: 14, fontFamily: 'Inter_700Bold' },
+  photoGallery: { paddingHorizontal: 16, gap: 8 },
+  photo: { width: 220, height: 148, borderWidth: 1 },
+  hoursRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  hoursDay: { fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.8, width: 36 },
+  hoursValue: { fontSize: 13, fontFamily: 'Inter_400Regular', flexShrink: 1, textAlign: 'right' },
 });
