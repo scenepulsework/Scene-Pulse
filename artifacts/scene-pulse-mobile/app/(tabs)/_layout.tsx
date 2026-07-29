@@ -10,13 +10,13 @@ function TabBarIcon({ name, color }: { name: React.ComponentProps<typeof Feather
   return <Feather name={name} size={22} color={color} />;
 }
 
-function SavedTabIcon({ color }: { color: string }) {
+export function SavedTabIcon({ color }: { color: string }) {
   const { hasPackedBadge } = useWatchlistBadge();
   return (
     <View>
       <TabBarIcon name="bookmark" color={color} />
       {hasPackedBadge && (
-        <View style={styles.badgeDot} />
+        <View testID="saved-tab-badge-dot" style={styles.badgeDot} />
       )}
     </View>
   );
