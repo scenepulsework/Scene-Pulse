@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { setBaseUrl, setAuthTokenGetter } from '@workspace/api-client-react';
+import { queryClient } from '@/lib/queryClient';
+import { registerBackgroundFetch } from '@/lib/backgroundFetch';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -25,8 +27,6 @@ import { Sidebar } from '@/components/Sidebar';
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
 SplashScreen.preventAutoHideAsync();
-
-const queryClient = new QueryClient();
 
 const tokenCache = {
   async getToken(key: string): Promise<string | null> {
@@ -81,6 +81,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
+
+  // Register background fetch once on mount — silently refreshes crowd scores
+  // every ~15 min even when the app is backgrounded, so scores are fresh on open.
+  useEffect(() => {
+    registerBackgroundFetch();
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 
