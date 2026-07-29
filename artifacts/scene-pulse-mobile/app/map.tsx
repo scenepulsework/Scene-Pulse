@@ -23,6 +23,8 @@ import {
 import { useColors } from '@/hooks/useColors';
 import { crowdColor } from '@/lib/venue-ui';
 import { VenuePinsMap, type VenuePinsMapHandle } from '@/components/VenuePinsMap';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { haversineDistanceMi, formatDistanceMi } from '@/lib/haversine';
 
 export default function MapScreen() {
   const colors = useColors();
@@ -103,6 +105,8 @@ export default function MapScreen() {
 
   const permissionBlocked =
     permission != null && !permission.granted && !permission.canAskAgain;
+
+  const { coords } = useUserLocation();
 
   // Header row height + gap so the chip strip starts right below it.
   const headerRowBottom = topInset + 8 + 38 + 8;
@@ -259,6 +263,21 @@ export default function MapScreen() {
               <Text style={{ color: crowdColor(selected.crowdLevel) }}>
                 {selected.crowdLevel.toUpperCase()}
               </Text>
+              {coords &&
+                Number.isFinite(selected.latitude) &&
+                Number.isFinite(selected.longitude) && (
+                  <>
+                    {' · '}
+                    {formatDistanceMi(
+                      haversineDistanceMi(
+                        coords.latitude,
+                        coords.longitude,
+                        selected.latitude,
+                        selected.longitude,
+                      ),
+                    )}
+                  </>
+                )}
             </Text>
           </View>
           <View style={styles.cardScore}>

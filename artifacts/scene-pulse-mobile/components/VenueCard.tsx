@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import type { Venue } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { crowdColor, trendLabel } from '@/lib/venue-ui';
+import { formatDistanceMi } from '@/lib/haversine';
 
 export function CrowdDot({ level, size = 10 }: { level: string; size?: number }) {
   return (
@@ -20,7 +21,7 @@ export function CrowdDot({ level, size = 10 }: { level: string; size?: number })
   );
 }
 
-export function VenueCard({ venue }: { venue: Venue }) {
+export function VenueCard({ venue, distanceMi }: { venue: Venue; distanceMi?: number }) {
   const colors = useColors();
   const router = useRouter();
   const levelColor = crowdColor(venue.crowdLevel);
@@ -103,6 +104,14 @@ export function VenueCard({ venue }: { venue: Venue }) {
             {venue.rating.toFixed(1)}
           </Text>
         </View>
+        {distanceMi != null && (
+          <View style={styles.stat}>
+            <Feather name="navigation" size={13} color={colors.mutedForeground} />
+            <Text style={[styles.statText, { color: colors.mutedForeground }]}>
+              {formatDistanceMi(distanceMi)}
+            </Text>
+          </View>
+        )}
       </View>
     </Pressable>
   );
