@@ -66,7 +66,7 @@ export default function HomeScreen() {
   const [sort, setSort] = useState<SortKey>('crowdScore');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const { coords, permissionGranted, canAskPermission, requestPermission } = useUserLocation();
+  const { coords, permissionGranted, canAskPermission, requestPermission, promptDismissed, dismissPrompt } = useUserLocation();
 
   const effectiveSort = sort === 'nearest' && !permissionGranted ? 'crowdScore' : sort;
   const apiSort: BaseSort = effectiveSort === 'nearest' ? 'crowdScore' : effectiveSort;
@@ -276,6 +276,8 @@ export default function HomeScreen() {
             permissionGranted={permissionGranted}
             canAskPermission={canAskPermission}
             requestPermission={requestPermission}
+            promptDismissed={promptDismissed}
+            dismissPrompt={dismissPrompt}
             hotScenes={hotScenes}
             packedNow={packedNow}
             isFiltered={isFiltered}
@@ -364,6 +366,7 @@ function LivePulseMapSection({ venues }: { venues: Venue[] }) {
 function ListHeader({
   stats, markets, market, setMarket, sort, setSort, effectiveSort, search, setSearch,
   category, setCategory, categoryCounts, permissionGranted, canAskPermission, requestPermission,
+  promptDismissed, dismissPrompt,
   hotScenes, packedNow, mapVenues, isFiltered, isLoading, isError, venueCount,
 }: any) {
   const colors = useColors();
@@ -463,27 +466,41 @@ function ListHeader({
       </ScrollView>
 
       {/* ── Location prompt ──────────────────────────────────── */}
-      {!permissionGranted && canAskPermission && (
-        <Pressable
-          testID="location-prompt"
-          onPress={requestPermission}
-          style={({ pressed }) => [
+      {!permissionGranted && canAskPermission && !promptDismissed && (
+        <View
+          style={[
             styles.locationBanner,
             {
               backgroundColor: `${colors.primary}0d`,
               borderColor: `${colors.primary}40`,
               borderRadius: colors.radius,
-              opacity: pressed ? 0.75 : 1,
             },
           ]}
         >
-          <Feather name="navigation" size={13} color={colors.primary} />
-          <Text style={[styles.locationBannerText, { color: colors.mutedForeground }]}>
-            Enable location for{' '}
-            <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold' }}>Nearest</Text> sort
-          </Text>
-          <Feather name="chevron-right" size={13} color={colors.primary} />
-        </Pressable>
+          <Pressable
+            testID="location-prompt"
+            onPress={requestPermission}
+            style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+          >
+            <Feather name="navigation" size={13} color={colors.primary} />
+            <Text style={[styles.locationBannerText, { color: colors.mutedForeground, flex: 1 }]}>
+              Enable location for{' '}
+              <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold' }}>Nearest</Text> sort
+            </Text>
+            <Feather name="chevron-right" size={13} color={colors.primary} />
+          </Pressable>
+          <Pressable
+            testID="location-prompt-dismiss"
+            onPress={dismissPrompt}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.locationBannerDismiss,
+              { opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
+            <Feather name="x" size={13} color={colors.mutedForeground} />
+          </Pressable>
+        </View>
       )}
 
       {/* ═══════════════════════════════════════════════════════ */}
@@ -814,6 +831,10 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   locationBannerText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular' },
+  locationBannerDismiss: {
+    paddingLeft: 8,
+    paddingVertical: 4,
+  },
 
   // Section wrapper
   section: { marginBottom: 20 },
