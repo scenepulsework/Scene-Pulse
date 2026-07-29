@@ -49,7 +49,7 @@ export default function HomeScreen() {
   const [market, setMarket] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<SortKey>('crowdScore');
 
-  const { coords, permissionGranted } = useUserLocation();
+  const { coords, permissionGranted, canAskPermission, requestPermission } = useUserLocation();
 
   // When permission is revoked while "nearest" is active, fall back to hottest.
   const effectiveSort = sort === 'nearest' && !permissionGranted ? 'crowdScore' : sort;
@@ -281,6 +281,32 @@ export default function HomeScreen() {
               )}
             </ScrollView>
 
+            {/* Location prompt banner — shown when permission not yet granted */}
+            {!permissionGranted && canAskPermission && (
+              <Pressable
+                testID="location-prompt"
+                onPress={requestPermission}
+                style={({ pressed }) => [
+                  styles.locationBanner,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderRadius: colors.radius,
+                    opacity: pressed ? 0.75 : 1,
+                  },
+                ]}
+              >
+                <Feather name="navigation" size={14} color={colors.primary} />
+                <Text style={[styles.locationBannerText, { color: colors.mutedForeground }]}>
+                  Enable location to sort by{' '}
+                  <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold' }}>
+                    Nearest
+                  </Text>
+                </Text>
+                <Feather name="chevron-right" size={14} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+
             {isLoading && (
               <View style={styles.loadingWrap}>
                 <ActivityIndicator color={colors.primary} />
@@ -391,6 +417,21 @@ const styles = StyleSheet.create({
   loadingWrap: { alignItems: 'center', paddingVertical: 40, gap: 10 },
   loadingText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   retryBtn: { borderWidth: 1, paddingHorizontal: 18, paddingVertical: 8 },
+  locationBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  locationBannerText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+  },
   mapBtn: {
     width: 36,
     height: 36,

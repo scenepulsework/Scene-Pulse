@@ -6,16 +6,24 @@ export type UserCoords = { latitude: number; longitude: number };
 
 /**
  * Returns the user's current location if permission is already granted,
- * and whether location permission is granted.
- * Does NOT prompt for permission on its own — the map screen owns that flow.
+ * whether location permission is granted, whether permission can still be
+ * requested, and a function to request it.
  */
 export function useUserLocation(): {
   coords: UserCoords | null;
   permissionGranted: boolean;
+  canAskPermission: boolean;
+  requestPermission: () => Promise<void>;
 } {
   const [coords, setCoords] = useState<UserCoords | null>(null);
-  const [permission] = Location.useForegroundPermissions();
+  const [permission, requestForegroundPermission] = Location.useForegroundPermissions();
   const permissionGranted = permission?.granted ?? false;
+  const canAskPermission = permission == null || (permission.status !== 'granted' && permission.canAskAgain);
+
+  async function requestPermission() {
+    if (Platform.OS === 'web') return;
+    await requestForegroundPermission();
+  }
 
   useEffect(() => {
     if (Platform.OS === 'web') return;
@@ -46,5 +54,5 @@ export function useUserLocation(): {
     };
   }, [permissionGranted]);
 
-  return { coords, permissionGranted };
+  return { coords, permissionGranted, canAskPermission, requestPermission };
 }
