@@ -6,17 +6,21 @@ const PACKED_THRESHOLD = 80;
 
 type WatchlistBadgeContextValue = {
   hasPackedBadge: boolean;
+  /** IDs of venues that were packed when the badge was last raised. */
+  newlyPackedIds: number[];
   clearBadge: () => void;
 };
 
 const WatchlistBadgeContext = createContext<WatchlistBadgeContextValue>({
   hasPackedBadge: false,
+  newlyPackedIds: [],
   clearBadge: () => {},
 });
 
 export function WatchlistBadgeProvider({ children }: { children: React.ReactNode }) {
   const { isSignedIn } = useAuth();
   const [badgeSeen, setBadgeSeen] = useState(false);
+  const [newlyPackedIds, setNewlyPackedIds] = useState<number[]>([]);
 
   const { data: watchlist = [] } = useListWatchlist({
     query: {
@@ -37,18 +41,39 @@ export function WatchlistBadgeProvider({ children }: { children: React.ReactNode
   const prevHadPacked = useRef(hasPacked);
   useEffect(() => {
     if (hasPacked && !prevHadPacked.current) {
-      // A new packed venue appeared — raise the badge again.
+      // A new packed venue appeared — raise the badge again and record which venues are packed.
       setBadgeSeen(false);
+      setNewlyPackedIds(
+        watchlist
+          .filter((v) => v.crowdScore >= PACKED_THRESHOLD)
+          .map((v) => v.id),
+      );
     }
     prevHadPacked.current = hasPacked;
-  }, [hasPacked]);
+  }, [hasPacked, watchlist]);
 
-  const clearBadge = useCallback(() => setBadgeSeen(true), []);
+  // On first load, if venues are already packed, seed the newly-packed set.
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (!seededRef.current && hasPacked && watchlist.length > 0) {
+      seededRef.current = true;
+      setNewlyPackedIds(
+        watchlist
+          .filter((v) => v.crowdScore >= PACKED_THRESHOLD)
+          .map((v) => v.id),
+      );
+    }
+  }, [hasPacked, watchlist]);
+
+  const clearBadge = useCallback(() => {
+    setBadgeSeen(true);
+    setNewlyPackedIds([]);
+  }, []);
 
   const hasPackedBadge = hasPacked && !badgeSeen;
 
   return (
-    <WatchlistBadgeContext.Provider value={{ hasPackedBadge, clearBadge }}>
+    <WatchlistBadgeContext.Provider value={{ hasPackedBadge, newlyPackedIds, clearBadge }}>
       {children}
     </WatchlistBadgeContext.Provider>
   );

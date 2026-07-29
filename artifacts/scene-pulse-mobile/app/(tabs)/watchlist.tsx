@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth, useUser } from '@clerk/expo';
 import {
@@ -39,10 +39,34 @@ export default function WatchlistScreen() {
   const { user } = useUser();
   const { pushEnabled, togglePush } = usePushNotificationsContext();
   const { open: openSidebar } = useSidebar();
-  const { clearBadge } = useWatchlistBadge();
+  const { clearBadge, newlyPackedIds, hasPackedBadge } = useWatchlistBadge();
 
-  // Clear the packed badge as soon as the user lands on this tab
-  useEffect(() => { clearBadge(); }, [clearBadge]);
+  // Track whether this tab is currently visible.
+  const [isScreenFocused, setIsScreenFocused] = useState(false);
+  const [highlightedIds, setHighlightedIds] = useState<number[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsScreenFocused(true);
+      return () => {
+        // Clear highlights when the user leaves so the next visit starts clean.
+        setIsScreenFocused(false);
+        setHighlightedIds([]);
+      };
+    }, []),
+  );
+
+  // Snapshot packed IDs and clear the badge whenever the tab is focused AND
+  // the badge is active AND data is available. This correctly handles:
+  //   (a) arriving on the tab when the badge is already raised,
+  //   (b) watchlist data loading after the tab gains focus (async race),
+  //   (c) a new badge raised while the user is already on this tab.
+  useEffect(() => {
+    if (isScreenFocused && hasPackedBadge && newlyPackedIds.length > 0) {
+      setHighlightedIds(newlyPackedIds);
+      clearBadge();
+    }
+  }, [isScreenFocused, hasPackedBadge, newlyPackedIds, clearBadge]);
 
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
@@ -54,6 +78,16 @@ export default function WatchlistScreen() {
   const { data: watchlist = [], isLoading } = useListWatchlist({
     query: { enabled: !!isSignedIn, queryKey: getListWatchlistQueryKey() },
   });
+
+  // Float newly-packed venues to the top; preserve original order within each group.
+  const highlightedSet = React.useMemo(() => new Set(highlightedIds), [highlightedIds]);
+  const sortedWatchlist = React.useMemo(() => {
+    if (highlightedIds.length === 0) return watchlist;
+    return [
+      ...watchlist.filter((v) => highlightedSet.has(v.id)),
+      ...watchlist.filter((v) => !highlightedSet.has(v.id)),
+    ];
+  }, [watchlist, highlightedIds, highlightedSet]);
 
   const { data: activity, isLoading: isActivityLoading } = useGetMyActivity({
     query: { enabled: !!isSignedIn, queryKey: getGetMyActivityQueryKey() },
@@ -128,7 +162,7 @@ export default function WatchlistScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StickyHeader />
       <FlatList
-        data={watchlist}
+        data={sortedWatchlist}
         keyExtractor={(v) => String(v.id)}
         contentContainerStyle={{ paddingBottom: bottomInset + 24 }}
         ListHeaderComponent={
@@ -217,16 +251,37 @@ export default function WatchlistScreen() {
         }
         renderItem={({ item }) => {
           const levelColor = crowdColor(item.crowdLevel);
+          const isNew = highlightedSet.has(item.id);
           return (
             <Pressable
               testID={`watchlist-venue-${item.id}`}
               onPress={() => router.push(`/venue/${item.id}`)}
-              style={({ pressed }) => [styles.venueRow, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius, opacity: pressed ? 0.85 : 1 }]}
+              style={({ pressed }) => [
+                styles.venueRow,
+                {
+                  backgroundColor: isNew ? `${colors.destructive}12` : colors.card,
+                  borderColor: isNew ? colors.destructive : colors.border,
+                  borderRadius: colors.radius,
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
             >
+              {/* Packed alert stripe */}
+              {isNew && (
+                <View
+                  testID={`packed-highlight-${item.id}`}
+                  style={[styles.packedStripe, { backgroundColor: colors.destructive, borderRadius: colors.radius }]}
+                />
+              )}
               <View style={{ flex: 1 }}>
                 <View style={styles.venueHeader}>
                   <CrowdDot level={item.crowdLevel} size={7} />
                   <Text style={[styles.venueName, { color: colors.foreground }]} numberOfLines={1}>{item.name}</Text>
+                  {isNew && (
+                    <View style={[styles.packedBadge, { backgroundColor: colors.destructive, borderRadius: 4 }]}>
+                      <Text style={styles.packedBadgeText}>PACKED</Text>
+                    </View>
+                  )}
                 </View>
                 <Text style={[styles.venueMeta, { color: colors.mutedForeground }]} numberOfLines={1}>
                   {item.category} · {item.market} · Score {item.crowdScore}
@@ -359,7 +414,10 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 19 },
   ctaBtn: { paddingHorizontal: 24, paddingVertical: 12, marginTop: 8 },
   ctaBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
-  venueRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, padding: 14, marginHorizontal: 16, marginBottom: 10 },
+  venueRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, padding: 14, marginHorizontal: 16, marginBottom: 10, overflow: 'hidden' },
+  packedStripe: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
+  packedBadge: { paddingHorizontal: 5, paddingVertical: 2, marginLeft: 4 },
+  packedBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: 0.5 },
   venueHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 },
   venueName: { fontSize: 15, fontFamily: 'Inter_600SemiBold', flex: 1 },
   venueMeta: { fontSize: 12, fontFamily: 'Inter_400Regular' },
