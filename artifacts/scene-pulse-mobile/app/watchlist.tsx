@@ -18,6 +18,8 @@ import {
   getListWatchlistQueryKey,
   useListWatchlist,
   useRemoveFromWatchlist,
+  useGetMyActivity,
+  getGetMyActivityQueryKey,
 } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
 import { crowdColor } from '@/lib/venue-ui';
@@ -38,6 +40,10 @@ export default function WatchlistScreen() {
       enabled: !!isSignedIn,
       queryKey: getListWatchlistQueryKey(),
     },
+  });
+
+  const { data: activity, isLoading: isActivityLoading } = useGetMyActivity({
+    query: { enabled: !!isSignedIn, queryKey: getGetMyActivityQueryKey() },
   });
 
   const { mutate: remove } = useRemoveFromWatchlist({
@@ -210,7 +216,134 @@ export default function WatchlistScreen() {
             </Pressable>
           );
         }}
+        ListFooterComponent={
+          <ActivitySection
+            activity={activity}
+            isLoading={isActivityLoading}
+            onNavigate={(venueId) => router.push(`/venue/${venueId}`)}
+          />
+        }
       />
+    </View>
+  );
+}
+
+// ─── Activity Section ────────────────────────────────────────────────────────
+
+function formatRelativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 60) return minutes <= 1 ? 'just now' : `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+type ActivitySectionProps = {
+  activity: { reports: { id: number; venueId: number; venueName: string; crowdLevel: string; createdAt: string }[]; comments: { id: number; venueId: number; venueName: string; message: string; createdAt: string }[] } | undefined;
+  isLoading: boolean;
+  onNavigate: (venueId: number) => void;
+};
+
+function ActivitySection({ activity, isLoading, onNavigate }: ActivitySectionProps) {
+  const colors = useColors();
+
+  const hasReports = (activity?.reports.length ?? 0) > 0;
+  const hasComments = (activity?.comments.length ?? 0) > 0;
+  const hasAny = hasReports || hasComments;
+
+  return (
+    <View style={{ marginTop: 8 }}>
+      <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>MY ACTIVITY</Text>
+
+      {isLoading && (
+        <View style={[styles.centered, { paddingVertical: 24 }]}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      )}
+
+      {!isLoading && !hasAny && (
+        <View style={[styles.activityEmpty, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+          <Feather name="clock" size={20} color={colors.mutedForeground} />
+          <Text style={[styles.activityEmptyText, { color: colors.mutedForeground }]}>
+            No reports or comments yet
+          </Text>
+        </View>
+      )}
+
+      {hasReports && (
+        <>
+          <Text style={[styles.activitySubLabel, { color: colors.mutedForeground }]}>REPORTS</Text>
+          {activity!.reports.map((report) => (
+            <Pressable
+              key={`report-${report.id}`}
+              testID={`activity-report-${report.id}`}
+              onPress={() => onNavigate(report.venueId)}
+              style={({ pressed }) => [
+                styles.activityRow,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderRadius: colors.radius,
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+            >
+              <View style={[styles.activityIcon, { backgroundColor: `${colors.primary}18` }]}>
+                <Feather name="radio" size={14} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.activityVenue, { color: colors.foreground }]} numberOfLines={1}>
+                  {report.venueName}
+                </Text>
+                <View style={styles.activityMeta}>
+                  <CrowdDot level={report.crowdLevel} size={6} />
+                  <Text style={[styles.activityMetaText, { color: colors.mutedForeground }]}>
+                    {report.crowdLevel} · {formatRelativeTime(report.createdAt)}
+                  </Text>
+                </View>
+              </View>
+              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+            </Pressable>
+          ))}
+        </>
+      )}
+
+      {hasComments && (
+        <>
+          <Text style={[styles.activitySubLabel, { color: colors.mutedForeground, marginTop: hasReports ? 12 : 0 }]}>COMMENTS</Text>
+          {activity!.comments.map((comment) => (
+            <Pressable
+              key={`comment-${comment.id}`}
+              testID={`activity-comment-${comment.id}`}
+              onPress={() => onNavigate(comment.venueId)}
+              style={({ pressed }) => [
+                styles.activityRow,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderRadius: colors.radius,
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+            >
+              <View style={[styles.activityIcon, { backgroundColor: `${colors.primary}18` }]}>
+                <Feather name="message-circle" size={14} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.activityVenue, { color: colors.foreground }]} numberOfLines={1}>
+                  {comment.venueName}
+                </Text>
+                <Text style={[styles.activityMetaText, { color: colors.mutedForeground }]} numberOfLines={1}>
+                  {comment.message} · {formatRelativeTime(comment.createdAt)}
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+            </Pressable>
+          ))}
+        </>
+      )}
     </View>
   );
 }
@@ -309,4 +442,40 @@ const styles = StyleSheet.create({
   },
   prefLabel: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   prefSub: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 1 },
+  activitySubLabel: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 1.2,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  activityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  activityIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityVenue: { fontSize: 14, fontFamily: 'Inter_600SemiBold', marginBottom: 2 },
+  activityMeta: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  activityMetaText: { fontSize: 12, fontFamily: 'Inter_400Regular' },
+  activityEmpty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    padding: 14,
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  activityEmptyText: { fontSize: 13, fontFamily: 'Inter_400Regular' },
 });
