@@ -19,6 +19,7 @@ import { ClerkProvider, useAuth } from '@clerk/expo';
 import * as SecureStore from 'expo-secure-store';
 import { PushNotificationsProvider } from '@/contexts/PushNotificationsContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
+import { WatchlistBadgeProvider } from '@/contexts/WatchlistBadgeContext';
 import { Sidebar } from '@/components/Sidebar';
 
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
@@ -92,13 +93,15 @@ export default function RootLayout() {
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
             <ClerkAuthBridge />
-            <PushNotificationsProvider>
-              <GestureHandlerRootView>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </PushNotificationsProvider>
+            <WatchlistBadgeProvider>
+              <PushNotificationsProvider>
+                <GestureHandlerRootView>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </PushNotificationsProvider>
+            </WatchlistBadgeProvider>
           </QueryClientProvider>
         </ErrorBoundary>
       </SafeAreaProvider>

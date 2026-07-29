@@ -1,11 +1,25 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useWatchlistBadge } from '@/contexts/WatchlistBadgeContext';
 
 function TabBarIcon({ name, color }: { name: React.ComponentProps<typeof Feather>['name']; color: string }) {
   return <Feather name={name} size={22} color={color} />;
+}
+
+function SavedTabIcon({ color }: { color: string }) {
+  const { hasPackedBadge } = useWatchlistBadge();
+  return (
+    <View>
+      <TabBarIcon name="bookmark" color={color} />
+      {hasPackedBadge && (
+        <View style={styles.badgeDot} />
+      )}
+    </View>
+  );
 }
 
 export default function TabLayout() {
@@ -58,9 +72,21 @@ export default function TabLayout() {
         name="watchlist"
         options={{
           title: 'Saved',
-          tabBarIcon: ({ color }) => <TabBarIcon name="bookmark" color={color} />,
+          tabBarIcon: ({ color }) => <SavedTabIcon color={color} />,
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  badgeDot: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+  },
+});

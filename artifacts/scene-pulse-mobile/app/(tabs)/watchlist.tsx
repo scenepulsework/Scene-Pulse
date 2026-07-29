@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -28,6 +28,7 @@ import { crowdColor } from '@/lib/venue-ui';
 import { CrowdDot } from '@/components/VenueCard';
 import { usePushNotificationsContext } from '@/contexts/PushNotificationsContext';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useWatchlistBadge } from '@/contexts/WatchlistBadgeContext';
 
 export default function WatchlistScreen() {
   const colors = useColors();
@@ -38,6 +39,10 @@ export default function WatchlistScreen() {
   const { user } = useUser();
   const { pushEnabled, togglePush } = usePushNotificationsContext();
   const { open: openSidebar } = useSidebar();
+  const { clearBadge } = useWatchlistBadge();
+
+  // Clear the packed badge as soon as the user lands on this tab
+  useEffect(() => { clearBadge(); }, [clearBadge]);
 
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
