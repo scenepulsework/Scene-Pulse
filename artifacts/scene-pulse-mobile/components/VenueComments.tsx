@@ -51,6 +51,15 @@ export function VenueComments({ venueId }: { venueId: number }) {
   const [replyAuthorName, setReplyAuthorName] = useState('');
   const [replyMessage, setReplyMessage] = useState('');
   const [replyError, setReplyError] = useState<string | null>(null);
+  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
+
+  const toggleReplies = (commentId: number) => {
+    setExpandedReplies((prev) => {
+      const n = new Set(prev);
+      if (n.has(commentId)) n.delete(commentId); else n.add(commentId);
+      return n;
+    });
+  };
 
   // Pre-fill name from account when signed in
   useEffect(() => {
@@ -126,6 +135,7 @@ export function VenueComments({ venueId }: { venueId: number }) {
           setReplyMessage('');
           setReplyError(null);
           setReplyingToId(null);
+          setExpandedReplies((prev) => new Set([...prev, parentId]));
           invalidate();
         },
         onError: () => {
@@ -399,6 +409,26 @@ export function VenueComments({ venueId }: { venueId: number }) {
                     Reply
                   </Text>
                 </Pressable>
+                {replies.length > 0 && (
+                  <Pressable
+                    testID={`toggle-replies-${c.id}`}
+                    onPress={() => toggleReplies(c.id)}
+                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.replyBtn,
+                      { marginLeft: 'auto', opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <Feather
+                      name={expandedReplies.has(c.id) ? 'chevron-up' : 'chevron-down'}
+                      size={13}
+                      color={colors.mutedForeground}
+                    />
+                    <Text style={[styles.reactionCount, { color: colors.mutedForeground }]}>
+                      {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
 
               {replyingToId === c.id && (
@@ -477,7 +507,7 @@ export function VenueComments({ venueId }: { venueId: number }) {
                 </View>
               )}
 
-              {replies.length > 0 && (
+              {expandedReplies.has(c.id) && replies.length > 0 && (
                 <View style={[styles.replies, { borderLeftColor: colors.border }]}>
                   {replies.map((r) => (
                     <View key={r.id} style={{ marginBottom: 8 }} testID={`comment-${r.id}`}>
