@@ -62,6 +62,9 @@ function RootLayoutNav() {
           <Stack.Screen name="report/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
           <Stack.Screen name="sign-up" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="about/index" />
+          <Stack.Screen name="about/milestones" />
+          <Stack.Screen name="about/team" />
         </Stack>
         {/* Sidebar overlay — renders on top of everything via absolute positioning */}
         <Sidebar />
