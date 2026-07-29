@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
+  FlatList,
   Image,
   Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -33,10 +37,14 @@ import { crowdColor, timeAgo, trendLabel } from '@/lib/venue-ui';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { haversineDistanceMi, formatDistanceMi } from '@/lib/haversine';
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
 export default function VenueDetailScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const { isSignedIn } = useAuth();
   const { id: idParam } = useLocalSearchParams<{ id: string }>();
@@ -214,15 +222,31 @@ export default function VenueDetailScreen() {
             style={{ marginBottom: 14 }}
           >
             {venue.photos.map((objectPath, i) => (
-              <Image
+              <Pressable
                 key={i}
-                source={{ uri: `${storageBase}${objectPath}` }}
-                style={[styles.photo, { borderRadius: colors.radius, borderColor: colors.border }]}
-                resizeMode="cover"
-                accessibilityLabel={`${venue.name} photo ${i + 1}`}
-              />
+                onPress={() => setLightboxIndex(i)}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${venue.name} photo ${i + 1} full screen`}
+              >
+                <Image
+                  source={{ uri: `${storageBase}${objectPath}` }}
+                  style={[styles.photo, { borderRadius: colors.radius, borderColor: colors.border }]}
+                  resizeMode="cover"
+                  accessibilityLabel={`${venue.name} photo ${i + 1}`}
+                />
+              </Pressable>
             ))}
           </ScrollView>
+        )}
+
+        {/* Lightbox */}
+        {lightboxIndex !== null && (
+          <PhotoLightbox
+            photos={venue.photos.map((p) => `${storageBase}${p}`)}
+            initialIndex={lightboxIndex}
+            venueName={venue.name}
+            onClose={() => setLightboxIndex(null)}
+          />
         )}
 
         {/* Live pulse panel */}
@@ -453,6 +477,83 @@ export default function VenueDetailScreen() {
   );
 }
 
+function PhotoLightbox({
+  photos,
+  initialIndex,
+  venueName,
+  onClose,
+}: {
+  photos: string[];
+  initialIndex: number;
+  venueName: string;
+  onClose: () => void;
+}) {
+  const flatRef = useRef<FlatList<string>>(null);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  return (
+    <Modal
+      visible
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <StatusBar hidden />
+      <View style={lightboxStyles.backdrop}>
+        <FlatList
+          ref={flatRef}
+          data={photos}
+          keyExtractor={(_, i) => String(i)}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          initialScrollIndex={initialIndex}
+          getItemLayout={(_, index) => ({
+            length: SCREEN_WIDTH,
+            offset: SCREEN_WIDTH * index,
+            index,
+          })}
+          onMomentumScrollEnd={(e) => {
+            const newIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+            setCurrentIndex(newIndex);
+          }}
+          renderItem={({ item, index }) => (
+            <View style={lightboxStyles.slide}>
+              <Image
+                source={{ uri: item }}
+                style={lightboxStyles.fullImage}
+                resizeMode="contain"
+                accessibilityLabel={`${venueName} photo ${index + 1}`}
+              />
+            </View>
+          )}
+        />
+
+        {/* Counter */}
+        {photos.length > 1 && (
+          <View style={lightboxStyles.counter} pointerEvents="none">
+            <Text style={lightboxStyles.counterText}>
+              {currentIndex + 1} / {photos.length}
+            </Text>
+          </View>
+        )}
+
+        {/* Close button */}
+        <Pressable
+          onPress={onClose}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Close photo viewer"
+          style={({ pressed }) => [lightboxStyles.closeBtn, { opacity: pressed ? 0.7 : 1 }]}
+        >
+          <Text style={lightboxStyles.closeIcon}>✕</Text>
+        </Pressable>
+      </View>
+    </Modal>
+  );
+}
+
 function SubStat({ icon, label, value }: { icon: any; label: string; value: string }) {
   const colors = useColors();
   return (
@@ -549,4 +650,53 @@ const styles = StyleSheet.create({
   },
   hoursDay: { fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.8, width: 36 },
   hoursValue: { fontSize: 13, fontFamily: 'Inter_400Regular', flexShrink: 1, textAlign: 'right' },
+});
+
+const lightboxStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.96)',
+    justifyContent: 'center',
+  },
+  slide: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? 44 : 56,
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeIcon: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Inter_600SemiBold',
+    lineHeight: 18,
+  },
+  counter: {
+    position: 'absolute',
+    bottom: 48,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  counterText: {
+    color: '#fff',
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+  },
 });
