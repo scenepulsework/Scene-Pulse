@@ -258,6 +258,55 @@ describe('WatchlistBadgeContext', () => {
     expect(JSON.parse(getByTestId('newly-packed-ids').props.children)).toEqual([]);
   });
 
+  it('repopulates newlyPackedIds and re-shows badge when a venue score rebounds above threshold', async () => {
+    // Start with one packed venue — badge is raised.
+    apiState.watchlist = [{ id: 1, crowdScore: 85 }];
+    const { useListWatchlist } = getApiMocks();
+
+    const { getByTestId, rerender } = await render(
+      <WatchlistBadgeProvider>
+        <BadgeConsumer />
+      </WatchlistBadgeProvider>,
+    );
+
+    expect(getByTestId('badge-status').props.children).toBe('visible');
+    expect(JSON.parse(getByTestId('newly-packed-ids').props.children)).toEqual([1]);
+
+    // User clears the badge (navigates to Saved tab).
+    await act(async () => {
+      fireEvent.press(getByTestId('clear-badge'));
+    });
+    expect(getByTestId('badge-status').props.children).toBe('hidden');
+    expect(JSON.parse(getByTestId('newly-packed-ids').props.children)).toEqual([]);
+
+    // Score drops below threshold — no packed venue; newlyPackedIds stays [].
+    apiState.watchlist = [{ id: 1, crowdScore: 40 }];
+    useListWatchlist.mockImplementation(() => ({ data: apiState.watchlist }));
+    await act(async () => {
+      rerender(
+        <WatchlistBadgeProvider>
+          <BadgeConsumer />
+        </WatchlistBadgeProvider>,
+      );
+    });
+    expect(getByTestId('badge-status').props.children).toBe('hidden');
+    expect(JSON.parse(getByTestId('newly-packed-ids').props.children)).toEqual([]);
+
+    // Score rebounds above threshold — badge must re-raise and newlyPackedIds repopulated.
+    apiState.watchlist = [{ id: 1, crowdScore: 85 }];
+    useListWatchlist.mockImplementation(() => ({ data: apiState.watchlist }));
+    await act(async () => {
+      rerender(
+        <WatchlistBadgeProvider>
+          <BadgeConsumer />
+        </WatchlistBadgeProvider>,
+      );
+    });
+
+    expect(getByTestId('badge-status').props.children).toBe('visible');
+    expect(JSON.parse(getByTestId('newly-packed-ids').props.children)).toEqual([1]);
+  });
+
   it('does not show badge when the watchlist is empty', async () => {
     apiState.watchlist = [];
 
