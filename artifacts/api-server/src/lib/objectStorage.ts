@@ -209,6 +209,30 @@ export class ObjectStorageService {
       requestedPermission: requestedPermission ?? ObjectPermission.READ,
     });
   }
+
+  /**
+   * Delete an object entity from storage by its path.
+   *
+   * Accepts either a normalized `/objects/...` path or a full GCS URL.
+   * Silently succeeds when the object does not exist (already gone).
+   */
+  async deleteObjectEntity(rawPath: string): Promise<void> {
+    const normalizedPath = this.normalizeObjectEntityPath(rawPath);
+    if (!normalizedPath.startsWith('/')) {
+      // Not a managed object path — nothing to delete.
+      return;
+    }
+    try {
+      const objectFile = await this.getObjectEntityFile(normalizedPath);
+      await objectFile.delete();
+    } catch (err) {
+      if (err instanceof ObjectNotFoundError) {
+        // Already gone — that's fine.
+        return;
+      }
+      throw err;
+    }
+  }
 }
 
 function parseObjectPath(path: string): {

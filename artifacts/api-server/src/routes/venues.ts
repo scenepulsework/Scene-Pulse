@@ -20,6 +20,9 @@ import {
 import { presentVenue } from "../lib/venuePresenter";
 import { requireAuth, type AuthedRequest } from "../middlewares/requireAuth";
 import { sendVerificationCodeEmail } from "../lib/email";
+import { ObjectStorageService } from "../lib/objectStorage";
+
+const objectStorageService = new ObjectStorageService();
 
 const router: IRouter = Router();
 
@@ -172,6 +175,18 @@ router.patch("/venues/:id", requireAuth, async (req: AuthedRequest, res): Promis
     .where(eq(venuesTable.id, params.data.id))
     .returning();
   res.json(UpdateVenueResponse.parse(presentVenue(updated)));
+
+  // After responding, delete any photos that were removed from the venue.
+  // This is best-effort: errors are logged but never surface to the operator.
+  if (body.data.photos !== undefined) {
+    const newPhotos = new Set(body.data.photos);
+    const orphaned = venue.photos.filter((p) => !newPhotos.has(p));
+    for (const photo of orphaned) {
+      objectStorageService.deleteObjectEntity(photo).catch((err) => {
+        req.log.error({ venueId: params.data.id, photo, err }, "Failed to delete orphaned venue photo from storage");
+      });
+    }
+  }
 });
 
 const CLAIM_TTL_MS = 24 * 60 * 60 * 1000;
