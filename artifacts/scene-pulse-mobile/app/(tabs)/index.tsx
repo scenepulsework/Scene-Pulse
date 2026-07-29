@@ -288,22 +288,27 @@ export default function HomeScreen() {
           />
         }
         ListFooterComponent={
-          isLoading ? null : isError ? null : remaining > 0 ? (
-            <Pressable
-              testID="load-more-venues"
-              onPress={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              style={({ pressed }) => [
-                styles.loadMoreBtn,
-                { borderColor: colors.border, borderRadius: colors.radius, opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <Feather name="chevron-down" size={15} color={colors.mutedForeground} />
-              <Text style={[styles.loadMoreText, { color: colors.mutedForeground }]}>
-                Load {Math.min(remaining, PAGE_SIZE)} more{' '}
-                <Text style={{ color: colors.mutedForeground, opacity: 0.6 }}>({remaining} left)</Text>
-              </Text>
-            </Pressable>
-          ) : null
+          isLoading ? null : isError ? null : (
+            <>
+              {remaining > 0 && (
+                <Pressable
+                  testID="load-more-venues"
+                  onPress={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  style={({ pressed }) => [
+                    styles.loadMoreBtn,
+                    { borderColor: colors.border, borderRadius: colors.radius, opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="chevron-down" size={15} color={colors.mutedForeground} />
+                  <Text style={[styles.loadMoreText, { color: colors.mutedForeground }]}>
+                    Load {Math.min(remaining, PAGE_SIZE)} more{' '}
+                    <Text style={{ color: colors.mutedForeground, opacity: 0.6 }}>({remaining} left)</Text>
+                  </Text>
+                </Pressable>
+              )}
+              <AboutSection />
+            </>
+          )
         }
       />
     </View>
@@ -735,6 +740,455 @@ function Chip({
         {label}
       </Text>
     </Pressable>
+  );
+}
+
+// ─── About styles (must be defined before the AboutSection component) ────────
+
+const aboutStyles = StyleSheet.create({
+  container: {
+    marginTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 24,
+    paddingBottom: 32,
+  },
+
+  // Header
+  heading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  headingText: {
+    fontSize: 20,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.3,
+  },
+
+  // Mission blurb
+  mission: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 21,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+
+  // Stats row
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    marginBottom: 24,
+  },
+  statPill: { alignItems: 'center', flex: 1 },
+  statPillValue: { fontSize: 20, fontFamily: 'Inter_700Bold', lineHeight: 22 },
+  statPillLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  statDivider: { width: 1, height: 32, opacity: 0.5 },
+
+  // Section label
+  sectionLabel: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.5,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+
+  // Team rows
+  teamRow: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  teamAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  teamInitials: { fontSize: 14, fontFamily: 'Inter_700Bold' },
+  teamName: { fontSize: 14, fontFamily: 'Inter_700Bold', lineHeight: 18 },
+  teamTitle: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  teamBio: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 17,
+    marginBottom: 6,
+  },
+  teamLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  teamLocationText: { fontSize: 11, fontFamily: 'Inter_400Regular' },
+
+  // Values grid
+  valuesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  valueCard: {
+    width: '47%',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+  },
+  valueTitle: { fontSize: 13, fontFamily: 'Inter_700Bold', marginBottom: 4 },
+  valueBody: { fontSize: 11, fontFamily: 'Inter_400Regular', lineHeight: 16 },
+
+  // Milestones
+  milestones: {
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 4,
+    marginBottom: 24,
+  },
+  milestoneRow: { flexDirection: 'row', gap: 14 },
+  milestoneTrack: { alignItems: 'center', width: 12 },
+  milestoneDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginTop: 3,
+    flexShrink: 0,
+  },
+  milestoneLine: { flex: 1, width: 1, marginTop: 4 },
+  milestoneYear: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.5,
+    marginBottom: 1,
+  },
+  milestoneLabel: { fontSize: 13, fontFamily: 'Inter_700Bold', lineHeight: 18 },
+  milestoneDetail: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 17,
+    marginTop: 2,
+  },
+
+  // Contact
+  contact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  contactText: { fontSize: 12, fontFamily: 'Inter_400Regular', flexShrink: 1 },
+
+  // Footer note
+  footerNote: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'center',
+    paddingHorizontal: 16,
+  },
+});
+
+// ─── About section data ───────────────────────────────────────────────────────
+
+const ABOUT_TEAM = [
+  {
+    id: 'bg',
+    initials: 'BG',
+    name: 'Bradley Gilkerson',
+    title: 'Founder & CEO',
+    location: 'Kalamazoo, MI',
+    bio: 'Started ScenePulse after one too many wasted Ubers to dead bars. Built the first prototype in a weekend.',
+    accentIdx: 0,
+  },
+  {
+    id: 'mw',
+    initials: 'MW',
+    name: 'Marcus Webb',
+    title: 'Co-Founder & CTO',
+    location: 'Chicago, IL',
+    bio: 'Built the crowd-scoring engine and the live-signals pipeline. Previously led data infrastructure at a top venue-discovery platform.',
+    accentIdx: 1,
+  },
+  {
+    id: 'pn',
+    initials: 'PN',
+    name: 'Priya Nallamothu',
+    title: 'Head of Product',
+    location: 'New York, NY',
+    bio: 'Translates raw signal into decisions you can make in 10 seconds.',
+    accentIdx: 2,
+  },
+  {
+    id: 'jk',
+    initials: 'JK',
+    name: 'Jordan Kowalski',
+    title: 'Head of Growth',
+    location: 'Austin, TX',
+    bio: 'Launched ScenePulse in 12 cities in 18 months. Builds the reporter networks that make the data worth trusting.',
+    accentIdx: 3,
+  },
+] as const;
+
+const ABOUT_VALUES = [
+  {
+    icon: 'zap' as const,
+    title: 'Speed over polish',
+    body: 'A crowd score that updates in 3 min beats a beautiful dashboard that updates in 30.',
+  },
+  {
+    icon: 'shield' as const,
+    title: 'Data you can trust',
+    body: 'We weight signals, expire stale reports, and show confidence levels.',
+  },
+  {
+    icon: 'globe' as const,
+    title: 'Built for real cities',
+    body: 'Calibrated to how actual people go out — neighborhoods, late nights, events.',
+  },
+  {
+    icon: 'bar-chart-2' as const,
+    title: 'Operators are partners',
+    body: 'We treat operator access to their own demand signal as a feature, not an afterthought.',
+  },
+] as const;
+
+const ABOUT_MILESTONES = [
+  { year: '2022', label: 'First prototype', detail: 'Built in a weekend. Tracked 12 venues in Kalamazoo.' },
+  { year: '2023', label: 'Chicago launch', detail: 'First market outside Michigan. 80+ venues, 500+ reporters in 60 days.' },
+  { year: '2024', label: 'Series seed', detail: 'Raised seed round. Expanded to 8 markets. Operator dashboard launched.' },
+  { year: '2025', label: '14 markets', detail: 'North America-wide. Mobile app. 725+ venues tracked live.' },
+] as const;
+
+// ─── About sub-components ─────────────────────────────────────────────────────
+
+function AboutTeamRow({
+  member,
+  accentColor,
+}: {
+  member: (typeof ABOUT_TEAM)[number];
+  accentColor: string;
+}) {
+  const colors = useColors();
+  return (
+    <View style={[aboutStyles.teamRow, { borderColor: colors.border }]}>
+      <View
+        style={[
+          aboutStyles.teamAvatar,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[aboutStyles.teamInitials, { color: accentColor }]}>
+          {member.initials}
+        </Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[aboutStyles.teamName, { color: colors.foreground }]}>{member.name}</Text>
+        <Text style={[aboutStyles.teamTitle, { color: accentColor }]}>{member.title}</Text>
+        <Text style={[aboutStyles.teamBio, { color: colors.mutedForeground }]}>{member.bio}</Text>
+        <View style={aboutStyles.teamLocationRow}>
+          <Feather name="map-pin" size={10} color={colors.mutedForeground} />
+          <Text style={[aboutStyles.teamLocationText, { color: colors.mutedForeground }]}>
+            {member.location}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function AboutValueCard({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ComponentProps<typeof Feather>['name'];
+  title: string;
+  body: string;
+}) {
+  const colors = useColors();
+  return (
+    <View
+      style={[
+        aboutStyles.valueCard,
+        { borderColor: colors.border, backgroundColor: colors.card },
+      ]}
+    >
+      <Feather name={icon} size={16} color={colors.primary} style={{ marginBottom: 8 }} />
+      <Text style={[aboutStyles.valueTitle, { color: colors.foreground }]}>{title}</Text>
+      <Text style={[aboutStyles.valueBody, { color: colors.mutedForeground }]}>{body}</Text>
+    </View>
+  );
+}
+
+function AboutMilestoneRow({
+  year,
+  label,
+  detail,
+  isLast,
+}: {
+  year: string;
+  label: string;
+  detail: string;
+  isLast: boolean;
+}) {
+  const colors = useColors();
+  return (
+    <View style={aboutStyles.milestoneRow}>
+      <View style={aboutStyles.milestoneTrack}>
+        <View style={[aboutStyles.milestoneDot, { backgroundColor: colors.primary }]} />
+        {!isLast && (
+          <View style={[aboutStyles.milestoneLine, { backgroundColor: colors.border }]} />
+        )}
+      </View>
+      <View style={{ flex: 1, paddingBottom: isLast ? 0 : 20 }}>
+        <Text style={[aboutStyles.milestoneYear, { color: colors.primary }]}>{year}</Text>
+        <Text style={[aboutStyles.milestoneLabel, { color: colors.foreground }]}>{label}</Text>
+        <Text style={[aboutStyles.milestoneDetail, { color: colors.mutedForeground }]}>
+          {detail}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── About section ────────────────────────────────────────────────────────────
+
+function AboutSection() {
+  const colors = useColors();
+  const ACCENT_COLORS = [colors.primary, '#22d3ee', '#f472b6', '#fbbf24'];
+
+  return (
+    <View style={[aboutStyles.container, { borderTopColor: colors.border }]}>
+      {/* Header */}
+      <View style={aboutStyles.heading}>
+        <Feather name="zap" size={16} color={colors.primary} />
+        <Text style={[aboutStyles.headingText, { color: colors.foreground }]}>
+          About ScenePulse
+        </Text>
+      </View>
+
+      {/* Mission */}
+      <Text style={[aboutStyles.mission, { color: colors.mutedForeground }]}>
+        Know before you go. Real-time crowd conditions for 725+ venues across 14 North American
+        markets — sourced from locals who actually show up.
+      </Text>
+
+      {/* Stats row */}
+      <View
+        style={[
+          aboutStyles.statsRow,
+          { borderColor: colors.border, backgroundColor: colors.card },
+        ]}
+      >
+        {(
+          [
+            { value: '725+', label: 'Venues', primary: true },
+            { value: '14', label: 'Markets', primary: false },
+            { value: '2022', label: 'Founded', primary: false },
+          ] as const
+        ).map((s, i, arr) => (
+          <React.Fragment key={s.label}>
+            <View style={aboutStyles.statPill}>
+              <Text
+                style={[
+                  aboutStyles.statPillValue,
+                  { color: s.primary ? colors.primary : colors.foreground },
+                ]}
+              >
+                {s.value}
+              </Text>
+              <Text style={[aboutStyles.statPillLabel, { color: colors.mutedForeground }]}>
+                {s.label}
+              </Text>
+            </View>
+            {i < arr.length - 1 && (
+              <View style={[aboutStyles.statDivider, { backgroundColor: colors.border }]} />
+            )}
+          </React.Fragment>
+        ))}
+      </View>
+
+      {/* Team */}
+      <Text style={[aboutStyles.sectionLabel, { color: colors.mutedForeground }]}>TEAM</Text>
+      {ABOUT_TEAM.map((m, i) => (
+        <AboutTeamRow
+          key={m.id}
+          member={m}
+          accentColor={ACCENT_COLORS[i] ?? colors.primary}
+        />
+      ))}
+
+      {/* Values */}
+      <Text style={[aboutStyles.sectionLabel, { color: colors.mutedForeground }]}>VALUES</Text>
+      <View style={aboutStyles.valuesGrid}>
+        {ABOUT_VALUES.map((v) => (
+          <AboutValueCard key={v.title} icon={v.icon} title={v.title} body={v.body} />
+        ))}
+      </View>
+
+      {/* Milestones */}
+      <Text style={[aboutStyles.sectionLabel, { color: colors.mutedForeground }]}>
+        MILESTONES
+      </Text>
+      <View style={[aboutStyles.milestones, { borderColor: colors.border, backgroundColor: colors.card }]}>
+        {ABOUT_MILESTONES.map((m, i) => (
+          <AboutMilestoneRow
+            key={m.year}
+            year={m.year}
+            label={m.label}
+            detail={m.detail}
+            isLast={i === ABOUT_MILESTONES.length - 1}
+          />
+        ))}
+      </View>
+
+      {/* Contact */}
+      <View
+        style={[
+          aboutStyles.contact,
+          { borderColor: colors.border, backgroundColor: colors.card },
+        ]}
+      >
+        <Feather name="mail" size={14} color={colors.primary} />
+        <Text style={[aboutStyles.contactText, { color: colors.mutedForeground }]}>
+          {'hello@scenepulse.app  ·  press@scenepulse.app'}
+        </Text>
+      </View>
+
+      <Text style={[aboutStyles.footerNote, { color: colors.mutedForeground }]}>
+        © 2025 ScenePulse. All rights reserved.
+      </Text>
+    </View>
   );
 }
 
