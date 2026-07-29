@@ -979,6 +979,58 @@ market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Cardinal Café",
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "BUNA Coffee", category: "cafe", latitude: 19.4308, longitude: -99.1594, address: "Varsovia 7, Juárez, Mexico City", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=BUNA+Coffee+Mexico+City" });
 market("Mexico City", "Mexico City", "CDMX", "Mexico", { name: "Café Nin", category: "cafe", latitude: 19.4188, longitude: -99.1627, address: "Puebla 238, Roma Norte, Mexico City", bestFor: ["No Wait", "Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Cafe+Nin+Roma+Norte" });
 
+// ---------- KALAMAZOO MARKET ----------
+const kzoo = (v: Partial<SeedVenue> & Pick<SeedVenue, "name" | "category" | "latitude" | "longitude" | "address"> & { city?: string }) => {
+  const { city = "Kalamazoo", ...rest } = v;
+  venues.push(makeVenue({ city, market: "Kalamazoo", region: "Michigan", country: "USA", ...rest } as any, next()));
+};
+
+// Kalamazoo — Bars & Breweries
+kzoo({ name: "Bell's Brewery Eccentric Café", category: "bar", latitude: 42.2928, longitude: -85.5786, address: "355 E Kalamazoo Ave, Kalamazoo, MI", bestFor: ["Live Music", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Bell's+Brewery+Eccentric+Cafe" });
+kzoo({ name: "Shakespeare's Lower Level", category: "bar", latitude: 42.2921, longitude: -85.5812, address: "241 E Kalamazoo Ave, Kalamazoo, MI", bestFor: ["Speakeasy", "Date Night"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Shakespeare's+Pub+Kalamazoo" });
+kzoo({ name: "Old Dog Tavern", category: "bar", latitude: 42.2958, longitude: -85.5977, address: "902 W Michigan Ave, Kalamazoo, MI", bestFor: ["Live Music", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Old+Dog+Tavern+Kalamazoo" });
+kzoo({ name: "Motu Brewing", category: "bar", latitude: 42.2908, longitude: -85.5694, address: "600 E Michigan Ave, Kalamazoo, MI", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Motu+Brewing+Kalamazoo" });
+kzoo({ name: "Gonzo's BiggDogg Brewing", category: "bar", latitude: 42.2937, longitude: -85.5894, address: "538 W Michigan Ave, Kalamazoo, MI", bestFor: ["Live Music", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Gonzo's+BiggDogg+Brewing" });
+kzoo({ name: "HopCat Kalamazoo", category: "bar", latitude: 42.2918, longitude: -85.5849, address: "161 E Michigan Ave, Kalamazoo, MI", bestFor: ["No Wait", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=HopCat+Kalamazoo" });
+kzoo({ name: "Rupert's Brew House", category: "bar", latitude: 42.2932, longitude: -85.5818, address: "258 E Michigan Ave, Kalamazoo, MI", bestFor: ["Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Rupert's+Brew+House+Kalamazoo" });
+
+// Kalamazoo — Restaurants
+kzoo({ name: "Food Dance", category: "restaurant", latitude: 42.2919, longitude: -85.5840, address: "401 E Michigan Ave, Kalamazoo, MI", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Food+Dance+Kalamazoo" });
+kzoo({ name: "Mission Bar + Tapas", category: "restaurant", latitude: 42.2916, longitude: -85.5837, address: "433 E Michigan Ave, Kalamazoo, MI", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Mission+Bar+Tapas+Kalamazoo" });
+kzoo({ name: "Union Cabaret & Grille", category: "restaurant", latitude: 42.2910, longitude: -85.5839, address: "125 S Kalamazoo Mall, Kalamazoo, MI", bestFor: ["Live Music", "Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Union+Cabaret+Grille+Kalamazoo" });
+kzoo({ name: "Zaw on Burdick", category: "restaurant", latitude: 42.2907, longitude: -85.5830, address: "214 S Kalamazoo Mall, Kalamazoo, MI", bestFor: ["No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Zaw+on+Burdick+Kalamazoo" });
+kzoo({ name: "Yen Sushi & Sake Bar", category: "restaurant", latitude: 42.2930, longitude: -85.5845, address: "118 N Kalamazoo Mall, Kalamazoo, MI", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Yen+Sushi+Kalamazoo" });
+kzoo({ name: "Saffron Indian Bistro", category: "restaurant", latitude: 42.2925, longitude: -85.5862, address: "359 W Michigan Ave, Kalamazoo, MI", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Saffron+Indian+Bistro+Kalamazoo" });
+
+// Kalamazoo — Cafés
+kzoo({ name: "Water Street Coffee Joint", category: "cafe", latitude: 42.2933, longitude: -85.5804, address: "315 E Water St, Kalamazoo, MI", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Water+Street+Coffee+Joint+Kalamazoo" });
+kzoo({ name: "Black Owl Coffee", category: "cafe", latitude: 42.2927, longitude: -85.5878, address: "109 W Michigan Ave, Kalamazoo, MI", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Black+Owl+Coffee+Kalamazoo" });
+kzoo({ name: "Sarkozy Bakery", category: "cafe", latitude: 42.2862, longitude: -85.5736, address: "833 Portage Rd, Kalamazoo, MI", bestFor: ["No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Sarkozy+Bakery+Kalamazoo" });
+kzoo({ name: "Crow's Eye Coffee", category: "cafe", latitude: 42.3012, longitude: -85.5784, address: "412 E Michigan Ave, Kalamazoo, MI", bestFor: ["No Wait", "Date Night"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Crow's+Eye+Coffee+Kalamazoo" });
+
+// Kalamazoo — Retail
+kzoo({ name: "Found Sound", category: "retail", latitude: 42.2924, longitude: -85.5843, address: "211 S Kalamazoo Mall, Kalamazoo, MI", bestFor: ["Retail Drop"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Found+Sound+Kalamazoo" });
+kzoo({ name: "Kalamazoo Book & Music Exchange", category: "retail", latitude: 42.2929, longitude: -85.5839, address: "315 S Kalamazoo Mall, Kalamazoo, MI", bestFor: ["No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Kalamazoo+Book+Music+Exchange" });
+
+// Kalamazoo — Experiences
+kzoo({ name: "Kalamazoo State Theatre", category: "experience", latitude: 42.2912, longitude: -85.5831, address: "404 S Burdick St, Kalamazoo, MI", bestFor: ["Live Music", "Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Kalamazoo+State+Theatre" });
+kzoo({ name: "Kalamazoo Institute of Arts", category: "experience", latitude: 42.2944, longitude: -85.5824, address: "314 S Park St, Kalamazoo, MI", bestFor: ["Date Night", "No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Kalamazoo+Institute+of+Arts" });
+kzoo({ name: "Shakespeare's Pub & Pizza", category: "restaurant", latitude: 42.2921, longitude: -85.5812, address: "241 E Kalamazoo Ave, Kalamazoo, MI", bestFor: ["Late-Night Food", "No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Shakespeare's+Pub+Pizza+Kalamazoo" });
+
+// Portage (south of Kalamazoo)
+kzoo({ city: "Portage", name: "Fieldstone Grill", category: "restaurant", latitude: 42.2009, longitude: -85.5801, address: "5695 Oakland Dr, Portage, MI", bestFor: ["Date Night"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Fieldstone+Grill+Portage+MI" });
+kzoo({ city: "Portage", name: "Biggby Coffee Portage", category: "cafe", latitude: 42.1958, longitude: -85.5801, address: "6328 S Westnedge Ave, Portage, MI", bestFor: ["No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Biggby+Coffee+Portage+MI" });
+
+// Holland (west of Kalamazoo, ~35 mi)
+kzoo({ city: "Holland", name: "New Holland Brewing — The Knickerbocker", category: "bar", latitude: 42.7876, longitude: -86.1066, address: "66 E 8th St, Holland, MI", bestFor: ["Date Night", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=New+Holland+Brewing+Knickerbocker" });
+kzoo({ city: "Holland", name: "Lemonjello's Coffee", category: "cafe", latitude: 42.7877, longitude: -86.1068, address: "58 E 8th St, Holland, MI", bestFor: ["No Wait"], sourceLabel: "Local favorite", sourceUrl: "https://maps.google.com/?q=Lemonjello's+Coffee+Holland+MI" });
+kzoo({ city: "Holland", name: "Beechwood Ales", category: "bar", latitude: 42.8025, longitude: -86.0811, address: "2025 Boardwalk, Holland, MI", bestFor: ["No Wait", "Patio Energy"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Beechwood+Ales+Holland+MI" });
+kzoo({ city: "Holland", name: "Butch's Dry Dock", category: "restaurant", latitude: 42.7868, longitude: -86.1078, address: "44 E 8th St, Holland, MI", bestFor: ["Date Night", "Late-Night Food"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Butch's+Dry+Dock+Holland+MI" });
+
+// Battle Creek (east of Kalamazoo, ~20 mi)
+kzoo({ city: "Battle Creek", name: "Arcadia Ales", category: "bar", latitude: 42.3242, longitude: -85.1788, address: "103 W Michigan Ave, Battle Creek, MI", bestFor: ["No Wait", "Live Music"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Arcadia+Ales+Battle+Creek" });
+kzoo({ city: "Battle Creek", name: "Lux Coffeebar", category: "cafe", latitude: 42.3229, longitude: -85.1793, address: "136 W Michigan Ave, Battle Creek, MI", bestFor: ["No Wait"], sourceLabel: "Google Maps listing", sourceUrl: "https://maps.google.com/?q=Lux+Coffeebar+Battle+Creek+MI" });
+
 // ---------- PAST-EXPERIENCE COMMENTS ("The Wire") ----------
 const AUTHORS = [
   "Maya R.", "Jordan T.", "Priya K.", "Devon S.", "Alexis M.", "Sam W.", "Nina P.", "Marcus L.",
