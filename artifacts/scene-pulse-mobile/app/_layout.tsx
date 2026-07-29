@@ -65,6 +65,7 @@ function RootLayoutNav() {
           <Stack.Screen name="about/index" />
           <Stack.Screen name="about/milestones" />
           <Stack.Screen name="about/team" />
+          <Stack.Screen name="rewards" />
         </Stack>
         {/* Sidebar overlay — renders on top of everything via absolute positioning */}
         <Sidebar />
