@@ -26,6 +26,15 @@ import { VenuePinsMap, type VenuePinsMapHandle } from '@/components/VenuePinsMap
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { haversineDistanceMi, formatDistanceMi } from '@/lib/haversine';
 
+const SORT_OPTIONS = [
+  { key: 'crowdScore', label: 'Hottest' },
+  { key: 'waitTime', label: 'Shortest wait' },
+  { key: 'rating', label: 'Top rated' },
+  { key: 'updated', label: 'Just updated' },
+] as const;
+
+type SortKey = (typeof SORT_OPTIONS)[number]['key'];
+
 export default function MapScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -36,10 +45,11 @@ export default function MapScreen() {
   const [permission, requestPermission] = Location.useForegroundPermissions();
   const [showsUserLocation, setShowsUserLocation] = useState(false);
   const [market, setMarket] = useState<string | undefined>(undefined);
+  const [sort, setSort] = useState<SortKey>('crowdScore');
 
   const params = useMemo(
-    () => ({ ...(market ? { market } : {}) }),
-    [market],
+    () => ({ ...(market ? { market } : {}), sort }),
+    [market, sort],
   );
 
   const { data: markets = [] } = useListMarkets({
@@ -222,11 +232,30 @@ export default function MapScreen() {
         </ScrollView>
       )}
 
+      {/* Sort chips */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={[styles.chipScroll, { top: headerRowBottom + (markets.length > 0 ? 44 : 0) }]}
+        contentContainerStyle={styles.chipRow}
+      >
+        {SORT_OPTIONS.map((s) => (
+          <Chip
+            key={s.key}
+            label={s.label}
+            active={sort === s.key}
+            accent
+            onPress={() => setSort(s.key)}
+            testID={`sort-${s.key}`}
+          />
+        ))}
+      </ScrollView>
+
       {permissionBlocked && Platform.OS !== 'web' && (
         <View
           style={[
             styles.permissionNote,
-            { top: headerRowBottom + (markets.length > 0 ? 44 : 0) },
+            { top: headerRowBottom + (markets.length > 0 ? 44 : 0) + 44 },
           ]}
         >
           <Text style={[styles.permissionText, { color: colors.mutedForeground }]}>
@@ -321,14 +350,17 @@ function Chip({
   label,
   active,
   onPress,
+  accent,
   testID,
 }: {
   label: string;
   active: boolean;
   onPress: () => void;
+  accent?: boolean;
   testID?: string;
 }) {
   const colors = useColors();
+  const activeColor = accent ? colors.secondary : colors.primary;
   return (
     <Pressable
       testID={testID}
@@ -336,8 +368,8 @@ function Chip({
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: active ? colors.primary : colors.card,
-          borderColor: active ? colors.primary : colors.border,
+          backgroundColor: active ? activeColor : colors.card,
+          borderColor: active ? activeColor : colors.border,
           opacity: pressed ? 0.8 : 1,
         },
       ]}
