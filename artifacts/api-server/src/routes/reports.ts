@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, and } from "drizzle-orm";
-import { db, liveReportsTable, venuesTable, watchlistTable, notificationsTable } from "@workspace/db";
+import { eq, desc, and, inArray } from "drizzle-orm";
+import { db, liveReportsTable, venuesTable, watchlistTable, notificationsTable, devicePushTokensTable } from "@workspace/db";
 import {
   ListVenueReportsParams,
   ListVenueReportsResponse,
@@ -9,6 +9,7 @@ import {
   CreateVenueReportResponse,
 } from "@workspace/api-zod";
 import { getAuth } from "@clerk/express";
+import { Expo, type ExpoPushMessage } from "expo-server-sdk";
 
 const router: IRouter = Router();
 
@@ -181,6 +182,33 @@ async function fireWatchlistNotifications({
         waitTimeMinutes: newWaitMinutes,
       })),
     );
+
+    // Fire Expo push notifications to registered device tokens.
+    const tokenRows = await db
+      .select({ token: devicePushTokensTable.token })
+      .from(devicePushTokensTable)
+      .where(inArray(devicePushTokensTable.userId, notifyUsers));
+
+    if (tokenRows.length > 0) {
+      const expo = new Expo();
+      const pushMessages: ExpoPushMessage[] = tokenRows
+        .map((r) => r.token)
+        .filter(Expo.isExpoPushToken)
+        .map((to) => ({
+          to,
+          title: "ScenePulse",
+          body: message,
+          data: { venueId, crowdLevel: newCrowdLevel },
+          sound: "default",
+        }));
+
+      if (pushMessages.length > 0) {
+        const chunks = expo.chunkPushNotifications(pushMessages);
+        for (const chunk of chunks) {
+          await expo.sendPushNotificationsAsync(chunk);
+        }
+      }
+    }
   } catch {
     // Never crash the server due to notification failures.
   }

@@ -5,6 +5,7 @@ import {
   Platform,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from 'react-native';
@@ -21,6 +22,7 @@ import {
 import { useColors } from '@/hooks/useColors';
 import { crowdColor } from '@/lib/venue-ui';
 import { CrowdDot } from '@/components/VenueCard';
+import { usePushNotificationsContext } from '@/contexts/PushNotificationsContext';
 
 export default function WatchlistScreen() {
   const colors = useColors();
@@ -29,6 +31,7 @@ export default function WatchlistScreen() {
   const queryClient = useQueryClient();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
+  const { pushEnabled, togglePush } = usePushNotificationsContext();
 
   const { data: watchlist = [], isLoading } = useListWatchlist({
     query: {
@@ -118,6 +121,25 @@ export default function WatchlistScreen() {
               </View>
               <SignOutButton />
             </View>
+
+            {/* Push notification toggle — only meaningful on native */}
+            {Platform.OS !== 'web' && (
+              <View style={[styles.prefRow, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+                <Feather name="bell" size={16} color={colors.mutedForeground} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.prefLabel, { color: colors.foreground }]}>Push notifications</Text>
+                  <Text style={[styles.prefSub, { color: colors.mutedForeground }]}>
+                    Alerts when a saved spot opens up
+                  </Text>
+                </View>
+                <Switch
+                  value={pushEnabled}
+                  onValueChange={() => void togglePush()}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor={colors.card}
+                />
+              </View>
+            )}
 
             <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
               {watchlist.length === 0 ? 'NO SAVED SPOTS' : `SAVED SPOTS (${watchlist.length})`}
@@ -276,4 +298,15 @@ const styles = StyleSheet.create({
   venueMeta: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   venueRight: { alignItems: 'flex-end', gap: 8 },
   crowdScore: { fontSize: 22, fontFamily: 'Inter_700Bold', lineHeight: 24 },
+  prefRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    padding: 14,
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  prefLabel: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  prefSub: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 1 },
 });

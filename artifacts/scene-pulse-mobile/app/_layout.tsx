@@ -16,6 +16,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { ClerkProvider, useAuth } from '@clerk/expo';
 import * as SecureStore from 'expo-secure-store';
+import { PushNotificationsProvider } from '@/contexts/PushNotificationsContext';
 
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
@@ -102,11 +103,13 @@ export default function RootLayout() {
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
             <ClerkAuthBridge />
-            <GestureHandlerRootView>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+            <PushNotificationsProvider>
+              <GestureHandlerRootView>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </PushNotificationsProvider>
           </QueryClientProvider>
         </ErrorBoundary>
       </SafeAreaProvider>

@@ -9,6 +9,7 @@ import statsRouter from "./stats";
 import watchlistRouter from "./watchlist";
 import notificationsRouter from "./notifications";
 import storageRouter from "./storage";
+import pushTokensRouter from "./pushTokens";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(statsRouter);
 router.use(watchlistRouter);
 router.use(notificationsRouter);
 router.use(storageRouter);
+router.use(pushTokensRouter);
 
 export default router;

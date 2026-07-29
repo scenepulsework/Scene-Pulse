@@ -59,6 +59,7 @@
     "@clerk/expo": "4.0.4",
     "expo-auth-session": "~7.0.11",
     "expo-crypto": "~15.0.9",
+    "expo-notifications": "~0.31.5",
     "expo-secure-store": "~15.0.8",
     "react-native-maps": "1.18.0"
   }
