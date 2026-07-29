@@ -126,6 +126,11 @@ export interface VenueUpdate {
   name?: string;
   /** @minLength 1 */
   address?: string;
+  /**
+     * Business contact email for verification code delivery
+     * @nullable
+     */
+  contactEmail?: string | null;
   category?: VenueUpdateCategory;
   bestFor?: string[];
   /** @minLength 1 */
@@ -186,7 +191,7 @@ export interface VenueClaim {
   verifiedAt?: string | null;
   /** @nullable */
   expiresAt?: string | null;
-  /** Verification code, exposed only in development while no email provider is connected */
+  /** Verification code returned only in non-production environments when no email provider is configured, so the claim flow remains testable locally. Never present in production. */
   devVerificationCode?: string;
   createdAt: string;
 }
@@ -297,6 +302,7 @@ export interface WatchlistAlertsInput {
 }
 
 export type VenueNotificationCrowdLevel = typeof VenueNotificationCrowdLevel[keyof typeof VenueNotificationCrowdLevel];
+
 
 export const VenueNotificationCrowdLevel = {
   open: 'open',

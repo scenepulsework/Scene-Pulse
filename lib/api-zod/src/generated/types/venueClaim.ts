@@ -16,7 +16,7 @@ export interface VenueClaim {
   verifiedAt?: Date | null;
   /** @nullable */
   expiresAt?: Date | null;
-  /** Verification code, exposed only in development while no email provider is connected */
+  /** Verification code returned only in non-production environments when no email provider is configured, so the claim flow remains testable locally. Never present in production. */
   devVerificationCode?: string;
   createdAt: Date;
 }

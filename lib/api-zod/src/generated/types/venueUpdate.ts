@@ -14,6 +14,11 @@ export interface VenueUpdate {
   name?: string;
   /** @minLength 1 */
   address?: string;
+  /**
+     * Business contact email for verification code delivery
+     * @nullable
+     */
+  contactEmail?: string | null;
   category?: VenueUpdateCategory;
   bestFor?: string[];
   /** @minLength 1 */

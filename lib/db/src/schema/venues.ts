@@ -42,6 +42,7 @@ export const venuesTable = pgTable("venues", {
   arrivalTips: text("arrival_tips").array().notNull().default([]),
   photos: text("photos").array().notNull().default([]),
   openingHours: jsonb("opening_hours").$type<OpeningHours | null>(),
+  contactEmail: text("contact_email"),
   sourceLabel: text("source_label"),
   sourceUrl: text("source_url"),
   isWatchlisted: boolean("is_watchlisted").notNull().default(false),

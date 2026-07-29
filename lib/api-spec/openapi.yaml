@@ -775,6 +775,9 @@ components:
       properties:
         name: { type: string, minLength: 1 }
         address: { type: string, minLength: 1 }
+        contactEmail:
+          type: ["string", "null"]
+          description: Business contact email for verification code delivery
         category:
           type: string
           enum: [bar, restaurant, retail, cafe, experience]
@@ -857,7 +860,10 @@ components:
         expiresAt: { type: ["string", "null"], format: date-time }
         devVerificationCode:
           type: string
-          description: Verification code, exposed only in development while no email provider is connected
+          description: >
+            Verification code returned only in non-production environments when no
+            email provider is configured, so the claim flow remains testable locally.
+            Never present in production.
         createdAt: { type: string, format: date-time }
 
     VenueClaimVerification:

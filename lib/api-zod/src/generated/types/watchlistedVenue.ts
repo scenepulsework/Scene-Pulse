@@ -5,11 +5,8 @@
  * ScenePulse API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { Venue } from './venue';
 
-export interface WatchlistEntry {
-  id: number;
-  userId: string;
-  venueId: number;
+export type WatchlistedVenue = Venue & {
   alertsEnabled: boolean;
-  createdAt: Date;
-}
+};

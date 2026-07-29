@@ -6,10 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface WatchlistEntry {
-  id: number;
-  userId: string;
-  venueId: number;
+export interface WatchlistAlertsInput {
   alertsEnabled: boolean;
-  createdAt: Date;
 }

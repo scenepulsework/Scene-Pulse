@@ -19,19 +19,23 @@ import {
 } from "@workspace/api-zod";
 import { presentVenue } from "../lib/venuePresenter";
 import { requireAuth, type AuthedRequest } from "../middlewares/requireAuth";
+import { sendVerificationCodeEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
 type ClaimRow = typeof venueClaimsTable.$inferSelect;
 
-// No email provider is connected yet, so in development the code is surfaced
-// to the claimant directly instead of being emailed to the venue's contact.
-function presentClaim(claim: ClaimRow) {
+const isDev = process.env.NODE_ENV !== "production";
+
+function presentClaim(claim: ClaimRow, devCode?: string) {
+  // verificationCode is never surfaced to the claimant — it is delivered out-of-band
+  // to the venue's business contact email via Resend.
+  // In development (before Resend is authorised) the code is returned as devVerificationCode
+  // so the flow remains testable without a live email provider.
   const { verificationCode, ...rest } = claim;
-  const isDev = process.env.NODE_ENV !== "production";
   return {
     ...rest,
-    ...(isDev && claim.status === "pending" ? { devVerificationCode: verificationCode } : {}),
+    ...(devCode !== undefined ? { devVerificationCode: devCode } : {}),
   };
 }
 
@@ -172,6 +176,49 @@ router.patch("/venues/:id", requireAuth, async (req: AuthedRequest, res): Promis
 
 const CLAIM_TTL_MS = 24 * 60 * 60 * 1000;
 
+type ReqLog = { log: { info: (...a: unknown[]) => void; warn: (...a: unknown[]) => void; error: (...a: unknown[]) => void } };
+
+/**
+ * Attempt to email the verification code to the venue's business contact.
+ *
+ * Returns the raw code when a dev fallback is used (no contactEmail on file, or
+ * Resend is not yet configured in this environment) so the caller can include it
+ * as `devVerificationCode` in the response for local testing.
+ *
+ * In production, missing contactEmail returns a 422 error and email failure
+ * returns a 503 — both propagated as thrown errors.
+ */
+async function sendVerificationCode(
+  req: ReqLog,
+  venueName: string,
+  contactEmail: string | null | undefined,
+  code: string,
+): Promise<string | undefined> {
+  if (!contactEmail) {
+    if (isDev) {
+      req.log.warn({ venueName }, "No contactEmail on venue — dev fallback: code included in response");
+      return code;
+    }
+    const err = new Error("venue_no_contact_email") as Error & { statusCode: number };
+    err.statusCode = 422;
+    throw err;
+  }
+  try {
+    await sendVerificationCodeEmail({ to: contactEmail, venueName, code });
+    req.log.info({ venueName, to: contactEmail }, "Verification code email sent");
+    return undefined;
+  } catch (sendErr) {
+    if (isDev) {
+      req.log.warn({ venueName, to: contactEmail, err: sendErr }, "Email delivery failed — dev fallback: code included in response");
+      return code;
+    }
+    req.log.error({ venueName, to: contactEmail, err: sendErr }, "Failed to send verification code email");
+    const err = new Error("email_delivery_failed") as Error & { statusCode: number };
+    err.statusCode = 503;
+    throw err;
+  }
+}
+
 router.post("/venues/:id/claim", requireAuth, async (req: AuthedRequest, res): Promise<void> => {
   const params = ClaimVenueParams.safeParse(req.params);
   if (!params.success) {
@@ -208,7 +255,18 @@ router.post("/venues/:id/claim", requireAuth, async (req: AuthedRequest, res): P
       .where(eq(venueClaimsTable.id, own.id))
       .returning();
     req.log.info({ venueId: refreshed.venueId }, "Venue claim refreshed, new verification code issued");
-    res.status(201).json(ClaimVenueResponse.parse(presentClaim(refreshed)));
+    let devCode: string | undefined;
+    try {
+      devCode = await sendVerificationCode(req, venue.name, venue.contactEmail, verificationCode);
+    } catch (err: unknown) {
+      const status = (err as { statusCode?: number }).statusCode ?? 500;
+      const msg = status === 422
+        ? "This venue has no business contact email on file — contact ScenePulse support to add one"
+        : "Could not deliver the verification code email — please try again shortly";
+      res.status(status).json({ error: msg });
+      return;
+    }
+    res.status(201).json(ClaimVenueResponse.parse(presentClaim(refreshed, devCode)));
     return;
   }
   const [claim] = await db
@@ -216,7 +274,20 @@ router.post("/venues/:id/claim", requireAuth, async (req: AuthedRequest, res): P
     .values({ venueId: params.data.id, operatorUserId: req.userId!, verificationCode, expiresAt })
     .returning();
   req.log.info({ venueId: claim.venueId }, "Venue claim created, verification code issued");
-  res.status(201).json(ClaimVenueResponse.parse(presentClaim(claim)));
+  let devCode: string | undefined;
+  try {
+    devCode = await sendVerificationCode(req, venue.name, venue.contactEmail, verificationCode);
+  } catch (err: unknown) {
+    // Roll back the inserted claim so the operator can retry cleanly.
+    await db.delete(venueClaimsTable).where(eq(venueClaimsTable.id, claim.id));
+    const status = (err as { statusCode?: number }).statusCode ?? 500;
+    const msg = status === 422
+      ? "This venue has no business contact email on file — contact ScenePulse support to add one"
+      : "Could not deliver the verification code email — please try again shortly";
+    res.status(status).json({ error: msg });
+    return;
+  }
+  res.status(201).json(ClaimVenueResponse.parse(presentClaim(claim, devCode)));
 });
 
 router.delete("/venues/:id/claim", requireAuth, async (req: AuthedRequest, res): Promise<void> => {

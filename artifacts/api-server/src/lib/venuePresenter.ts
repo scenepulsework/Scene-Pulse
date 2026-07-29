@@ -5,8 +5,10 @@ export function toMapsUrl(name: string, address: string): string {
 }
 
 export function presentVenue(row: VenueRow) {
+  // contactEmail is an internal business field — never expose it in public API responses.
+  const { contactEmail: _contactEmail, ...rest } = row;
   return {
-    ...row,
+    ...rest,
     mapsUrl: toMapsUrl(row.name, row.address),
   };
 }

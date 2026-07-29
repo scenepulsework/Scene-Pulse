@@ -146,6 +146,7 @@ export const updateVenueBodyPhotosMax = 8;
 export const UpdateVenueBody = zod.object({
   "name": zod.string().min(1).optional(),
   "address": zod.string().min(1).optional(),
+  "contactEmail": zod.string().nullish().describe('Business contact email for verification code delivery'),
   "category": zod.enum(['bar', 'restaurant', 'retail', 'cafe', 'experience']).optional(),
   "bestFor": zod.array(zod.string()).optional(),
   "coverCost": zod.string().min(1).optional(),
@@ -222,7 +223,7 @@ export const ClaimVenueResponse = zod.object({
   "status": zod.enum(['pending', 'verified']),
   "verifiedAt": zod.coerce.date().nullish(),
   "expiresAt": zod.coerce.date().nullish(),
-  "devVerificationCode": zod.string().optional().describe('Verification code, exposed only in development while no email provider is connected'),
+  "devVerificationCode": zod.string().optional().describe('Verification code returned only in non-production environments when no email provider is configured, so the claim flow remains testable locally. Never present in production.\n'),
   "createdAt": zod.coerce.date()
 })
 
@@ -260,7 +261,7 @@ export const VerifyVenueClaimResponse = zod.object({
   "status": zod.enum(['pending', 'verified']),
   "verifiedAt": zod.coerce.date().nullish(),
   "expiresAt": zod.coerce.date().nullish(),
-  "devVerificationCode": zod.string().optional().describe('Verification code, exposed only in development while no email provider is connected'),
+  "devVerificationCode": zod.string().optional().describe('Verification code returned only in non-production environments when no email provider is configured, so the claim flow remains testable locally. Never present in production.\n'),
   "createdAt": zod.coerce.date()
 })
 
@@ -318,7 +319,7 @@ export const ListOperatorVenuesResponse = zod.array(ListOperatorVenuesResponseIt
 
 
 /**
- * @summary List the current user's watchlisted venues (WatchlistedVenue = Venue + alertsEnabled)
+ * @summary List the current user's watchlisted venues
  */
 export const ListWatchlistResponseItem = zod.object({
   "id": zod.number(),
@@ -362,9 +363,10 @@ export const ListWatchlistResponseItem = zod.object({
   "sourceUrl": zod.string().nullish(),
   "mapsUrl": zod.string().optional(),
   "isWatchlisted": zod.boolean(),
-  "updatedAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}).and(zod.object({
   "alertsEnabled": zod.boolean()
-})
+}))
 export const ListWatchlistResponse = zod.array(ListWatchlistResponseItem)
 
 
@@ -392,6 +394,69 @@ export const RemoveFromWatchlistParams = zod.object({
 })
 
 export const RemoveFromWatchlistResponse = zod.void()
+
+
+/**
+ * @summary Enable or disable crowd alerts for a watchlisted venue
+ */
+export const SetWatchlistAlertsParams = zod.object({
+  "venueId": zod.coerce.number()
+})
+
+export const SetWatchlistAlertsBody = zod.object({
+  "alertsEnabled": zod.boolean()
+})
+
+export const SetWatchlistAlertsResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "venueId": zod.number(),
+  "alertsEnabled": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List in-app notifications for the current user
+ */
+export const ListNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "venueId": zod.number(),
+  "venueName": zod.string(),
+  "message": zod.string(),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
+
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.void()
+
+
+/**
+ * @summary Mark a single notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "venueId": zod.number(),
+  "venueName": zod.string(),
+  "message": zod.string(),
+  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
+  "waitTimeMinutes": zod.number(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
 
 
 /**
@@ -801,68 +866,5 @@ export const GetStorageObjectParams = zod.object({
 })
 
 export const GetStorageObjectResponse = zod.unknown()
-
-
-/**
- * @summary Enable or disable crowd alerts for a watchlisted venue
- */
-export const SetWatchlistAlertsParams = zod.object({
-  "venueId": zod.coerce.number()
-})
-
-export const SetWatchlistAlertsBody = zod.object({
-  "alertsEnabled": zod.boolean()
-})
-
-export const SetWatchlistAlertsResponse = zod.object({
-  "id": zod.number(),
-  "userId": zod.string(),
-  "venueId": zod.number(),
-  "alertsEnabled": zod.boolean(),
-  "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary List in-app notifications for the current user
- */
-export const ListNotificationsResponseItem = zod.object({
-  "id": zod.number(),
-  "userId": zod.string(),
-  "venueId": zod.number(),
-  "venueName": zod.string(),
-  "message": zod.string(),
-  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
-  "waitTimeMinutes": zod.number(),
-  "isRead": zod.boolean(),
-  "createdAt": zod.coerce.date()
-})
-export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
-
-
-/**
- * @summary Mark all notifications as read
- */
-export const MarkAllNotificationsReadResponse = zod.void()
-
-
-/**
- * @summary Mark a single notification as read
- */
-export const MarkNotificationReadParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const MarkNotificationReadResponse = zod.object({
-  "id": zod.number(),
-  "userId": zod.string(),
-  "venueId": zod.number(),
-  "venueName": zod.string(),
-  "message": zod.string(),
-  "crowdLevel": zod.enum(['open', 'lively', 'packed']),
-  "waitTimeMinutes": zod.number(),
-  "isRead": zod.boolean(),
-  "createdAt": zod.coerce.date()
-})
 
 

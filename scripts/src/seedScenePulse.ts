@@ -50,6 +50,7 @@ function makeVenue(
     arrivalTips: overrides.arrivalTips ?? ["Arrive 20 minutes before the posted peak window for the shortest wait."],
     sourceLabel: overrides.sourceLabel ?? null,
     sourceUrl: overrides.sourceUrl ?? null,
+    contactEmail: overrides.contactEmail ?? null,
     crowdScore,
     crowdLevel,
     lineTrend,
