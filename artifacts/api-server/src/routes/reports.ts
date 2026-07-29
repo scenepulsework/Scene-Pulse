@@ -109,7 +109,7 @@ router.post("/venues/:venueId/reports", async (req, res): Promise<void> => {
 });
 
 /** Crowd level severity: lower = better (more open). */
-const CROWD_RANK: Record<string, number> = { open: 0, lively: 1, packed: 2 };
+export const CROWD_RANK: Record<string, number> = { open: 0, lively: 1, packed: 2 };
 
 /**
  * Compares a newly submitted report against the most recent prior report
@@ -117,7 +117,7 @@ const CROWD_RANK: Record<string, number> = { open: 0, lively: 1, packed: 2 };
  * wait-time drops. Fires in-app notifications to all opted-in watchlist
  * subscribers, excluding the reporter themselves.
  */
-async function fireWatchlistNotifications({
+export async function fireWatchlistNotifications({
   venueId,
   venueName,
   prevCrowdLevel,
