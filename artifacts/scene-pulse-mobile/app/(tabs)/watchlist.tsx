@@ -82,21 +82,25 @@ export default function WatchlistScreen() {
     finally { setNameSaving(false); }
   };
 
+  const StickyHeader = () => (
+    <View style={[styles.stickyHeader, { paddingTop: topInset + 8, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <Pressable
+        onPress={openSidebar}
+        hitSlop={10}
+        style={({ pressed }) => [styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
+      >
+        <Feather name="menu" size={18} color={colors.foreground} />
+      </Pressable>
+      <Text style={[styles.screenTitle, { color: colors.foreground }]}>Saved Spots</Text>
+      <View style={{ width: 38 }} />
+    </View>
+  );
+
   // ── Signed-out state ────────────────────────────────────────────
   if (!isSignedIn) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { paddingTop: topInset + 8 }]}>
-          <Pressable
-            onPress={openSidebar}
-            hitSlop={10}
-            style={({ pressed }) => [styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
-          >
-            <Feather name="menu" size={18} color={colors.foreground} />
-          </Pressable>
-          <Text style={[styles.screenTitle, { color: colors.foreground }]}>Saved Spots</Text>
-          <View style={{ width: 38 }} />
-        </View>
+        <StickyHeader />
         <View style={styles.centered}>
           <Feather name="bookmark" size={32} color={colors.mutedForeground} />
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>Sign in to see your watchlist</Text>
@@ -117,24 +121,13 @@ export default function WatchlistScreen() {
   // ── Signed-in state ─────────────────────────────────────────────
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StickyHeader />
       <FlatList
         data={watchlist}
         keyExtractor={(v) => String(v.id)}
         contentContainerStyle={{ paddingBottom: bottomInset + 24 }}
         ListHeaderComponent={
-          <View style={{ paddingTop: topInset + 8 }}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Pressable
-                onPress={openSidebar}
-                hitSlop={10}
-                style={({ pressed }) => [styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
-              >
-                <Feather name="menu" size={18} color={colors.foreground} />
-              </Pressable>
-              <Text style={[styles.screenTitle, { color: colors.foreground }]}>Saved Spots</Text>
-              <View style={{ width: 38 }} />
-            </View>
+          <View style={{ paddingTop: 8 }}>
 
             {/* Account info */}
             <View style={[styles.accountRow, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
