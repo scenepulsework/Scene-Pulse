@@ -261,6 +261,49 @@ describe('RewardsScreen — with transaction history', () => {
 });
 
 // ---------------------------------------------------------------------------
+describe('RewardsScreen — max-level (Pulse Pioneer)', () => {
+  const PIONEER_REWARDS = {
+    points: 1500,
+    level: 'Pulse Pioneer',
+    nextLevel: null,
+    pointsToNextLevel: null,
+    transactions: [],
+  };
+
+  beforeEach(() => {
+    getApiMocks().useGetMyRewards.mockReturnValue({
+      data: PIONEER_REWARDS,
+      isLoading: false,
+    });
+  });
+
+  it('shows "Pulse Pioneer" as the level name', async () => {
+    const { getAllByText } = await render(<RewardsScreen />);
+
+    const els = getAllByText('Pulse Pioneer');
+    expect(els.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows the total points value (1500)', async () => {
+    const { getByText } = await render(<RewardsScreen />);
+
+    expect(getByText('1,500')).toBeTruthy();
+  });
+
+  it('shows the "Max level" end-state text', async () => {
+    const { getByText } = await render(<RewardsScreen />);
+
+    expect(getByText(/Max level/)).toBeTruthy();
+  });
+
+  it('does not render a progress bar', async () => {
+    const { queryByTestId } = await render(<RewardsScreen />);
+
+    expect(queryByTestId('progress-fill')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Fixture shared by the "first points earned" suite
 // ---------------------------------------------------------------------------
 const FIRST_POINTS_REWARDS = {
