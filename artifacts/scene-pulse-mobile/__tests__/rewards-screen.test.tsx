@@ -259,3 +259,56 @@ describe('RewardsScreen — with transaction history', () => {
     expect(getByText('+10')).toBeTruthy();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Fixture shared by the "first points earned" suite
+// ---------------------------------------------------------------------------
+const FIRST_POINTS_REWARDS = {
+  points: 10,
+  level: 'Scout',
+  nextLevel: 'Regular',
+  pointsToNextLevel: 90,
+  transactions: [
+    { id: 'tx-first', points: 10, reason: 'report', createdAt: new Date('2026-07-30T12:00:00Z').toISOString() },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+describe('RewardsScreen — after earning first points (10 pts, Scout, 1 report)', () => {
+  beforeEach(() => {
+    getApiMocks().useGetMyRewards.mockReturnValue({
+      data: FIRST_POINTS_REWARDS,
+      isLoading: false,
+    });
+  });
+
+  it('shows the updated point total (10) in the level card', async () => {
+    const { getByText } = await render(<RewardsScreen />);
+
+    // Points are rendered via toLocaleString(); "10" must appear in the level card.
+    expect(getByText('10')).toBeTruthy();
+  });
+
+  it('shows the first transaction row in RECENT ACTIVITY', async () => {
+    const { getByText } = await render(<RewardsScreen />);
+
+    expect(getByText('RECENT ACTIVITY')).toBeTruthy();
+    expect(getByText('Submitted a live report')).toBeTruthy();
+    expect(getByText('+10')).toBeTruthy();
+  });
+
+  it('shows a non-zero progress bar when points > 0', async () => {
+    const { getByTestId } = await render(<RewardsScreen />);
+
+    // The progress fill width is set as a percentage string ("10%").
+    // For 10 pts Scout→Regular (threshold 100), progressPct = 10.
+    const fill = getByTestId('progress-fill');
+    const widthStyle = (fill.props.style as Array<Record<string, unknown>>)
+      .reduce<Record<string, unknown>>((acc, s) => ({ ...acc, ...(s as object) }), {});
+    const widthValue = widthStyle.width as string;
+
+    expect(widthValue).toBeDefined();
+    const numeric = parseFloat(widthValue);
+    expect(numeric).toBeGreaterThan(0);
+  });
+});

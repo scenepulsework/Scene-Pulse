@@ -151,6 +151,7 @@ function LevelCard({
         <>
           <View style={[styles.progressTrack, { backgroundColor: `${colors.background}80` }]}>
             <View
+              testID="progress-fill"
               style={[
                 styles.progressFill,
                 { width: `${progressPct}%` as any, backgroundColor: accent },
