@@ -7,6 +7,7 @@ import { shadcn } from "@clerk/themes";
 
 const PENDING_REFERRAL_KEY = "sp_pending_referral_code";
 import { Toaster } from "@/components/ui/toaster";
+import { toast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import NotFound from "@/pages/not-found";
@@ -167,7 +168,7 @@ function ClerkQueryClientCacheInvalidator() {
           try {
             const token = await getTokenRef.current();
             if (!token) return;
-            await fetch("/api/me/referral/redeem", {
+            const res = await fetch("/api/me/referral/redeem", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -175,6 +176,12 @@ function ClerkQueryClientCacheInvalidator() {
               },
               body: JSON.stringify({ code }),
             });
+            if (res.ok) {
+              toast({
+                title: "🎉 Referral applied",
+                description: "+25 points have been added to your rewards balance.",
+              });
+            }
           } catch {
             // Silently ignore — invalid/already-used codes should not break the UX.
           }

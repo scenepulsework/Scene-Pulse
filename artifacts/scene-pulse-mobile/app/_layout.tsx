@@ -24,6 +24,7 @@ import { PushNotificationsProvider } from '@/contexts/PushNotificationsContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { WatchlistBadgeProvider } from '@/contexts/WatchlistBadgeContext';
 import { Sidebar } from '@/components/Sidebar';
+import { ToastProvider, useToast } from '@/contexts/ToastContext';
 
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
@@ -46,6 +47,7 @@ function ClerkAuthBridge() {
   const { getToken, isSignedIn } = useAuth();
   const getTokenRef = useRef(getToken);
   getTokenRef.current = getToken;
+  const { showToast } = useToast();
 
   // Wire Clerk token into the API client.
   useEffect(() => {
@@ -65,13 +67,14 @@ function ClerkAuthBridge() {
         await SecureStore.deleteItemAsync(PENDING_REFERRAL_CODE_KEY).catch(() => {});
         try {
           await redeemReferral({ code });
+          showToast('🎉 Referral applied — +25 points added!');
         } catch {
           // Silently ignore — invalid/already-used codes should not break the UX.
         }
       }).catch(() => {});
     }
     prevSignedInRef.current = isSignedIn;
-  }, [isSignedIn]);
+  }, [isSignedIn, showToast]);
 
   return null;
 }
@@ -126,16 +129,18 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
-            <ClerkAuthBridge />
-            <WatchlistBadgeProvider>
-              <PushNotificationsProvider>
-                <GestureHandlerRootView>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
-                </GestureHandlerRootView>
-              </PushNotificationsProvider>
-            </WatchlistBadgeProvider>
+            <ToastProvider>
+              <ClerkAuthBridge />
+              <WatchlistBadgeProvider>
+                <PushNotificationsProvider>
+                  <GestureHandlerRootView>
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  </GestureHandlerRootView>
+                </PushNotificationsProvider>
+              </WatchlistBadgeProvider>
+            </ToastProvider>
           </QueryClientProvider>
         </ErrorBoundary>
       </SafeAreaProvider>
