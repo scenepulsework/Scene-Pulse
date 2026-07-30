@@ -1,9 +1,11 @@
 import { useLayoutEffect, useEffect, useRef } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { ClerkProvider, SignIn, SignUp, useClerk } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, useClerk, useAuth } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
+
+const PENDING_REFERRAL_KEY = "sp_pending_referral_code";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -119,6 +121,16 @@ function SignInPage() {
 }
 
 function SignUpPage() {
+  // Capture a ?ref=CODE query param so we can auto-redeem it after sign-up.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      const clean = ref.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+      if (clean) sessionStorage.setItem(PENDING_REFERRAL_KEY, clean);
+    }
+  }, []);
+
   return (
     <div className="flex min-h-[70dvh] items-center justify-center bg-background px-4 py-12">
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
@@ -127,18 +139,47 @@ function SignUpPage() {
 }
 
 // Helps webview stay up-to-date when the signed-in user changes.
+// Also auto-redeems a pending referral code stored in sessionStorage on fresh sign-up.
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
+  const { getToken } = useAuth();
   const qc = useQueryClient();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
 
   useEffect(() => {
-    const unsubscribe = addListener(({ user }) => {
+    const unsubscribe = addListener(async ({ user }) => {
       const userId = user?.id ?? null;
+      const wasSignedOut = prevUserIdRef.current === null || prevUserIdRef.current === undefined;
+      const isNowSignedIn = userId !== null;
+
       if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
         qc.clear();
       }
       prevUserIdRef.current = userId;
+
+      // Redeem a pending referral code on transition from signed-out → signed-in.
+      if (wasSignedOut && isNowSignedIn) {
+        const code = sessionStorage.getItem(PENDING_REFERRAL_KEY);
+        if (code) {
+          sessionStorage.removeItem(PENDING_REFERRAL_KEY);
+          try {
+            const token = await getTokenRef.current();
+            if (!token) return;
+            await fetch("/api/me/referral/redeem", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ code }),
+            });
+          } catch {
+            // Silently ignore — invalid/already-used codes should not break the UX.
+          }
+        }
+      }
     });
     return unsubscribe;
   }, [addListener, qc]);

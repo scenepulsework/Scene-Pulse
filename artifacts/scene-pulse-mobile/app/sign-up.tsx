@@ -14,7 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSignUp, useSSO } from '@clerk/expo';
+import * as SecureStore from 'expo-secure-store';
 import { useColors } from '@/hooks/useColors';
+
+export const PENDING_REFERRAL_CODE_KEY = 'pending_referral_code';
 
 export default function SignUpScreen() {
   const colors = useColors();
@@ -30,6 +33,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -76,6 +80,11 @@ export default function SignUpScreen() {
       }
       if (signUp.status === 'complete') {
         await signUp.finalize();
+        // Persist any referral code so the root layout can redeem it once the
+        // Clerk session is active (the token isn't available yet at this point).
+        if (referralCode.trim()) {
+          await SecureStore.setItemAsync(PENDING_REFERRAL_CODE_KEY, referralCode.trim());
+        }
         router.replace('/');
       } else {
         setError('Verification incomplete. Please try again.');
@@ -224,6 +233,30 @@ export default function SignUpScreen() {
                 </Pressable>
               </View>
 
+              {/* Referral code (optional) */}
+              <Text style={[styles.label, { color: colors.mutedForeground }]}>
+                REFERRAL CODE <Text style={[styles.labelOptional, { color: colors.mutedForeground }]}>(optional)</Text>
+              </Text>
+              <TextInput
+                testID="referral-code-input"
+                value={referralCode}
+                onChangeText={(v) => setReferralCode(v.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                placeholder="e.g. ABC12345"
+                placeholderTextColor={colors.mutedForeground}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                maxLength={8}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    color: colors.foreground,
+                    borderRadius: colors.radius,
+                  },
+                ]}
+              />
+
               {error ? (
                 <Text style={[styles.error, { color: colors.destructive }]} testID="signup-error">
                   {error}
@@ -359,6 +392,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginBottom: 8,
     marginTop: 4,
+  },
+  labelOptional: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    letterSpacing: 0,
+    textTransform: 'none',
   },
   input: {
     borderWidth: 1,

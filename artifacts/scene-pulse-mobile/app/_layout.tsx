@@ -5,7 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { setBaseUrl, setAuthTokenGetter } from '@workspace/api-client-react';
+import { setBaseUrl, setAuthTokenGetter, redeemReferral } from '@workspace/api-client-react';
 import { queryClient } from '@/lib/queryClient';
 import { registerBackgroundFetch } from '@/lib/backgroundFetch';
 import {
@@ -19,6 +19,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { ClerkProvider, useAuth } from '@clerk/expo';
 import * as SecureStore from 'expo-secure-store';
+import { PENDING_REFERRAL_CODE_KEY } from './sign-up';
 import { PushNotificationsProvider } from '@/contexts/PushNotificationsContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { WatchlistBadgeProvider } from '@/contexts/WatchlistBadgeContext';
@@ -42,13 +43,36 @@ const tokenCache = {
 };
 
 function ClerkAuthBridge() {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const getTokenRef = useRef(getToken);
   getTokenRef.current = getToken;
+
+  // Wire Clerk token into the API client.
   useEffect(() => {
     setAuthTokenGetter(() => getTokenRef.current());
     return () => setAuthTokenGetter(null);
   }, []);
+
+  // After sign-up, a referral code may be stored waiting for a valid session.
+  // Redeem it now that the session is active and the API client has a token.
+  const prevSignedInRef = useRef<boolean | undefined>(undefined);
+  useEffect(() => {
+    if (isSignedIn && prevSignedInRef.current === false) {
+      // Transitioned from signed-out → signed-in (i.e. a fresh sign-up / sign-in).
+      SecureStore.getItemAsync(PENDING_REFERRAL_CODE_KEY).then(async (code) => {
+        if (!code) return;
+        // Always clear the key first so we don't retry on error.
+        await SecureStore.deleteItemAsync(PENDING_REFERRAL_CODE_KEY).catch(() => {});
+        try {
+          await redeemReferral({ code });
+        } catch {
+          // Silently ignore — invalid/already-used codes should not break the UX.
+        }
+      }).catch(() => {});
+    }
+    prevSignedInRef.current = isSignedIn;
+  }, [isSignedIn]);
+
   return null;
 }
 
