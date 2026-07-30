@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import {
   db,
   userPointsTable,
@@ -174,16 +174,20 @@ router.post(
       return;
     }
 
-    // Check the referred user hasn't already redeemed a code.
+    // Check the referred user hasn't already redeemed a referral code.
     const [alreadyRedeemed] = await db
       .select({ id: pointTransactionsTable.id })
       .from(pointTransactionsTable)
       .where(
-        eq(pointTransactionsTable.userId, userId),
+        and(
+          eq(pointTransactionsTable.userId, userId),
+          eq(pointTransactionsTable.reason, "referral_received"),
+        ),
       )
       .limit(1);
     if (alreadyRedeemed) {
-      // Allow partial: just award the referrer if they haven't gotten credit yet.
+      res.status(409).json({ error: "Referral code already redeemed" });
+      return;
     }
 
     await Promise.all([

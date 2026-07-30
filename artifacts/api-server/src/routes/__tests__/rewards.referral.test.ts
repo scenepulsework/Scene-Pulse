@@ -205,4 +205,31 @@ describe("POST /me/referral/redeem", () => {
     expect(await getTotalPoints(REFERRER_ID)).toBe(0);
     expect(await getTransactionCount(NEW_USER_ID)).toBe(0);
   });
+
+  it("awards +25 only once — second redeem with the same code returns 409 and no extra points", async () => {
+    const app = makeApp(NEW_USER_ID);
+
+    // First redeem — should succeed.
+    const first = await supertest(app)
+      .post("/me/referral/redeem")
+      .send({ code: TEST_CODE });
+    expect(first.status).toBe(200);
+    expect(first.body.success).toBe(true);
+
+    const ptsAfterFirst = await getTotalPoints(NEW_USER_ID);
+    const referrerPtsAfterFirst = await getTotalPoints(REFERRER_ID);
+    expect(ptsAfterFirst).toBe(25);
+    expect(referrerPtsAfterFirst).toBe(100);
+
+    // Second redeem — must be rejected.
+    const second = await supertest(app)
+      .post("/me/referral/redeem")
+      .send({ code: TEST_CODE });
+    expect(second.status).toBe(409);
+    expect(second.body.error).toBeTruthy();
+
+    // Points must not have changed.
+    expect(await getTotalPoints(NEW_USER_ID)).toBe(25);
+    expect(await getTotalPoints(REFERRER_ID)).toBe(100);
+  });
 });
